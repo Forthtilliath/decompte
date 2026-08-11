@@ -36,8 +36,14 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-example
-
 # generated native folders
 /ios
 /android
+
+# docs : seuls README.md et CHANGELOG.md sont autorisés par défaut, les autres .md sont ignorés
+# sauf exception ajoutée manuellement ici
+*.md
+!README.md
+!CHANGELOG.md
+!AGENTS.md
+!CLAUDE.md
