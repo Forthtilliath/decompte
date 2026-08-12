@@ -3,6 +3,8 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { PlayerScoreRow } from "@/components/players/PlayerScoreRow";
+import { BooleanScoreField } from "@/components/scoring/BooleanScoreField";
+import { ChoiceScoreField } from "@/components/scoring/ChoiceScoreField";
 import { ManualPointsFields } from "@/components/scoring/ManualPointsFields";
 import { TokenScoreField } from "@/components/scoring/TokenScoreField";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
@@ -77,19 +79,36 @@ export default function PlayScoreScreen() {
 					const points = entry?.scores[category.id] ?? 0;
 					return (
 						<PlayerScoreRow key={player.id} player={player}>
-							{category.brick.kind === "manual" ? (
+							{category.brick.kind === "manual" && (
 								<ManualPointsFields
 									points={points}
 									color={category.color}
-									min={category.brick.min}
+									allowNegative={category.brick.allowNegative}
+									max={category.brick.max}
 									onChange={(value) => updateScore(player.id, category.id, value)}
 								/>
-							) : (
+							)}
+							{category.brick.kind === "tokens" && (
 								<TokenScoreField
 									points={points}
 									color={category.color}
 									label={category.label}
 									tokens={category.brick.tokens}
+									onChange={(value) => updateScore(player.id, category.id, value)}
+								/>
+							)}
+							{category.brick.kind === "choice" && (
+								<ChoiceScoreField
+									points={points}
+									options={category.brick.options}
+									onChange={(value) => updateScore(player.id, category.id, value)}
+								/>
+							)}
+							{category.brick.kind === "boolean" && (
+								<BooleanScoreField
+									points={points}
+									yesValue={category.brick.yesValue}
+									noValue={category.brick.noValue}
 									onChange={(value) => updateScore(player.id, category.id, value)}
 								/>
 							)}

@@ -50,10 +50,12 @@ function useStyles(colors: ThemeColors) {
 			StyleSheet.create({
 				row: {
 					flexDirection: "row",
+					flexWrap: "wrap",
 					gap: 8,
 				},
 				option: {
-					flex: 1,
+					flexGrow: 1,
+					flexBasis: "45%",
 					paddingVertical: 8,
 					borderRadius: RADIUS.sm,
 					borderWidth: 1.5,

@@ -31,7 +31,8 @@ type Actions = {
 };
 
 // Bump on any breaking change to GameDef's shape.
-export const GAMES_STORE_VERSION = 1;
+// v2 : ScoringBrick "manual" remplace `min` par `allowNegative`, ajout des kinds "choice"/"boolean".
+export const GAMES_STORE_VERSION = 2;
 
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
 export function migrateGamesStoreData(persistedState: unknown, version: number): State {
