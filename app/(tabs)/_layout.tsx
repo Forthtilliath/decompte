@@ -16,6 +16,7 @@ export default function TabsLayout() {
 				tabBarInactiveTintColor: colors.textMuted,
 			}}
 		>
+			<Tabs.Screen name="index" options={{ href: null, headerShown: false }} />
 			<Tabs.Screen
 				name="jeux"
 				options={{
