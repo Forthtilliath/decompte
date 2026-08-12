@@ -1,72 +1,92 @@
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, StyleSheet, Text, View } from "react-native";
+import { GroupListItem } from "@/components/groups/GroupListItem";
+import { PlayerListItem } from "@/components/players/PlayerListItem";
 import { Button } from "@/components/ui/Button";
-import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { selectSortedGroups, useGroupsStore } from "@/stores/groupsStore";
 import { selectSortedPlayers, usePlayersStore } from "@/stores/playersStore";
 
 export default function PlayersScreen() {
+	const router = useRouter();
 	const colors = useColors();
 	const styles = useStyles(colors);
 	const players = usePlayersStore((s) => s.players);
-	const addPlayer = usePlayersStore((s) => s.addPlayer);
-	const removePlayer = usePlayersStore((s) => s.removePlayer);
-	const [name, setName] = useState("");
+	const toggleFavorite = usePlayersStore((s) => s.toggleFavorite);
+	const toggleArchived = usePlayersStore((s) => s.toggleArchived);
+	const groups = useGroupsStore((s) => s.groups);
+	const toggleGroupFavorite = useGroupsStore((s) => s.toggleFavorite);
+	const toggleGroupArchived = useGroupsStore((s) => s.toggleArchived);
+	const [query, setQuery] = useState("");
 
-	const activePlayers = selectSortedPlayers(players.filter((p) => !p.isArchived));
-
-	const handleAdd = () => {
-		if (!name.trim()) return;
-		addPlayer({ name });
-		setName("");
-	};
-
-	const confirmRemove = (id: string, playerName: string) => {
-		Alert.alert(`Supprimer ${playerName} ?`, undefined, [
-			{ text: "Annuler", style: "cancel" },
-			{ text: "Supprimer", style: "destructive", onPress: () => removePlayer(id) },
-		]);
-	};
+	const sorted = selectSortedPlayers(players);
+	const sortedGroups = selectSortedGroups(groups);
+	const filtered = sorted.filter((p) => p.name.toLowerCase().includes(query.trim().toLowerCase()));
 
 	return (
-		<ScreenContainer style={styles.container}>
-			<View style={styles.addRow}>
-				<View style={styles.addField}>
-					<TextField
-						placeholder="Nom du joueur"
-						value={name}
-						onChangeText={setName}
-						onSubmitEditing={handleAdd}
+		<ScreenContainer>
+			{players.length > 0 && (
+				<TextField
+					placeholder="Rechercher un joueur..."
+					value={query}
+					onChangeText={setQuery}
+					style={styles.search}
+					autoCapitalize="none"
+				/>
+			)}
+			<FlatList
+				data={filtered}
+				keyExtractor={(p) => p.id}
+				contentContainerStyle={styles.list}
+				ItemSeparatorComponent={() => <Text style={{ height: SPACING.sm }} />}
+				ListHeaderComponent={
+					query.length === 0 ? (
+						<View style={styles.groupsSection}>
+							<Text style={styles.sectionTitle}>Groupes</Text>
+							{sortedGroups.map((group) => (
+								<GroupListItem
+									key={group.id}
+									group={group}
+									onPress={() => router.push(`/groups/${group.id}`)}
+									onToggleFavorite={() => toggleGroupFavorite(group.id)}
+									onToggleArchived={() => toggleGroupArchived(group.id)}
+								/>
+							))}
+							<Button
+								label="Nouveau groupe"
+								variant="ghost"
+								onPress={() => router.push("/groups/new")}
+							/>
+							<Text style={styles.sectionTitle}>Joueurs</Text>
+						</View>
+					) : null
+				}
+				ListEmptyComponent={
+					<Text style={styles.empty}>
+						{query.length > 0
+							? "Aucun joueur ne correspond à cette recherche."
+							: "Aucun joueur pour l'instant."}
+					</Text>
+				}
+				renderItem={({ item }) => (
+					<PlayerListItem
+						player={item}
+						onPress={() => router.push(`/players/${item.id}`)}
+						onToggleFavorite={() => toggleFavorite(item.id)}
+						onToggleArchived={() => toggleArchived(item.id)}
 					/>
-				</View>
-				<Button label="Ajouter" onPress={handleAdd} />
-			</View>
-
-			<ScrollView contentContainerStyle={styles.list}>
-				{activePlayers.map((player) => (
-					<View key={player.id} style={styles.row}>
-						<PlayerAvatar
-							name={player.name}
-							avatarUri={player.avatarUri}
-							seed={player.id}
-							size={40}
-						/>
-						<Text style={styles.name} numberOfLines={1}>
-							{player.name}
-						</Text>
-						<Text style={styles.remove} onPress={() => confirmRemove(player.id, player.name)}>
-							Supprimer
-						</Text>
-					</View>
-				))}
-				{activePlayers.length === 0 && (
-					<Text style={styles.empty}>Aucun joueur pour l'instant. Ajoute-en un ci-dessus.</Text>
 				)}
-			</ScrollView>
+			/>
+			<Button
+				label="Ajouter un joueur"
+				onPress={() => router.push("/players/new")}
+				style={styles.addButton}
+			/>
 		</ScreenContainer>
 	);
 }
@@ -75,43 +95,29 @@ function useStyles(colors: ThemeColors) {
 	return useMemo(
 		() =>
 			StyleSheet.create({
-				container: {
-					gap: SPACING.sm,
-				},
-				addRow: {
-					flexDirection: "row",
-					gap: SPACING.sm,
-					alignItems: "flex-end",
-				},
-				addField: {
-					flex: 1,
+				search: {
+					marginBottom: SPACING.md,
 				},
 				list: {
-					gap: SPACING.sm,
-					paddingTop: SPACING.sm,
-				},
-				row: {
-					flexDirection: "row",
-					alignItems: "center",
-					gap: SPACING.sm,
-					backgroundColor: colors.surface,
-					borderRadius: RADIUS.md,
-					padding: SPACING.md,
-				},
-				name: {
-					flex: 1,
-					color: colors.text,
-					fontSize: 16,
-					fontWeight: "600",
-				},
-				remove: {
-					color: colors.danger,
-					fontSize: 13,
+					paddingBottom: SPACING.md,
 				},
 				empty: {
 					color: colors.textMuted,
 					textAlign: "center",
-					marginTop: SPACING.lg,
+					marginTop: SPACING.xl,
+				},
+				addButton: {
+					marginTop: SPACING.md,
+				},
+				groupsSection: {
+					gap: SPACING.sm,
+					marginBottom: SPACING.sm,
+				},
+				sectionTitle: {
+					color: colors.textMuted,
+					fontSize: 14,
+					textTransform: "uppercase",
+					letterSpacing: 0.5,
 				},
 			}),
 		[colors],
