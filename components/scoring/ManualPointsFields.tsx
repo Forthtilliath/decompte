@@ -5,13 +5,20 @@ type Props = {
 	points: number;
 	onChange: (points: number) => void;
 	color: string;
-	min?: number;
+	allowNegative?: boolean;
+	max?: number;
 };
 
-export function ManualPointsFields({ points, onChange, color, min = 0 }: Props) {
+export function ManualPointsFields({ points, onChange, color, allowNegative = false, max }: Props) {
 	return (
 		<View style={styles.row}>
-			<NumberStepper value={points} onChange={onChange} min={min} accentColor={color} />
+			<NumberStepper
+				value={points}
+				onChange={onChange}
+				min={allowNegative ? undefined : 0}
+				max={max}
+				accentColor={color}
+			/>
 		</View>
 	);
 }

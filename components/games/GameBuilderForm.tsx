@@ -36,7 +36,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	const [maxPlayers, setMaxPlayers] = useState(String(initial?.maxPlayers ?? 8));
 	const [categories, setCategories] = useState<DraftCategory[]>(
 		initial?.categories.map((c) => ({ id: c.id, label: c.label, brick: c.brick })) ?? [
-			{ label: "", brick: { kind: "manual" } },
+			{ label: "", brick: { kind: "manual", allowNegative: false } },
 		],
 	);
 
@@ -45,7 +45,10 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	};
 
 	const addCategory = () => {
-		setCategories((current) => [...current, { label: "", brick: { kind: "manual" } }]);
+		setCategories((current) => [
+			...current,
+			{ label: "", brick: { kind: "manual", allowNegative: false } },
+		]);
 	};
 
 	const removeCategory = (index: number) => {
@@ -70,6 +73,29 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 				"Jetons manquants",
 				"Ajoute au moins un jeton aux catégories de type «Compteur de jetons».",
 			);
+			return;
+		}
+		if (categories.some((c) => c.brick.kind === "choice" && c.brick.options.length < 2)) {
+			Alert.alert(
+				"Valeurs manquantes",
+				"Ajoute au moins deux valeurs aux catégories de type «Choix».",
+			);
+			return;
+		}
+		if (
+			categories.some(
+				(c) => c.brick.kind === "choice" && c.brick.options.some((o) => !o.label.trim()),
+			)
+		) {
+			Alert.alert("Valeur incomplète", "Donne un libellé à chaque valeur d'une catégorie «Choix».");
+			return;
+		}
+		if (
+			categories.some(
+				(c) => c.brick.kind === "tokens" && c.brick.tokens.some((t) => !t.label.trim()),
+			)
+		) {
+			Alert.alert("Jeton incomplet", "Donne un libellé à chaque jeton.");
 			return;
 		}
 		const min = Number.parseInt(minPlayers, 10) || 1;
