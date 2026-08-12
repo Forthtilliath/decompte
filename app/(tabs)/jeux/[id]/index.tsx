@@ -20,7 +20,14 @@ export default function GameDetailScreen() {
 	const game = useGamesStore((s) => s.games.find((g) => g.id === id));
 	const toggleArchived = useGamesStore((s) => s.toggleArchived);
 	const players = usePlayersStore((s) => s.players);
-	const sessions = useHistoryStore((s) => s.sessions.filter((sess) => sess.gameDefId === id));
+	// `.filter()` retourne un nouveau tableau à chaque rendu : le sélectionner directement
+	// casserait la stabilité de référence attendue par Zustand et provoquerait une boucle de rendu
+	// infinie. On sélectionne le tableau brut (stable) et on filtre nous-mêmes, mémorisé.
+	const allSessions = useHistoryStore((s) => s.sessions);
+	const sessions = useMemo(
+		() => allSessions.filter((sess) => sess.gameDefId === id),
+		[allSessions, id],
+	);
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const sessionGameDefId = useSessionStore((s) => s.gameDefId);
 	const startNewSession = useSessionStore((s) => s.startNewSession);
