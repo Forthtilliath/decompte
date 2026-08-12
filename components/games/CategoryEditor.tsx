@@ -122,38 +122,48 @@ export function CategoryEditor({ category, onChange, onRemove }: Props) {
 					{brick.tokens.map((token, index) => (
 						// biome-ignore lint/suspicious/noArrayIndexKey: liste réordonnée seulement par ajout/suppression en bout, pas de tri
 						<View key={index} style={styles.itemRow}>
-							<View style={styles.itemLabel}>
-								<TextField
-									placeholder="Libellé (ex. Victoire +3)"
-									value={token.label}
-									onChangeText={(label) => {
-										const tokens = brick.tokens.map((t, i) => (i === index ? { ...t, label } : t));
-										setBrick({ ...brick, tokens });
-									}}
-								/>
+							<Text style={styles.itemIndex}>Jeton {index + 1}</Text>
+							<View style={styles.itemFields}>
+								<View style={styles.itemLabel}>
+									<TextField
+										label="Libellé"
+										placeholder="Ex. Victoire +3"
+										value={token.label}
+										onChangeText={(label) => {
+											const tokens = brick.tokens.map((t, i) =>
+												i === index ? { ...t, label } : t,
+											);
+											setBrick({ ...brick, tokens });
+										}}
+									/>
+								</View>
+								<View style={styles.itemValue}>
+									<TextField
+										label="Valeur"
+										placeholder="0"
+										keyboardType="numeric"
+										value={String(token.value)}
+										onChangeText={(raw) => {
+											const value = Number(raw) || 0;
+											const tokens = brick.tokens.map((t, i) =>
+												i === index ? { ...t, value } : t,
+											);
+											setBrick({ ...brick, tokens });
+										}}
+									/>
+								</View>
+								<Pressable
+									onPress={() =>
+										setBrick({ ...brick, tokens: brick.tokens.filter((_, i) => i !== index) })
+									}
+									hitSlop={12}
+									style={styles.itemRemove}
+									accessibilityRole="button"
+									accessibilityLabel="Supprimer ce jeton"
+								>
+									<Ionicons name="close-circle-outline" size={20} color={colors.textMuted} />
+								</Pressable>
 							</View>
-							<View style={styles.itemValue}>
-								<TextField
-									placeholder="Valeur"
-									keyboardType="numeric"
-									value={String(token.value)}
-									onChangeText={(raw) => {
-										const value = Number(raw) || 0;
-										const tokens = brick.tokens.map((t, i) => (i === index ? { ...t, value } : t));
-										setBrick({ ...brick, tokens });
-									}}
-								/>
-							</View>
-							<Pressable
-								onPress={() =>
-									setBrick({ ...brick, tokens: brick.tokens.filter((_, i) => i !== index) })
-								}
-								hitSlop={12}
-								accessibilityRole="button"
-								accessibilityLabel="Supprimer ce jeton"
-							>
-								<Ionicons name="close-circle-outline" size={20} color={colors.textMuted} />
-							</Pressable>
 						</View>
 					))}
 					<Button
@@ -168,44 +178,50 @@ export function CategoryEditor({ category, onChange, onRemove }: Props) {
 
 			{brick.kind === "choice" && (
 				<View style={styles.fields}>
-					{brick.options.map((option) => (
+					{brick.options.map((option, index) => (
 						<View key={option.id} style={styles.itemRow}>
-							<View style={styles.itemLabel}>
-								<TextField
-									placeholder="Libellé (ex. Palier 3)"
-									value={option.label}
-									onChangeText={(label) => {
-										const options = brick.options.map((o) =>
-											o.id === option.id ? { ...o, label } : o,
-										);
-										setBrick({ ...brick, options });
-									}}
-								/>
+							<Text style={styles.itemIndex}>Valeur {index + 1}</Text>
+							<View style={styles.itemFields}>
+								<View style={styles.itemLabel}>
+									<TextField
+										label="Libellé"
+										placeholder="Ex. Palier 3"
+										value={option.label}
+										onChangeText={(label) => {
+											const options = brick.options.map((o) =>
+												o.id === option.id ? { ...o, label } : o,
+											);
+											setBrick({ ...brick, options });
+										}}
+									/>
+								</View>
+								<View style={styles.itemValue}>
+									<TextField
+										label="Score"
+										placeholder="0"
+										keyboardType="numeric"
+										value={String(option.value)}
+										onChangeText={(raw) => {
+											const value = Number(raw) || 0;
+											const options = brick.options.map((o) =>
+												o.id === option.id ? { ...o, value } : o,
+											);
+											setBrick({ ...brick, options });
+										}}
+									/>
+								</View>
+								<Pressable
+									onPress={() =>
+										setBrick({ ...brick, options: brick.options.filter((o) => o.id !== option.id) })
+									}
+									hitSlop={12}
+									style={styles.itemRemove}
+									accessibilityRole="button"
+									accessibilityLabel="Supprimer cette valeur"
+								>
+									<Ionicons name="close-circle-outline" size={20} color={colors.textMuted} />
+								</Pressable>
 							</View>
-							<View style={styles.itemValue}>
-								<TextField
-									placeholder="Score"
-									keyboardType="numeric"
-									value={String(option.value)}
-									onChangeText={(raw) => {
-										const value = Number(raw) || 0;
-										const options = brick.options.map((o) =>
-											o.id === option.id ? { ...o, value } : o,
-										);
-										setBrick({ ...brick, options });
-									}}
-								/>
-							</View>
-							<Pressable
-								onPress={() =>
-									setBrick({ ...brick, options: brick.options.filter((o) => o.id !== option.id) })
-								}
-								hitSlop={12}
-								accessibilityRole="button"
-								accessibilityLabel="Supprimer cette valeur"
-							>
-								<Ionicons name="close-circle-outline" size={20} color={colors.textMuted} />
-							</Pressable>
 						</View>
 					))}
 					<Button
@@ -223,7 +239,7 @@ export function CategoryEditor({ category, onChange, onRemove }: Props) {
 
 			{brick.kind === "boolean" && (
 				<View style={styles.fields}>
-					<View style={styles.itemRow}>
+					<View style={styles.itemFields}>
 						<View style={styles.itemLabel}>
 							<TextField
 								label="Score si Oui"
@@ -279,9 +295,24 @@ function useStyles(colors: ThemeColors) {
 					color: colors.text,
 					fontSize: 14,
 				},
+				// Chaque jeton/valeur dans sa propre carte : sans ça, les entrées successives se
+				// fondent les unes dans les autres et on ne voit plus où l'une finit et l'autre commence.
 				itemRow: {
+					backgroundColor: colors.surfaceAlt,
+					borderRadius: RADIUS.sm,
+					padding: SPACING.sm,
+					gap: SPACING.xs,
+				},
+				itemIndex: {
+					color: colors.textMuted,
+					fontSize: 12,
+					fontWeight: "700",
+					textTransform: "uppercase",
+					letterSpacing: 0.5,
+				},
+				itemFields: {
 					flexDirection: "row",
-					alignItems: "center",
+					alignItems: "flex-end",
 					gap: SPACING.sm,
 				},
 				itemLabel: {
@@ -289,6 +320,9 @@ function useStyles(colors: ThemeColors) {
 				},
 				itemValue: {
 					flex: 1,
+				},
+				itemRemove: {
+					paddingBottom: SPACING.sm,
 				},
 			}),
 		[colors],
