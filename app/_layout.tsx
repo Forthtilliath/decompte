@@ -22,6 +22,22 @@ export default function RootLayout() {
 					}}
 				>
 					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+					<Stack.Screen
+						name="players/new"
+						options={{ title: "Nouveau joueur", presentation: "modal" }}
+					/>
+					<Stack.Screen
+						name="players/[id]"
+						options={{ title: "Modifier le joueur", presentation: "modal" }}
+					/>
+					<Stack.Screen
+						name="groups/new"
+						options={{ title: "Nouveau groupe", presentation: "modal" }}
+					/>
+					<Stack.Screen
+						name="groups/[id]"
+						options={{ title: "Modifier le groupe", presentation: "modal" }}
+					/>
 				</Stack>
 			</SafeAreaProvider>
 		</GestureHandlerRootView>
