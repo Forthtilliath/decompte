@@ -1,9 +1,10 @@
 import { useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { StyleSheet, Text } from "react-native";
 import { SettingsRow } from "@/components/settings/SettingsRow";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
+import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
@@ -17,8 +18,15 @@ export default function GamesListScreen() {
 	const games = useGamesStore((s) => s.games);
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const sessionGameDefId = useSessionStore((s) => s.gameDefId);
+	const [query, setQuery] = useState("");
 
-	const activeGames = games.filter((g) => !g.isArchived);
+	const activeGames = useMemo(() => games.filter((g) => !g.isArchived), [games]);
+	const filteredGames = useMemo(() => {
+		const needle = query.trim().toLowerCase();
+		return needle.length === 0
+			? activeGames
+			: activeGames.filter((g) => g.name.toLowerCase().includes(needle));
+	}, [activeGames, query]);
 	const ongoingGame = games.find((g) => g.id === sessionGameDefId);
 
 	return (
@@ -30,12 +38,23 @@ export default function GamesListScreen() {
 				/>
 			)}
 
+			{activeGames.length > 0 && (
+				<TextField
+					placeholder="Rechercher un jeu..."
+					value={query}
+					onChangeText={setQuery}
+					autoCapitalize="none"
+				/>
+			)}
+
 			{activeGames.length === 0 ? (
 				<Text style={styles.empty}>
 					Aucun jeu créé pour l'instant. Crée ton premier jeu pour définir ses catégories de score.
 				</Text>
+			) : filteredGames.length === 0 ? (
+				<Text style={styles.empty}>Aucun jeu ne correspond à cette recherche.</Text>
 			) : (
-				activeGames.map((game) => (
+				filteredGames.map((game) => (
 					<SettingsRow
 						key={game.id}
 						icon="game-controller-outline"
