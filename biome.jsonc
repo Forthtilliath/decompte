@@ -2,7 +2,7 @@
 	"$schema": "https://biomejs.dev/schemas/2.5.7/schema.json",
 	"files": {
 		"ignoreUnknown": false,
-		"includes": ["**", "!.claude"]
+		"includes": ["**", "!.claude", "!android", "!ios"]
 	},
 	"formatter": {
 		"enabled": true,
