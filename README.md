@@ -24,6 +24,8 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - [Expo Router](https://docs.expo.dev/router/introduction/) (navigation par fichiers, dossier `app/`)
 - [Zustand](https://zustand.docs.pmnd.rs/) + AsyncStorage pour la persistance locale
 - [Biome](https://biomejs.dev/) pour le lint et le formatage
+- [Jest](https://jestjs.io/) (preset `jest-expo`) et [Testing Library](https://callstack.github.io/react-native-testing-library/) pour les tests
+- Briques partagées de [`forthtilliath-packages`](https://github.com/Forthtilliath/forthtilliath-packages) : `@forthtilliath/react-native-kit`, `@forthtilliath/ts-kit`, `@forthtilliath/expo-config-plugins`
 
 ## Développement
 
@@ -34,8 +36,23 @@ npm install
 npm run android   # build natif et lancement sur l'émulateur ou le téléphone
 npm start         # serveur Metro seul, une fois l'app installée
 npm run lint      # vérification Biome
-npx tsc --noEmit  # vérification des types
+npm run typecheck # vérification des types
+npm test          # tests (npm run test:watch, npm run test:coverage)
+npm run doctor    # compatibilité des dépendances avec le SDK Expo
+npm run check     # tout ce qui précède, comme la CI
 ```
+
+## Tests et CI
+
+Trois niveaux de tests, lancés par `npm test` :
+
+- **Logique pure** (`lib/*.test.ts`) : classement, déroulé d'une partie, validation du formulaire de jeu, import d'un jeu partagé.
+- **Stores** (`stores/*.test.ts`) : actions, et persistance (clé de stockage, version, réhydratation). C'est ce qui protège les données déjà enregistrées sur les téléphones lors d'une mise à jour de Zustand ou d'AsyncStorage.
+- **Composants et parcours** (`components/**/*.test.tsx`, `test/flows/`) : les vrais écrans avec la vraie navigation Expo Router (créer un jeu, jouer, reprendre une partie, rejouer depuis l'historique, importer un jeu…).
+
+Sur chaque pull request vers `main`, la CI lance le lint, les types, les tests, `expo-doctor` et un audit des failles critiques. Quand les dépendances ou `app.json` changent, un second workflow compile l'APK release et vérifie qu'il n'est jamais signé avec la clé de debug et qu'il ne contient aucune permission bloquée.
+
+Après une montée de version (`npx expo install --fix`), `npm run check` doit passer avant d'ouvrir la PR.
 
 ## Structure
 
@@ -44,8 +61,8 @@ npx tsc --noEmit  # vérification des types
 | `app/` | Écrans (Expo Router) : onglets Jeux, Historique, Joueurs, Réglages |
 | `components/` | Composants : `ui/` génériques, `scoring/` saisie des scores, `games/`, `players/`, `groups/`, `history/` |
 | `stores/` | États Zustand persistés : jeux, joueurs, groupes, partie en cours, historique, thème |
-| `lib/` | Logique pure : calcul des scores, déroulé d'une partie, jetons, dates |
-| `plugins/` | Plugins de configuration Expo appliqués au projet Android |
+| `lib/` | Logique pure : calcul des scores, déroulé d'une partie, validation et import des jeux |
+| `test/` | Outils de test (fabriques de données, rendu de l'app entière) et parcours de bout en bout |
 
 ## Sécurité
 
