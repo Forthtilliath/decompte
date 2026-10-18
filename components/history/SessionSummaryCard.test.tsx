@@ -26,6 +26,20 @@ describe("SessionSummaryCard", () => {
 		expect(names).toEqual(["Bob", "Alice"]);
 	});
 
+	it("garde un joueur supprimé à son rang, sous un libellé neutre", async () => {
+		await render(
+			<SessionSummaryCard
+				session={session}
+				game={makeGame()}
+				players={[players[0]]}
+				onPress={jest.fn()}
+			/>,
+		);
+		expect(screen.getByText("Joueur supprimé")).toBeOnTheScreen();
+		expect(screen.getByText("🥇 10")).toBeOnTheScreen();
+		expect(screen.getByText("🥈 3")).toBeOnTheScreen();
+	});
+
 	it("signale un jeu supprimé et peut masquer le nom du jeu", async () => {
 		const { rerender } = await render(
 			<SessionSummaryCard

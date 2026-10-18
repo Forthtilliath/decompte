@@ -47,6 +47,20 @@ describe("RankedPlayerCard", () => {
 		expect(screen.queryByText(/Bonus/)).not.toBeOnTheScreen();
 	});
 
+	it("garde un joueur supprimé depuis, anonymisé, avec ses points", async () => {
+		await render(
+			<RankedPlayerCard
+				player={undefined}
+				ranked={{ playerId: "supprime", total: 25, rank: 1 }}
+				entry={makeEntry("supprime", { murs: 25 })}
+				categories={categories}
+			/>,
+		);
+		expect(screen.getByText("Joueur supprimé")).toBeOnTheScreen();
+		expect(screen.getByText("25")).toBeOnTheScreen();
+		expect(screen.getByText("Murs 25")).toBeOnTheScreen();
+	});
+
 	it("regroupe les points des catégories retirées du jeu pour que le détail égale le total", async () => {
 		await render(
 			<RankedPlayerCard

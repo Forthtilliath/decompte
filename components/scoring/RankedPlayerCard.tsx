@@ -6,12 +6,14 @@ import { RANK_MEDALS } from "@/constants/ranking";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
 import type { RankedEntry } from "@/lib/scoring";
 import type { CategoryDef, SessionEntry } from "@/types/game";
 import type { Player } from "@/types/player";
 
 type Props = {
-	player: Player;
+	/** Absent si le joueur a été supprimé depuis : ses points restent dans le classement. */
+	player: Player | undefined;
 	ranked: RankedEntry;
 	entry: SessionEntry;
 	categories: CategoryDef[];
@@ -34,9 +36,14 @@ export function RankedPlayerCard({ player, ranked, entry, categories }: Props) {
 		<View style={[styles.card, ranked.rank === 1 && styles.cardWinner]}>
 			<View style={styles.header}>
 				<Text style={styles.rank}>{RANK_MEDALS[ranked.rank] ?? `#${ranked.rank}`}</Text>
-				<PlayerAvatar name={player.name} avatarUri={player.avatarUri} seed={player.id} size={44} />
-				<Text style={styles.name} numberOfLines={1}>
-					{player.name}
+				<PlayerAvatar
+					name={player?.name ?? "?"}
+					avatarUri={player?.avatarUri}
+					seed={ranked.playerId}
+					size={44}
+				/>
+				<Text style={[styles.name, !player && styles.deletedName]} numberOfLines={1}>
+					{player?.name ?? DELETED_PLAYER_LABEL}
 				</Text>
 				<Text style={styles.total}>{ranked.total}</Text>
 			</View>
@@ -96,6 +103,10 @@ function useStyles(colors: ThemeColors) {
 					color: colors.text,
 					fontSize: 17,
 					fontWeight: "700",
+				},
+				deletedName: {
+					color: colors.textMuted,
+					fontStyle: "italic",
 				},
 				total: {
 					color: colors.gold,

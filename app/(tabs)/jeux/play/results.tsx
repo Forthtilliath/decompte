@@ -60,7 +60,7 @@ export default function ResultsScreen() {
 				{ranking.map((ranked) => {
 					const player = allPlayers.find((p) => p.id === ranked.playerId);
 					const entry = entries[ranked.playerId];
-					if (!player || !entry) return null;
+					if (!entry) return null;
 					return (
 						<RankedPlayerCard
 							key={ranked.playerId}
