@@ -44,9 +44,14 @@ const brickSchema = z.discriminatedUnion("kind", [
 		options: z
 			.array(z.object({ label: label(MAX_LABEL_LENGTH), value: score }))
 			.min(2)
-			.max(MAX_ITEMS),
+			.max(MAX_ITEMS)
+			// Mêmes règles que le formulaire (lib/gameDraft) : seul le score d'un joueur est
+			// enregistré, deux réponses au même score seraient indiscernables.
+			.refine((options) => new Set(options.map((o) => o.value)).size === options.length),
 	}),
-	z.object({ kind: z.literal("boolean"), yesValue: score, noValue: score }),
+	z
+		.object({ kind: z.literal("boolean"), yesValue: score, noValue: score })
+		.refine((b) => b.yesValue !== b.noValue, { path: ["noValue"] }),
 ]);
 
 const gameSchema = z
