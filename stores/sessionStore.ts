@@ -10,11 +10,15 @@ type State = {
 	playerIds: string[];
 	entries: Record<string, SessionEntry>;
 	startedAt: number | null;
+	/** Dernière étape de saisie affichée, pour reprendre la partie là où on l'a laissée. Absente
+	 * d'une partie enregistrée avant son ajout : la fusion de `persist` lui donne `null`. */
+	currentCategoryId: string | null;
 };
 
 type Actions = {
 	startNewSession: (gameDefId: string, playerIds: string[]) => void;
 	updateScore: (playerId: string, categoryId: string, points: number) => void;
+	setCurrentCategory: (categoryId: string) => void;
 	/** Construit l'objet Session correspondant à l'état courant, sans le persister. */
 	toSession: () => Session;
 	/** Enregistre la partie dans l'historique et réinitialise la partie en cours. */
@@ -23,7 +27,13 @@ type Actions = {
 	hasOngoingSession: () => boolean;
 };
 
-const EMPTY_STATE: State = { gameDefId: null, playerIds: [], entries: {}, startedAt: null };
+const EMPTY_STATE: State = {
+	gameDefId: null,
+	playerIds: [],
+	entries: {},
+	startedAt: null,
+	currentCategoryId: null,
+};
 
 // Bump on any breaking change to State's shape.
 export const SESSION_STORE_VERSION = 1;
@@ -44,8 +54,11 @@ export const useSessionStore = create<State & Actions>()(
 					playerIds,
 					entries: Object.fromEntries(playerIds.map((id) => [id, createEmptySessionEntry(id)])),
 					startedAt: Date.now(),
+					currentCategoryId: null,
 				});
 			},
+
+			setCurrentCategory: (categoryId) => set({ currentCategoryId: categoryId }),
 
 			updateScore: (playerId, categoryId, points) => {
 				const current = get().entries[playerId];

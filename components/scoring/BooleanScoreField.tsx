@@ -1,7 +1,7 @@
 import { RadioGroup } from "@/components/ui/RadioGroup";
 
 type Props = {
-	points: number;
+	points: number | undefined;
 	yesValue: number;
 	noValue: number;
 	onChange: (value: number) => void;

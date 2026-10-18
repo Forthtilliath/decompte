@@ -8,16 +8,15 @@ import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { useGamesStore } from "@/stores/gamesStore";
-import { useSessionStore } from "@/stores/sessionStore";
 
 export default function GamesListScreen() {
 	const colors = useColors();
 	const styles = useStyles(colors);
 	const router = useRouter();
 	const games = useGamesStore((s) => s.games);
-	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
-	const sessionGameDefId = useSessionStore((s) => s.gameDefId);
+	const { hasOngoingSession, ongoingGame, resume, confirmAbandon } = useOngoingSession();
 	const [query, setQuery] = useState("");
 
 	const activeGames = useMemo(() => games.filter((g) => !g.isArchived), [games]);
@@ -27,15 +26,16 @@ export default function GamesListScreen() {
 			? activeGames
 			: activeGames.filter((g) => g.name.toLowerCase().includes(needle));
 	}, [activeGames, query]);
-	const ongoingGame = games.find((g) => g.id === sessionGameDefId);
 
 	return (
 		<ScreenContainer style={styles.container}>
 			{hasOngoingSession && ongoingGame && (
-				<Button
-					label={`Reprendre la partie en cours (${ongoingGame.name})`}
-					onPress={() => router.push(`/jeux/play/${ongoingGame.categories[0]?.id}`)}
-				/>
+				<Button label={`Reprendre la partie en cours (${ongoingGame.name})`} onPress={resume} />
+			)}
+			{/* Proposé même si le jeu de la partie est introuvable : sinon la partie bloquerait le
+			    lancement de toute autre partie, sans aucun moyen d'en sortir. */}
+			{hasOngoingSession && (
+				<Button label="Abandonner la partie en cours" variant="ghost" onPress={confirmAbandon} />
 			)}
 
 			{activeGames.length > 0 && (

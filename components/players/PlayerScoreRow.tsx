@@ -9,10 +9,11 @@ import type { Player } from "@/types/player";
 
 type Props = PropsWithChildren<{
 	player: Player;
-	points?: number;
+	/** Total cumulé du joueur sur toute la partie, affiché en badge pour suivre la course. */
+	total?: number;
 }>;
 
-export function PlayerScoreRow({ player, points, children }: Props) {
+export function PlayerScoreRow({ player, total, children }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
 
@@ -23,9 +24,9 @@ export function PlayerScoreRow({ player, points, children }: Props) {
 				<Text style={styles.name} numberOfLines={1}>
 					{player.name}
 				</Text>
-				{points !== undefined && (
-					<View style={styles.badge}>
-						<Text style={styles.badgeText}>{points} pts</Text>
+				{total !== undefined && (
+					<View style={styles.badge} accessibilityLabel={`Total : ${total} points`}>
+						<Text style={styles.badgeText}>Total {total}</Text>
 					</View>
 				)}
 			</View>
