@@ -10,6 +10,7 @@ import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
+import { toggleSelection } from "@/lib/players";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { selectSortedPlayers, usePlayersStore } from "@/stores/playersStore";
@@ -44,11 +45,7 @@ export default function GameDetailScreen() {
 	const otherGameOngoing = hasOngoingSession && sessionGameDefId !== game.id;
 
 	const toggleSelected = (playerId: string) => {
-		setSelectedIds((current) => {
-			if (current.includes(playerId)) return current.filter((p) => p !== playerId);
-			if (current.length >= game.maxPlayers) return current;
-			return [...current, playerId];
-		});
+		setSelectedIds((current) => toggleSelection(current, playerId, game.maxPlayers));
 	};
 
 	const canStart = selectedIds.length >= game.minPlayers;
