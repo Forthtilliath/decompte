@@ -1,8 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { GameBuilderForm } from "@/components/games/GameBuilderForm";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
-import { AVATAR_PALETTE } from "@/lib/avatarColor";
-import { createId } from "@/lib/uuid";
+import { toCategoryDefs } from "@/lib/gameDraft";
 import { useGamesStore } from "@/stores/gamesStore";
 
 export default function EditGameScreen() {
@@ -18,20 +17,9 @@ export default function EditGameScreen() {
 			<GameBuilderForm
 				initial={game}
 				submitLabel="Enregistrer"
-				onSubmit={({ name, categories, minPlayers, maxPlayers }) => {
-					updateGame(game.id, {
-						name,
-						minPlayers,
-						maxPlayers,
-						// Les catégories déjà existantes gardent leur id (voir CategoryDef) pour que
-						// l'historique déjà enregistré reste résolvable ; les nouvelles en reçoivent un.
-						categories: categories.map((c, index) => ({
-							id: c.id ?? createId(),
-							label: c.label,
-							brick: c.brick,
-							color: AVATAR_PALETTE[index % AVATAR_PALETTE.length],
-						})),
-					});
+				onSubmit={(values) => {
+					// Les catégories existantes gardent leur id pour que l'historique reste résolvable.
+					updateGame(game.id, { ...values, categories: toCategoryDefs(values.categories) });
 					router.back();
 				}}
 			/>
