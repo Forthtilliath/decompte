@@ -45,7 +45,8 @@ export function TokenCounterSheet({
 		<BottomSheet visible={visible} onClose={onClose} title={title}>
 			<ScrollView contentContainerStyle={styles.list}>
 				{tokens.map((token, index) => (
-					<View key={token.label} style={styles.row}>
+					// biome-ignore lint/suspicious/noArrayIndexKey: les jetons d'un jeu ne changent pas pendant le comptage ; deux libellés identiques casseraient une clé par libellé
+					<View key={index} style={styles.row}>
 						<Text style={styles.label}>{token.label}</Text>
 						<NumberStepper
 							value={counts[index] ?? 0}
