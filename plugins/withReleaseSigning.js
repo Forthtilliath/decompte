@@ -4,8 +4,9 @@ const { withAppBuildGradle } = require("expo/config-plugins");
  * Signe l'APK de release avec la clé d'upload du projet au lieu du `debug.keystore` public de
  * React Native (même clé dans tous les projets RN : n'importe qui pourrait signer une fausse mise
  * à jour). La clé et ses mots de passe restent hors du dépôt, lus en propriétés Gradle
- * `<PREFIXE>_UPLOAD_*` (`~/.gradle/gradle.properties` ou variables `ORG_GRADLE_PROJECT_*`, voir
- * README). Le préfixe, propre à chaque app, se passe en option dans app.json :
+ * `<PREFIXE>_UPLOAD_STORE_FILE`, `_STORE_PASSWORD`, `_KEY_ALIAS` et `_KEY_PASSWORD`
+ * (`~/.gradle/gradle.properties`, ou variables `ORG_GRADLE_PROJECT_*` en CI). Vérification :
+ * `gradlew :app:signingReport`. Le préfixe, propre à chaque app, se passe en option dans app.json :
  * `["./plugins/withReleaseSigning", { "propertyPrefix": "MONAPP" }]`.
  *
  * Sans ces propriétés, le build release échoue (« Keystore file not set ») plutôt que de
