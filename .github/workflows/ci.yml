@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+      - "LICENSE"
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint (Biome)
+        run: npm run lint
+
+      - name: Vérification des types
+        run: npm run typecheck
+
+      - name: Tests (unitaires, composants, parcours)
+        run: npx jest --ci
+
+      # Versions incompatibles avec le SDK Expo, modules natifs en double, dépendances paires
+      # manquantes : ce qu'une montée de version casse sans que les tests le voient.
+      - name: Compatibilité des dépendances (expo-doctor)
+        run: npm run doctor
+
+      - name: Failles critiques dans les dépendances de l'app
+        run: npm audit --omit=dev --audit-level=critical
