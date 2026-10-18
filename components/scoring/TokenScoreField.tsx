@@ -17,10 +17,17 @@ type Props = {
  * en plus un lien vers la calculette de jetons pour ne pas avoir à faire l'addition soi-même. */
 export function TokenScoreField({ points, color, label, tokens, onChange }: Props) {
 	const [visible, setVisible] = useState(false);
+	// Des jetons de défaite (valeur négative) peuvent faire passer le total sous zéro.
+	const allowNegative = tokens.some((t) => t.value < 0);
 
 	return (
 		<View>
-			<ManualPointsFields points={points} color={color} onChange={onChange} />
+			<ManualPointsFields
+				points={points}
+				color={color}
+				allowNegative={allowNegative}
+				onChange={onChange}
+			/>
 			<Pressable onPress={() => setVisible(true)} hitSlop={8} style={styles.link}>
 				<Text style={[styles.linkText, { color }]}>Compter par jetons</Text>
 			</Pressable>
