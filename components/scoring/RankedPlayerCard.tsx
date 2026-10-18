@@ -1,3 +1,4 @@
+import { sum } from "@forthtilliath/ts-kit/number/sum";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
@@ -23,9 +24,11 @@ export function RankedPlayerCard({ player, ranked, entry, categories }: Props) {
 	// Points d'une catégorie retirée du jeu depuis la partie : toujours comptés dans le total, on
 	// les montre à part pour que le détail reste égal au total affiché.
 	const knownIds = new Set(categories.map((c) => c.id));
-	const removedPoints = Object.entries(entry.scores)
-		.filter(([categoryId]) => !knownIds.has(categoryId))
-		.reduce((sum, [, points]) => sum + points, 0);
+	const removedPoints = sum(
+		Object.entries(entry.scores)
+			.filter(([categoryId]) => !knownIds.has(categoryId))
+			.map(([, points]) => points),
+	);
 
 	return (
 		<View style={[styles.card, ranked.rank === 1 && styles.cardWinner]}>

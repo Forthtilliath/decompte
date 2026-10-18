@@ -1,8 +1,9 @@
+import { sum } from "@forthtilliath/ts-kit/number/sum";
 import type { SessionEntry } from "@/types/game";
 
 /** Somme de toutes les catégories saisies pour un joueur. */
 export function computeEntryTotal(entry: SessionEntry): number {
-	return Object.values(entry.scores).reduce((sum, points) => sum + points, 0);
+	return sum(Object.values(entry.scores));
 }
 
 export type RankedEntry = {
