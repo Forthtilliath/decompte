@@ -1,0 +1,86 @@
+name: Build Android
+
+# Build natif complet, lourd (~15-20 min) : seulement quand ce qui le compose change
+# (dépendances, configuration Expo) ou à la demande.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "package.json"
+      - "package-lock.json"
+      - "app.json"
+      - ".github/workflows/android-build.yml"
+
+concurrency:
+  group: android-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  release-apk:
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - run: npm ci
+
+      # Clé jetable, propre à ce build : vérifie que la signature release passe bien par le plugin
+      # withReleaseSigning, sans jamais exposer la vraie clé d'upload.
+      - name: Clé de signature jetable
+        run: |
+          keytool -genkeypair -noprompt -keystore "$RUNNER_TEMP/ci-upload.jks" \
+            -storepass ci-store-pass -keypass ci-store-pass -alias ci -keyalg RSA -keysize 2048 \
+            -validity 1 -dname "CN=Decompte CI"
+          {
+            echo "ORG_GRADLE_PROJECT_DECOMPTE_UPLOAD_STORE_FILE=$RUNNER_TEMP/ci-upload.jks"
+            echo "ORG_GRADLE_PROJECT_DECOMPTE_UPLOAD_STORE_PASSWORD=ci-store-pass"
+            echo "ORG_GRADLE_PROJECT_DECOMPTE_UPLOAD_KEY_ALIAS=ci"
+            echo "ORG_GRADLE_PROJECT_DECOMPTE_UPLOAD_KEY_PASSWORD=ci-store-pass"
+          } >> "$GITHUB_ENV"
+
+      - name: Prebuild
+        run: npx expo prebuild --platform android --no-install
+
+      - name: Build release
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Signature (jamais la clé de debug)
+        run: |
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          APK=android/app/build/outputs/apk/release/app-release.apk
+          CERTS=$("$BUILD_TOOLS/apksigner" verify --print-certs "$APK")
+          echo "$CERTS"
+          if echo "$CERTS" | grep -q "Android Debug"; then
+            echo "::error::APK release signé avec la clé de debug publique"; exit 1
+          fi
+          echo "$CERTS" | grep -q "CN=Decompte CI" || { echo "::error::Signature inattendue"; exit 1; }
+
+      - name: Permissions (aucune permission bloquée dans app.json)
+        run: |
+          BUILD_TOOLS=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          PERMISSIONS=$("$BUILD_TOOLS/aapt2" dump permissions android/app/build/outputs/apk/release/app-release.apk)
+          echo "$PERMISSIONS"
+          for blocked in $(node -p "require('./app.json').expo.android.blockedPermissions.join(' ')"); do
+            if echo "$PERMISSIONS" | grep -q "$blocked"; then
+              echo "::error::Permission bloquée présente dans l'APK : $blocked"; exit 1
+            fi
+          done
