@@ -52,6 +52,24 @@ describe("useGroupsStore", () => {
 	});
 });
 
+describe("removePlayerFromGroups", () => {
+	it("retire le joueur de tous ses groupes sans toucher aux autres", () => {
+		const untouched = makeGroup({ id: "sans", playerIds: ["b"] });
+		useGroupsStore.setState({
+			groups: [
+				makeGroup({ id: "g1", playerIds: ["a", "b"] }),
+				untouched,
+				makeGroup({ id: "g2", playerIds: ["a"] }),
+			],
+		});
+		useGroupsStore.getState().removePlayerFromGroups("a");
+		const [g1, kept, g2] = useGroupsStore.getState().groups;
+		expect(g1.playerIds).toEqual(["b"]);
+		expect(kept).toBe(untouched);
+		expect(g2.playerIds).toEqual([]);
+	});
+});
+
 describe("selectSortedGroups", () => {
 	it("trie favoris, puis actifs, puis archivés, par ordre alphabétique", () => {
 		const groups = [

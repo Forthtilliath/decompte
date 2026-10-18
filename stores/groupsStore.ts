@@ -12,6 +12,8 @@ type Actions = {
 	addGroup: (input: { name: string; playerIds: string[] }) => PlayerGroup;
 	updateGroup: (id: string, patch: { name: string; playerIds: string[] }) => void;
 	removeGroup: (id: string) => void;
+	/** Retire un joueur supprimé de tous les groupes, pour ne pas y laisser d'id orphelin. */
+	removePlayerFromGroups: (playerId: string) => void;
 	toggleFavorite: (id: string) => void;
 	toggleArchived: (id: string) => void;
 	replaceAll: (groups: PlayerGroup[]) => void;
@@ -53,6 +55,16 @@ export const useGroupsStore = create<State & Actions>()(
 
 			removeGroup: (id) => {
 				set({ groups: get().groups.filter((g) => g.id !== id) });
+			},
+
+			removePlayerFromGroups: (playerId) => {
+				set({
+					groups: get().groups.map((g) =>
+						g.playerIds.includes(playerId)
+							? { ...g, playerIds: g.playerIds.filter((id) => id !== playerId) }
+							: g,
+					),
+				});
 			},
 
 			toggleFavorite: (id) => {
