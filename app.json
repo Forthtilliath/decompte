@@ -22,8 +22,8 @@
 		},
 		"plugins": [
 			"expo-router",
-			["./plugins/withReleaseSigning", { "propertyPrefix": "DECOMPTE" }],
-			"./plugins/withAndroidAbis"
+			["@forthtilliath/expo-config-plugins/withReleaseSigning", { "propertyPrefix": "DECOMPTE" }],
+			"@forthtilliath/expo-config-plugins/withAndroidAbis"
 		]
 	}
 }
