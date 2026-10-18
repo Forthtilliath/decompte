@@ -1,9 +1,9 @@
+import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { useMemo } from "react";
 import { Pressable, type StyleProp, StyleSheet, Text, type ViewStyle } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { tapFeedback } from "@/lib/haptics";
 
 type Variant = "primary" | "secondary" | "danger" | "ghost";
 
