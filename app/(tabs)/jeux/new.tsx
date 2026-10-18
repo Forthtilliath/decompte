@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { GameBuilderForm } from "@/components/games/GameBuilderForm";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
-import { AVATAR_PALETTE } from "@/lib/avatarColor";
+import { paletteColor } from "@/lib/gameExport";
 import { useGamesStore } from "@/stores/gamesStore";
 
 export default function NewGameScreen() {
@@ -22,7 +22,7 @@ export default function NewGameScreen() {
 						categories: categories.map((c, index) => ({
 							label: c.label,
 							brick: c.brick,
-							color: AVATAR_PALETTE[index % AVATAR_PALETTE.length],
+							color: paletteColor(index),
 						})),
 					});
 					router.back();

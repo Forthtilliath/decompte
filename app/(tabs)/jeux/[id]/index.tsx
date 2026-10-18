@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
 import { SelectablePlayerCard } from "@/components/players/SelectablePlayerCard";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +9,7 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
+import { parseGameExport, serializeGame } from "@/lib/gameExport";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { selectSortedPlayers, usePlayersStore } from "@/stores/playersStore";
@@ -55,6 +56,18 @@ export default function GameDetailScreen() {
 	const startGame = () => {
 		startNewSession(game.id, selectedIds);
 		router.push(`/jeux/play/${game.categories[0].id}`);
+	};
+
+	const shareGame = () => {
+		const text = serializeGame(game);
+		// Un jeu créé avant les bornes d'import (libellé très long…) serait refusé chez le
+		// destinataire : mieux vaut le dire ici que lui envoyer un texte inutilisable.
+		const check = parseGameExport(text);
+		if (!check.ok) {
+			Alert.alert("Partage impossible", `${check.error} Modifie le jeu puis réessaie.`);
+			return;
+		}
+		Share.share({ title: game.name, message: text });
 	};
 
 	const confirmArchive = () => {
@@ -148,6 +161,7 @@ export default function GameDetailScreen() {
 					onPress={() => router.push(`/jeux/${game.id}/edit`)}
 					disabled={isThisGameOngoing}
 				/>
+				<Button label="Partager" variant="secondary" onPress={shareGame} />
 				<Button
 					label="Archiver"
 					variant="ghost"

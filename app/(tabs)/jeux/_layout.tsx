@@ -17,6 +17,7 @@ export default function JeuxLayout() {
 		>
 			<Stack.Screen name="index" options={{ title: "Jeux" }} />
 			<Stack.Screen name="new" options={{ title: "Nouveau jeu" }} />
+			<Stack.Screen name="import" options={{ title: "Importer un jeu" }} />
 			<Stack.Screen name="[id]/index" options={{ title: "Jeu" }} />
 			<Stack.Screen name="[id]/edit" options={{ title: "Modifier le jeu" }} />
 			<Stack.Screen name="play/[categoryId]" options={{ title: "Score" }} />
