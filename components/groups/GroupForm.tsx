@@ -7,6 +7,7 @@ import { MAX_GROUP_SIZE } from "@/constants/players";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { toggleSelection } from "@/lib/players";
 import { selectSortedPlayers, usePlayersStore } from "@/stores/playersStore";
 
 type Props = {
@@ -31,11 +32,7 @@ export function GroupForm({
 	const [selectedIds, setSelectedIds] = useState<string[]>(initialPlayerIds);
 
 	const toggleSelected = (id: string) => {
-		setSelectedIds((current) => {
-			if (current.includes(id)) return current.filter((p) => p !== id);
-			if (current.length >= MAX_GROUP_SIZE) return current;
-			return [...current, id];
-		});
+		setSelectedIds((current) => toggleSelection(current, id, MAX_GROUP_SIZE));
 	};
 
 	const canSubmit = name.trim().length > 0 && selectedIds.length > 0;

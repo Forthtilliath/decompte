@@ -1,4 +1,4 @@
-import { hasDuplicateName } from "@/lib/players";
+import { hasDuplicateName, toggleSelection } from "@/lib/players";
 import { makePlayer } from "@/test/factories";
 
 describe("hasDuplicateName", () => {
@@ -28,5 +28,24 @@ describe("hasDuplicateName", () => {
 	it("compte aussi les joueurs archivés", () => {
 		const withArchived = [makePlayer({ id: "p3", name: "Zoé", isArchived: true })];
 		expect(hasDuplicateName(withArchived, "zoé")).toBe(true);
+	});
+});
+
+describe("toggleSelection", () => {
+	it("ajoute un joueur non sélectionné", () => {
+		expect(toggleSelection(["a"], "b", 4)).toEqual(["a", "b"]);
+	});
+
+	it("retire un joueur déjà sélectionné", () => {
+		expect(toggleSelection(["a", "b"], "a", 4)).toEqual(["b"]);
+	});
+
+	it("n'ajoute plus personne une fois le maximum atteint", () => {
+		const full = ["a", "b"];
+		expect(toggleSelection(full, "c", 2)).toBe(full);
+	});
+
+	it("permet encore de retirer quelqu'un au maximum", () => {
+		expect(toggleSelection(["a", "b"], "b", 2)).toEqual(["a"]);
 	});
 });
