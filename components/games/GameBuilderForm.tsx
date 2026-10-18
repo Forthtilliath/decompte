@@ -1,11 +1,17 @@
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
-import { CategoryEditor, type DraftCategory } from "@/components/games/CategoryEditor";
+import { CategoryEditor } from "@/components/games/CategoryEditor";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import {
+	type DraftCategory,
+	emptyCategory,
+	type GameDraftValues,
+	validateGameDraft,
+} from "@/lib/gameDraft";
 import type { CategoryDef } from "@/types/game";
 
 export type GameBuilderValues = {
@@ -18,12 +24,7 @@ export type GameBuilderValues = {
 type Props = {
 	initial?: GameBuilderValues;
 	submitLabel: string;
-	onSubmit: (values: {
-		name: string;
-		categories: DraftCategory[];
-		minPlayers: number;
-		maxPlayers: number;
-	}) => void;
+	onSubmit: (values: GameDraftValues) => void;
 };
 
 /** Formulaire de création/édition d'un jeu : nom, bornes de joueurs, liste de catégories de score.
@@ -36,7 +37,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	const [maxPlayers, setMaxPlayers] = useState(String(initial?.maxPlayers ?? 8));
 	const [categories, setCategories] = useState<DraftCategory[]>(
 		initial?.categories.map((c) => ({ id: c.id, label: c.label, brick: c.brick })) ?? [
-			{ label: "", brick: { kind: "manual", allowNegative: false } },
+			emptyCategory(),
 		],
 	);
 
@@ -45,10 +46,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	};
 
 	const addCategory = () => {
-		setCategories((current) => [
-			...current,
-			{ label: "", brick: { kind: "manual", allowNegative: false } },
-		]);
+		setCategories((current) => [...current, emptyCategory()]);
 	};
 
 	const removeCategory = (index: number) => {
@@ -56,51 +54,12 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	};
 
 	const handleSubmit = () => {
-		if (!name.trim()) {
-			Alert.alert("Nom manquant", "Donne un nom au jeu.");
+		const result = validateGameDraft({ name, minPlayers, maxPlayers, categories });
+		if (!result.ok) {
+			Alert.alert(result.title, result.message);
 			return;
 		}
-		if (categories.length === 0) {
-			Alert.alert("Aucune catégorie", "Ajoute au moins une catégorie de score.");
-			return;
-		}
-		if (categories.some((c) => !c.label.trim())) {
-			Alert.alert("Catégorie incomplète", "Donne un nom à chaque catégorie.");
-			return;
-		}
-		if (categories.some((c) => c.brick.kind === "tokens" && c.brick.tokens.length === 0)) {
-			Alert.alert(
-				"Jetons manquants",
-				"Ajoute au moins un jeton aux catégories de type «Compteur de jetons».",
-			);
-			return;
-		}
-		if (categories.some((c) => c.brick.kind === "choice" && c.brick.options.length < 2)) {
-			Alert.alert(
-				"Valeurs manquantes",
-				"Ajoute au moins deux valeurs aux catégories de type «Choix».",
-			);
-			return;
-		}
-		if (
-			categories.some(
-				(c) => c.brick.kind === "choice" && c.brick.options.some((o) => !o.label.trim()),
-			)
-		) {
-			Alert.alert("Valeur incomplète", "Donne un libellé à chaque valeur d'une catégorie «Choix».");
-			return;
-		}
-		if (
-			categories.some(
-				(c) => c.brick.kind === "tokens" && c.brick.tokens.some((t) => !t.label.trim()),
-			)
-		) {
-			Alert.alert("Jeton incomplet", "Donne un libellé à chaque jeton.");
-			return;
-		}
-		const min = Number.parseInt(minPlayers, 10) || 1;
-		const max = Number.parseInt(maxPlayers, 10) || min;
-		onSubmit({ name, categories, minPlayers: min, maxPlayers: Math.max(min, max) });
+		onSubmit(result.values);
 	};
 
 	return (
