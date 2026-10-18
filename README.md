@@ -1,56 +1,83 @@
-# Welcome to your Expo app 👋
+# Décompte
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Compteur de scores universel pour jeux de société, sur Android. Vous décrivez une fois la feuille de score d'un jeu, puis l'app guide la saisie catégorie par catégorie et calcule le classement. Tout reste sur le téléphone : ni compte, ni réseau.
 
-## Get started
+## Fonctionnalités
 
-1. Install dependencies
+- **Feuilles de score personnalisables** : chaque jeu se compose de catégories, chacune avec son mode de calcul :
+  - **points saisis** à la main, négatifs et plafond en option ;
+  - **jetons** pondérés à compter (ex. jetons de victoire 1, 3, 5), additionnés automatiquement ;
+  - **choix** parmi des options à score fixe (ex. palier atteint) ;
+  - **oui / non**, chaque réponse avec son propre score.
+- **Saisie guidée** : une catégorie à la fois, avec le total de chaque joueur affiché en continu.
+- **Partie en cours sauvegardée** : on la reprend à l'étape où on l'avait laissée, ou on l'abandonne.
+- **Classement final** avec médailles, et ex æquo gérés.
+- **Joueurs et groupes** : avatar photo ou initiales colorées, groupes d'habitués.
+- **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs.
+- Thème clair ou sombre.
+- Rien n'est supprimé définitivement : jeux, joueurs et groupes s'archivent, pour que l'historique reste lisible.
 
-   ```bash
-   npm install
-   ```
+## Stack
 
-2. Start the app
+- [Expo](https://docs.expo.dev/versions/v57.0.0/) SDK 57, React Native 0.86, React 19, TypeScript
+- [Expo Router](https://docs.expo.dev/router/introduction/) (navigation par fichiers, dossier `app/`)
+- [Zustand](https://zustand.docs.pmnd.rs/) + AsyncStorage pour la persistance locale
+- [Biome](https://biomejs.dev/) pour le lint et le formatage
 
-   ```bash
-   npx expo start
-   ```
+## Développement
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+Prérequis : Node.js LTS, Android Studio (SDK et émulateur) ou un téléphone Android en mode développeur.
 
 ```bash
-npm run reset-project
+npm install
+npm run android   # build natif et lancement sur l'émulateur ou le téléphone
+npm start         # serveur Metro seul, une fois l'app installée
+npm run lint      # vérification Biome
+npx tsc --noEmit  # vérification des types
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Structure
 
-### Other setup steps
+| Dossier | Contenu |
+|---|---|
+| `app/` | Écrans (Expo Router) : onglets Jeux, Historique, Joueurs, Réglages |
+| `components/` | Composants : `ui/` génériques, `scoring/` saisie des scores, `games/`, `players/`, `groups/`, `history/` |
+| `stores/` | États Zustand persistés : jeux, joueurs, groupes, partie en cours, historique, thème |
+| `lib/` | Logique pure : calcul des scores, déroulé d'une partie, jetons, dates |
+| `plugins/` | Plugins de configuration Expo appliqués au projet Android |
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+## Build de release
 
-## Learn more
+L'APK de release est signé avec une **clé d'upload propre à l'app**, jamais avec le `debug.keystore` public de React Native. Le plugin `plugins/withReleaseSigning.js` lit la clé dans des propriétés Gradle qui restent hors du dépôt. Sans elles, le build release échoue volontairement.
 
-To learn more about developing your project with Expo, look at the following resources:
+1. Créer la clé une seule fois, puis la sauvegarder hors de la machine (gestionnaire de mots de passe) : la perdre empêche toute mise à jour de l'app déjà installée.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+   ```powershell
+   keytool -genkeypair -v -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 10000 -alias decompte-upload -keystore "$env:USERPROFILE\keys\decompte-upload.keystore"
+   ```
 
-## Join the community
+2. Déclarer la clé dans `~/.gradle/gradle.properties`, jamais dans le projet :
 
-Join our community of developers creating universal apps.
+   ```properties
+   DECOMPTE_UPLOAD_STORE_FILE=C:/Users/<vous>/keys/decompte-upload.keystore
+   DECOMPTE_UPLOAD_STORE_PASSWORD=...
+   DECOMPTE_UPLOAD_KEY_ALIAS=decompte-upload
+   DECOMPTE_UPLOAD_KEY_PASSWORD=...
+   ```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+   En CI, utiliser les variables d'environnement `ORG_GRADLE_PROJECT_DECOMPTE_UPLOAD_*` à la place.
+
+3. Générer le projet natif, construire et vérifier la signature :
+
+   ```powershell
+   npx expo prebuild --platform android
+   cd android
+   .\gradlew.bat :app:signingReport
+   .\gradlew.bat assembleRelease
+   ```
+
+L'APK publié se renomme avec l'app et la version, par exemple `Decompte-1.0.0.apk`. `plugins/withAndroidAbis.js` limite le build aux architectures `armeabi-v7a` et `arm64-v8a`, celles des téléphones réels.
+
+## Licence
+
+[MIT](LICENSE)
