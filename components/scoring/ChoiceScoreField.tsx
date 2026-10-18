@@ -2,7 +2,7 @@ import { RadioGroup } from "@/components/ui/RadioGroup";
 import type { ChoiceOption } from "@/types/game";
 
 type Props = {
-	points: number;
+	points: number | undefined;
 	options: ChoiceOption[];
 	onChange: (value: number) => void;
 };
@@ -10,7 +10,7 @@ type Props = {
 /** Catégorie "choix parmi des valeurs" : une seule option sélectionnable, chacune à score fixe. */
 export function ChoiceScoreField({ points, options, onChange }: Props) {
 	// La sélection courante se déduit du score déjà enregistré (le modèle ne garde que le nombre de
-	// points, pas l'id de l'option choisie) : au premier chargement, rien ne correspond forcément.
+	// points, pas l'id de l'option choisie) : tant que rien n'est saisi, aucune option n'est cochée.
 	const selected = options.find((o) => o.value === points)?.id ?? null;
 
 	return (
