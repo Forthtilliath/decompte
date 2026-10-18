@@ -1,3 +1,4 @@
+import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Alert, ScrollView, StyleSheet, Text } from "react-native";
@@ -41,20 +42,13 @@ export default function SessionDetailScreen() {
 	}
 
 	const confirmDelete = () => {
-		Alert.alert(
+		confirmDestructive(
 			"Supprimer cette partie ?",
-			"Elle disparaîtra de l'historique. C'est irréversible.",
-			[
-				{ text: "Annuler", style: "cancel" },
-				{
-					text: "Supprimer",
-					style: "destructive",
-					onPress: () => {
-						removeSession(session.id);
-						router.back();
-					},
-				},
-			],
+			() => {
+				removeSession(session.id);
+				router.back();
+			},
+			{ message: "Elle disparaîtra de l'historique. C'est irréversible." },
 		);
 	};
 

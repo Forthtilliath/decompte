@@ -1,3 +1,4 @@
+import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, StyleSheet, Text } from "react-native";
 import { PlayerForm } from "@/components/players/PlayerForm";
@@ -23,20 +24,15 @@ export default function EditPlayerScreen() {
 	}
 
 	const confirmDelete = () => {
-		Alert.alert(
+		confirmDestructive(
 			"Supprimer ce joueur ?",
-			`${player.name} sera définitivement supprimé. Son historique de parties passées est conservé.`,
-			[
-				{ text: "Annuler", style: "cancel" },
-				{
-					text: "Supprimer",
-					style: "destructive",
-					onPress: () => {
-						removePlayer(player.id);
-						router.back();
-					},
-				},
-			],
+			() => {
+				removePlayer(player.id);
+				router.back();
+			},
+			{
+				message: `${player.name} sera définitivement supprimé. Son historique de parties passées est conservé.`,
+			},
 		);
 	};
 

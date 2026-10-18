@@ -1,3 +1,4 @@
+import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
@@ -68,14 +69,10 @@ export default function GameDetailScreen() {
 	};
 
 	const confirmArchive = () => {
-		Alert.alert(
-			"Archiver ce jeu ?",
-			"Il disparaîtra de la liste, mais son historique reste consultable.",
-			[
-				{ text: "Annuler", style: "cancel" },
-				{ text: "Archiver", style: "destructive", onPress: () => toggleArchived(game.id) },
-			],
-		);
+		confirmDestructive("Archiver ce jeu ?", () => toggleArchived(game.id), {
+			message: "Il disparaîtra de la liste, mais son historique reste consultable.",
+			confirmLabel: "Archiver",
+		});
 	};
 
 	return (

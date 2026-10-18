@@ -1,5 +1,5 @@
+import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useRouter } from "expo-router";
-import { Alert } from "react-native";
 import { getResumeCategoryId } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -19,10 +19,10 @@ export function useOngoingSession() {
 	};
 
 	const confirmAbandon = () => {
-		Alert.alert("Abandonner la partie en cours ?", "Les scores déjà saisis seront perdus.", [
-			{ text: "Annuler", style: "cancel" },
-			{ text: "Abandonner", style: "destructive", onPress: resetSession },
-		]);
+		confirmDestructive("Abandonner la partie en cours ?", resetSession, {
+			message: "Les scores déjà saisis seront perdus.",
+			confirmLabel: "Abandonner",
+		});
 	};
 
 	return { hasOngoingSession, ongoingGame, resume, confirmAbandon };
