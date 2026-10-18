@@ -7,7 +7,7 @@ module.exports = {
 	testPathIgnorePatterns: ["/node_modules/", "/android/", "/ios/", "/.expo/"],
 	// Liste de jest-expo + les paquets @forthtilliath, publiés en ESM : Babel doit les transformer.
 	transformIgnorePatterns: [
-		"/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|@forthtilliath))",
+		"/node_modules/(?!(.pnpm|react-native|@react-native|@react-native-community|expo|@expo|@expo-google-fonts|react-navigation|@react-navigation|@sentry/react-native|native-base|standard-navigation|@forthtilliath))",
 		"/node_modules/react-native-reanimated/plugin/",
 	],
 	collectCoverageFrom: [

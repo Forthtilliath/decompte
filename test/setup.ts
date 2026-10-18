@@ -4,6 +4,14 @@ jest.mock("@react-native-async-storage/async-storage", () =>
 	require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
 
+// Mocks fournis par les bibliothèques : sans eux, le layout racine (SafeAreaProvider,
+// GestureHandlerRootView) ne rend rien hors appareil.
+jest.mock(
+	"react-native-safe-area-context",
+	() => require("react-native-safe-area-context/jest/mock").default,
+);
+require("react-native-gesture-handler/jestSetup");
+
 // Les vibrations n'ont pas d'équivalent en test : promesses résolues, enums conservés.
 jest.mock("expo-haptics", () => ({
 	impactAsync: jest.fn(() => Promise.resolve()),
