@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
 import { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
 import { Button } from "@/components/ui/Button";
-import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { rankEntries } from "@/lib/scoring";
 import { useGamesStore } from "@/stores/gamesStore";
@@ -57,18 +57,18 @@ export default function ResultsScreen() {
 			/>
 			<Text style={styles.title}>Classement</Text>
 			<ScrollView contentContainerStyle={styles.list}>
-				{ranking.map((entry) => {
-					const player = allPlayers.find((p) => p.id === entry.playerId);
-					if (!player) return null;
+				{ranking.map((ranked) => {
+					const player = allPlayers.find((p) => p.id === ranked.playerId);
+					const entry = entries[ranked.playerId];
+					if (!player || !entry) return null;
 					return (
-						<View key={entry.playerId} style={[styles.row, entry.rank === 1 && styles.rowFirst]}>
-							<Text style={styles.rank}>{entry.rank}</Text>
-							<PlayerAvatar name={player.name} avatarUri={player.avatarUri} seed={player.id} />
-							<Text style={styles.name} numberOfLines={1}>
-								{player.name}
-							</Text>
-							<Text style={styles.total}>{entry.total}</Text>
-						</View>
+						<RankedPlayerCard
+							key={ranked.playerId}
+							player={player}
+							ranked={ranked}
+							entry={entry}
+							categories={game.categories}
+						/>
 					);
 				})}
 			</ScrollView>
@@ -90,37 +90,6 @@ function useStyles(colors: ThemeColors) {
 				list: {
 					gap: SPACING.sm,
 					paddingBottom: SPACING.md,
-				},
-				row: {
-					flexDirection: "row",
-					alignItems: "center",
-					gap: SPACING.sm,
-					backgroundColor: colors.surface,
-					borderRadius: RADIUS.md,
-					padding: SPACING.md,
-					borderWidth: 1,
-					borderColor: "transparent",
-				},
-				rowFirst: {
-					borderColor: colors.gold,
-				},
-				rank: {
-					color: colors.textMuted,
-					fontSize: 16,
-					fontWeight: "800",
-					width: 24,
-					textAlign: "center",
-				},
-				name: {
-					flex: 1,
-					color: colors.text,
-					fontSize: 16,
-					fontWeight: "700",
-				},
-				total: {
-					color: colors.gold,
-					fontSize: 20,
-					fontWeight: "800",
 				},
 			}),
 		[colors],
