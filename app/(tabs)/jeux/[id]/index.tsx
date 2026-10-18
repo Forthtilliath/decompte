@@ -1,12 +1,14 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
 import { SelectablePlayerCard } from "@/components/players/SelectablePlayerCard";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { selectSortedPlayers, usePlayersStore } from "@/stores/playersStore";
@@ -28,9 +30,9 @@ export default function GameDetailScreen() {
 		() => allSessions.filter((sess) => sess.gameDefId === id),
 		[allSessions, id],
 	);
-	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const sessionGameDefId = useSessionStore((s) => s.gameDefId);
 	const startNewSession = useSessionStore((s) => s.startNewSession);
+	const { hasOngoingSession, resume, confirmAbandon } = useOngoingSession();
 
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -85,15 +87,18 @@ export default function GameDetailScreen() {
 				</View>
 
 				{otherGameOngoing ? (
-					<Text style={styles.hint}>
-						Une partie est en cours sur un autre jeu. Termine-la ou abandonne-la avant d'en lancer
-						une ici.
-					</Text>
+					<>
+						<Text style={styles.hint}>
+							Une partie est en cours sur un autre jeu. Termine-la ou abandonne-la avant d'en lancer
+							une ici.
+						</Text>
+						<Button label="Abandonner l'autre partie" variant="ghost" onPress={confirmAbandon} />
+					</>
 				) : isThisGameOngoing ? (
-					<Button
-						label="Reprendre la partie en cours"
-						onPress={() => router.push(`/jeux/play/${game.categories[0].id}`)}
-					/>
+					<>
+						<Button label="Reprendre la partie en cours" onPress={resume} />
+						<Button label="Abandonner la partie" variant="ghost" onPress={confirmAbandon} />
+					</>
 				) : (
 					<>
 						<Text style={styles.sectionTitle}>
@@ -125,10 +130,14 @@ export default function GameDetailScreen() {
 					<>
 						<Text style={styles.sectionTitle}>Historique</Text>
 						{sessions.map((session) => (
-							<Text key={session.id} style={styles.sessionRow}>
-								{new Date(session.createdAt).toLocaleDateString("fr-FR")} ·{" "}
-								{session.playerIds.length} joueur(s)
-							</Text>
+							<SessionSummaryCard
+								key={session.id}
+								session={session}
+								game={game}
+								players={players}
+								showGameName={false}
+								onPress={() => router.push(`/history/${session.id}`)}
+							/>
 						))}
 					</>
 				)}
@@ -198,10 +207,6 @@ function useStyles(colors: ThemeColors) {
 				hint: {
 					color: colors.textMuted,
 					fontSize: 13,
-				},
-				sessionRow: {
-					color: colors.text,
-					fontSize: 14,
 				},
 			}),
 		[colors],

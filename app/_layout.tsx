@@ -38,6 +38,7 @@ export default function RootLayout() {
 						name="groups/[id]"
 						options={{ title: "Modifier le groupe", presentation: "modal" }}
 					/>
+					<Stack.Screen name="history/[id]" options={{ title: "Détail de la partie" }} />
 				</Stack>
 			</SafeAreaProvider>
 		</GestureHandlerRootView>

@@ -1,0 +1,132 @@
+import { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
+import { RANK_MEDALS } from "@/constants/ranking";
+import type { ThemeColors } from "@/constants/theme";
+import { RADIUS, SPACING } from "@/constants/theme";
+import { useColors } from "@/hooks/useColors";
+import { formatDate } from "@/lib/date";
+import { rankEntries } from "@/lib/scoring";
+import type { GameDef, Session } from "@/types/game";
+import type { Player } from "@/types/player";
+
+type Props = {
+	session: Session;
+	game: GameDef | undefined;
+	players: Player[];
+	onPress: () => void;
+	/** Masqué sur la fiche d'un jeu, où le nom du jeu est déjà en titre. */
+	showGameName?: boolean;
+};
+
+/** Résumé d'une partie terminée : jeu, date, et joueurs dans l'ordre du classement. */
+export function SessionSummaryCard({
+	session,
+	game,
+	players,
+	onPress,
+	showGameName = true,
+}: Props) {
+	const colors = useColors();
+	const styles = useStyles(colors);
+	const ranking = useMemo(() => rankEntries(Object.values(session.entries)), [session.entries]);
+
+	return (
+		<Pressable
+			style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+			onPress={onPress}
+			accessibilityRole="button"
+			accessibilityLabel={`Voir le détail de la partie du ${formatDate(session.createdAt)}`}
+		>
+			<View style={styles.row}>
+				{showGameName && (
+					<Text style={styles.gameName} numberOfLines={1}>
+						{game?.name ?? "Jeu introuvable"}
+					</Text>
+				)}
+				<Text style={styles.date}>{formatDate(session.createdAt)}</Text>
+			</View>
+
+			<View style={styles.playersRow}>
+				{ranking.map((score) => {
+					const player = players.find((p) => p.id === score.playerId);
+					if (!player) return null;
+					return (
+						<View key={player.id} style={styles.player}>
+							<PlayerAvatar
+								name={player.name}
+								avatarUri={player.avatarUri}
+								seed={player.id}
+								size={36}
+							/>
+							<Text style={styles.playerName} numberOfLines={1}>
+								{player.name}
+							</Text>
+							<Text style={[styles.playerScore, score.rank === 1 && styles.winnerScore]}>
+								{RANK_MEDALS[score.rank] ?? `${score.rank}e`} {score.total}
+							</Text>
+						</View>
+					);
+				})}
+			</View>
+		</Pressable>
+	);
+}
+
+function useStyles(colors: ThemeColors) {
+	return useMemo(
+		() =>
+			StyleSheet.create({
+				card: {
+					backgroundColor: colors.surface,
+					borderRadius: RADIUS.md,
+					padding: SPACING.md,
+					gap: SPACING.sm,
+				},
+				pressed: {
+					opacity: 0.7,
+				},
+				row: {
+					flexDirection: "row",
+					justifyContent: "space-between",
+					alignItems: "center",
+					gap: SPACING.sm,
+				},
+				gameName: {
+					flex: 1,
+					color: colors.text,
+					fontSize: 16,
+					fontWeight: "700",
+				},
+				date: {
+					color: colors.textMuted,
+					fontSize: 13,
+				},
+				playersRow: {
+					flexDirection: "row",
+					flexWrap: "wrap",
+					gap: SPACING.sm,
+				},
+				player: {
+					width: 52,
+					alignItems: "center",
+					gap: 2,
+				},
+				playerName: {
+					color: colors.text,
+					fontSize: 11,
+					fontWeight: "600",
+				},
+				playerScore: {
+					color: colors.textMuted,
+					fontSize: 11,
+					fontVariant: ["tabular-nums"],
+				},
+				winnerScore: {
+					color: colors.gold,
+					fontWeight: "700",
+				},
+			}),
+		[colors],
+	);
+}
