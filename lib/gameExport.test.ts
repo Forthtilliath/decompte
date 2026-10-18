@@ -193,6 +193,27 @@ describe("parseGameExport : rejets", () => {
 			},
 		],
 		[
+			"deux valeurs de choix au même score",
+			{
+				categories: [
+					{
+						label: "A",
+						brick: {
+							kind: "choice",
+							options: [
+								{ label: "x", value: 2 },
+								{ label: "y", value: 2 },
+							],
+						},
+					},
+				],
+			},
+		],
+		[
+			"Oui et Non au même score",
+			{ categories: [{ label: "A", brick: { kind: "boolean", yesValue: 0, noValue: 0 } }] },
+		],
+		[
 			"plafond négatif",
 			{ categories: [{ label: "A", brick: { kind: "manual", allowNegative: false, max: -1 } }] },
 		],
