@@ -1,9 +1,9 @@
 {
 	"expo": {
-		"name": "reactnative-boardgame-scoring",
-		"slug": "reactnative-boardgame-scoring",
+		"name": "Décompte",
+		"slug": "decompte",
 		"version": "1.0.0",
-		"scheme": "boardgamescoring",
+		"scheme": "decompte",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"userInterfaceStyle": "automatic",
@@ -15,7 +15,7 @@
 				"monochromeImage": "./assets/images/android-icon-monochrome.png"
 			},
 			"predictiveBackGestureEnabled": false,
-			"package": "com.forth.reactnativeboardgamescoring"
+			"package": "com.forthtilliath.decompte"
 		},
 		"web": {
 			"favicon": "./assets/images/favicon.png"
