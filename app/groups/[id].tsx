@@ -1,5 +1,6 @@
+import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Alert, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import { GroupForm } from "@/components/groups/GroupForm";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
@@ -22,20 +23,15 @@ export default function EditGroupScreen() {
 	}
 
 	const confirmDelete = () => {
-		Alert.alert(
+		confirmDestructive(
 			"Supprimer ce groupe ?",
-			`"${group.name}" sera définitivement supprimé. Les joueurs eux-mêmes ne sont pas affectés.`,
-			[
-				{ text: "Annuler", style: "cancel" },
-				{
-					text: "Supprimer",
-					style: "destructive",
-					onPress: () => {
-						removeGroup(group.id);
-						router.back();
-					},
-				},
-			],
+			() => {
+				removeGroup(group.id);
+				router.back();
+			},
+			{
+				message: `"${group.name}" sera définitivement supprimé. Les joueurs eux-mêmes ne sont pas affectés.`,
+			},
 		);
 	};
 
