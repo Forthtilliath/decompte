@@ -95,7 +95,7 @@ export default function SessionDetailScreen() {
 				{ranking.map((ranked) => {
 					const player = players.find((p) => p.id === ranked.playerId);
 					const entry = session.entries[ranked.playerId];
-					if (!player || !entry) return null;
+					if (!entry) return null;
 					return (
 						<RankedPlayerCard
 							key={ranked.playerId}

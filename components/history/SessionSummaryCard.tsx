@@ -6,6 +6,7 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { formatDate } from "@/lib/date";
+import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
 import { rankEntries } from "@/lib/scoring";
 import type { GameDef, Session } from "@/types/game";
 import type { Player } from "@/types/player";
@@ -49,18 +50,18 @@ export function SessionSummaryCard({
 
 			<View style={styles.playersRow}>
 				{ranking.map((score) => {
+					// Un joueur supprimé depuis reste affiché (anonymisé) : le retirer fausserait le classement.
 					const player = players.find((p) => p.id === score.playerId);
-					if (!player) return null;
 					return (
-						<View key={player.id} style={styles.player}>
+						<View key={score.playerId} style={styles.player}>
 							<PlayerAvatar
-								name={player.name}
-								avatarUri={player.avatarUri}
-								seed={player.id}
+								name={player?.name ?? "?"}
+								avatarUri={player?.avatarUri}
+								seed={score.playerId}
 								size={36}
 							/>
-							<Text style={styles.playerName} numberOfLines={1}>
-								{player.name}
+							<Text style={[styles.playerName, !player && styles.deletedName]} numberOfLines={1}>
+								{player?.name ?? DELETED_PLAYER_LABEL}
 							</Text>
 							<Text style={[styles.playerScore, score.rank === 1 && styles.winnerScore]}>
 								{RANK_MEDALS[score.rank] ?? `${score.rank}e`} {score.total}
@@ -116,6 +117,10 @@ function useStyles(colors: ThemeColors) {
 					color: colors.text,
 					fontSize: 11,
 					fontWeight: "600",
+				},
+				deletedName: {
+					color: colors.textMuted,
+					fontStyle: "italic",
 				},
 				playerScore: {
 					color: colors.textMuted,
