@@ -1,5 +1,13 @@
 import { z } from "zod";
 import { AVATAR_PALETTE } from "@/lib/avatarColor";
+import {
+	MAX_CATEGORIES,
+	MAX_GAME_NAME_LENGTH,
+	MAX_ITEMS,
+	MAX_LABEL_LENGTH,
+	MAX_PLAYERS,
+	MAX_SCORE,
+} from "@/lib/gameLimits";
 import { createId } from "@/lib/uuid";
 import type { GameDef, ScoringBrick } from "@/types/game";
 
@@ -15,11 +23,6 @@ export const GAME_EXPORT_VERSION = 1;
 /** Au-delà, on refuse avant même de lire le JSON : un vrai jeu pèse quelques Ko. */
 export const MAX_EXPORT_LENGTH = 50_000;
 
-const MAX_CATEGORIES = 30;
-const MAX_ITEMS = 30;
-const MAX_SCORE = 10_000;
-const MAX_PLAYERS = 50;
-
 const label = (max: number) => z.string().trim().min(1).max(max);
 const score = z.number().min(-MAX_SCORE).max(MAX_SCORE);
 
@@ -32,14 +35,14 @@ const brickSchema = z.discriminatedUnion("kind", [
 	z.object({
 		kind: z.literal("tokens"),
 		tokens: z
-			.array(z.object({ label: label(40), value: score }))
+			.array(z.object({ label: label(MAX_LABEL_LENGTH), value: score }))
 			.min(1)
 			.max(MAX_ITEMS),
 	}),
 	z.object({
 		kind: z.literal("choice"),
 		options: z
-			.array(z.object({ label: label(40), value: score }))
+			.array(z.object({ label: label(MAX_LABEL_LENGTH), value: score }))
 			.min(2)
 			.max(MAX_ITEMS),
 	}),
@@ -48,11 +51,11 @@ const brickSchema = z.discriminatedUnion("kind", [
 
 const gameSchema = z
 	.object({
-		name: label(60),
+		name: label(MAX_GAME_NAME_LENGTH),
 		minPlayers: z.number().int().min(1).max(MAX_PLAYERS),
 		maxPlayers: z.number().int().min(1).max(MAX_PLAYERS),
 		categories: z
-			.array(z.object({ label: label(40), brick: brickSchema }))
+			.array(z.object({ label: label(MAX_LABEL_LENGTH), brick: brickSchema }))
 			.min(1)
 			.max(MAX_CATEGORIES),
 	})
