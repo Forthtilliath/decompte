@@ -1,9 +1,9 @@
+import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { tapFeedback } from "@/lib/haptics";
 
 type Props = {
 	value: number;

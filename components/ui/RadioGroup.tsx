@@ -1,9 +1,9 @@
+import { selectFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { selectFeedback } from "@/lib/haptics";
 
 type Option<T extends string> = {
 	value: T;

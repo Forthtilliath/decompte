@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { selectFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { selectFeedback } from "@/lib/haptics";
 
 type Props = {
 	playerId: string;
