@@ -1,0 +1,7 @@
+# LF partout, y compris sous Windows : Biome vérifie les fins de ligne, le lint local doit donner
+# le même résultat que la CI.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jks binary
