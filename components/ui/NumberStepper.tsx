@@ -1,13 +1,17 @@
 import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
+import { clamp } from "@forthtilliath/ts-kit/number/clamp";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { parseIntegerInput, sanitizeIntegerInput } from "@/lib/numbers";
 
 type Props = {
 	value: number;
 	onChange: (value: number) => void;
+	/** Sans minimum, les valeurs négatives sont permises. Pas de valeur par défaut : un `min = 0`
+	 * écraserait aussi un `min={undefined}` explicite (ex. catégorie qui autorise le négatif). */
 	min?: number;
 	max?: number;
 	step?: number;
@@ -24,21 +28,8 @@ const REPEAT_INTERVAL_MS = 180;
 const ACCELERATE_AFTER_MS = 1200;
 const FAST_INTERVAL_MS = 60;
 
-export function NumberStepper({
-	value,
-	onChange,
-	min = 0,
-	max,
-	step = 1,
-	accentColor,
-	label,
-}: Props) {
-	const clamp = (n: number) => {
-		let result = n;
-		if (min !== undefined) result = Math.max(min, result);
-		if (max !== undefined) result = Math.min(max, result);
-		return result;
-	};
+export function NumberStepper({ value, onChange, min, max, step = 1, accentColor, label }: Props) {
+	const bound = (n: number) => clamp(n, min ?? -Infinity, max ?? Infinity);
 
 	// Suit la valeur courante pendant une répétition, indépendamment des re-renders déclenchés par
 	// chaque onChange (la prop `value` du render en cours pourrait être en retard d'un tick).
@@ -69,7 +60,7 @@ export function NumberStepper({
 	}, []);
 
 	const stepOnce = (direction: 1 | -1) => {
-		const next = clamp(valueRef.current + direction * step);
+		const next = bound(valueRef.current + direction * step);
 		if (next !== valueRef.current) tapFeedback();
 		valueRef.current = next;
 		onChange(next);
@@ -91,7 +82,7 @@ export function NumberStepper({
 	const color = accentColor ?? colors.primary;
 	// "number-pad" a un clavier purement numérique, sans touche "-" sur Android. Dès qu'un
 	// négatif est possible, on bascule sur "numeric" qui affiche le signe.
-	const allowsNegative = min !== undefined && min < 0;
+	const allowsNegative = min === undefined || min < 0;
 
 	// Texte affiché, distinct de `value` : le temps de taper "-13", l'état intermédiaire ("-",
 	// "-1"...) n'est pas un nombre valide et ne doit pas être écrasé par la valeur committée.
@@ -102,9 +93,8 @@ export function NumberStepper({
 	}, [value]);
 
 	const commit = (raw: string) => {
-		if (/^-?\d+$/.test(raw)) {
-			onChange(clamp(Number.parseInt(raw, 10)));
-		}
+		const parsed = parseIntegerInput(raw);
+		if (parsed !== null) onChange(bound(parsed));
 	};
 
 	return (
@@ -124,7 +114,7 @@ export function NumberStepper({
 				keyboardType={allowsNegative ? "numeric" : "number-pad"}
 				value={text}
 				onChangeText={(raw) => {
-					const cleaned = allowsNegative ? raw.replace(/[^\d-]/g, "") : raw.replace(/\D/g, "");
+					const cleaned = sanitizeIntegerInput(raw, allowsNegative);
 					setText(cleaned);
 					commit(cleaned);
 				}}
