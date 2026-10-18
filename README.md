@@ -14,6 +14,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - **Classement final** avec médailles, et ex æquo gérés.
 - **Joueurs et groupes** : avatar photo ou initiales colorées, groupes d'habitués.
 - **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs.
+- **Partage de jeux** : un jeu s'envoie en texte à un autre joueur, qui le colle dans Décompte. Le texte est entièrement vérifié avant d'être ajouté.
 - Thème clair ou sombre.
 - Rien n'est supprimé définitivement : jeux, joueurs et groupes s'archivent, pour que l'historique reste lisible.
 
