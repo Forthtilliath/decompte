@@ -46,37 +46,9 @@ npx tsc --noEmit  # vérification des types
 | `lib/` | Logique pure : calcul des scores, déroulé d'une partie, jetons, dates |
 | `plugins/` | Plugins de configuration Expo appliqués au projet Android |
 
-## Build de release
+## Sécurité
 
-L'APK de release est signé avec une **clé d'upload propre à l'app**, jamais avec le `debug.keystore` public de React Native. Le plugin `plugins/withReleaseSigning.js` lit la clé dans des propriétés Gradle qui restent hors du dépôt. Sans elles, le build release échoue volontairement.
-
-1. Créer la clé une seule fois, puis la sauvegarder hors de la machine (gestionnaire de mots de passe) : la perdre empêche toute mise à jour de l'app déjà installée.
-
-   ```powershell
-   keytool -genkeypair -v -storetype PKCS12 -keyalg RSA -keysize 2048 -validity 10000 -alias decompte-upload -keystore "$env:USERPROFILE\keys\decompte-upload.keystore"
-   ```
-
-2. Déclarer la clé dans `~/.gradle/gradle.properties`, jamais dans le projet :
-
-   ```properties
-   DECOMPTE_UPLOAD_STORE_FILE=C:/Users/<vous>/keys/decompte-upload.keystore
-   DECOMPTE_UPLOAD_STORE_PASSWORD=...
-   DECOMPTE_UPLOAD_KEY_ALIAS=decompte-upload
-   DECOMPTE_UPLOAD_KEY_PASSWORD=...
-   ```
-
-   En CI, utiliser les variables d'environnement `ORG_GRADLE_PROJECT_DECOMPTE_UPLOAD_*` à la place.
-
-3. Générer le projet natif, construire et vérifier la signature :
-
-   ```powershell
-   npx expo prebuild --platform android
-   cd android
-   .\gradlew.bat :app:signingReport
-   .\gradlew.bat assembleRelease
-   ```
-
-L'APK publié se renomme avec l'app et la version, par exemple `Decompte-1.0.0.apk`. `plugins/withAndroidAbis.js` limite le build aux architectures `armeabi-v7a` et `arm64-v8a`, celles des téléphones réels.
+Les APK publiés sont signés avec une clé propre à l'app, jamais avec la clé de debug publique de React Native. Une mise à jour ne peut donc venir que de ce projet.
 
 ## Licence
 
