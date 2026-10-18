@@ -66,6 +66,11 @@ export default function GamesListScreen() {
 			)}
 
 			<Button label="Créer un jeu" onPress={() => router.push("/jeux/new")} />
+			<Button
+				label="Importer un jeu partagé"
+				variant="ghost"
+				onPress={() => router.push("/jeux/import")}
+			/>
 		</ScreenContainer>
 	);
 }
