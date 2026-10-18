@@ -1,4 +1,5 @@
-import { renderRouter } from "expo-router/testing-library";
+import { router } from "expo-router";
+import { act, renderRouter } from "expo-router/testing-library";
 
 /**
  * Rend l'app entière (vrais écrans de `app/`, vraie navigation Expo Router) à partir d'une URL.
@@ -14,5 +15,11 @@ export async function renderApp(initialUrl: string) {
 	return {
 		getPathname: () => app.getPathname(),
 		getSearchParams: () => app.getSearchParams(),
+		/** `testRouter` d'expo-router suppose le `render` synchrone de Testing Library v13. */
+		navigate: async (path: string) => {
+			await act(async () => {
+				router.navigate(path);
+			});
+		},
 	};
 }

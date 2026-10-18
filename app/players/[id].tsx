@@ -1,12 +1,15 @@
-import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert, StyleSheet, Text } from "react-native";
 import { PlayerForm } from "@/components/players/PlayerForm";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { SPACING } from "@/constants/theme";
+import { describePlayerDeletion, getPlayerUsage } from "@/lib/playerDeletion";
 import { hasDuplicateName } from "@/lib/players";
+import { useGroupsStore } from "@/stores/groupsStore";
+import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
+import { useSessionStore } from "@/stores/sessionStore";
 
 export default function EditPlayerScreen() {
 	const router = useRouter();
@@ -14,6 +17,7 @@ export default function EditPlayerScreen() {
 	const player = usePlayersStore((s) => s.players.find((p) => p.id === id));
 	const updatePlayer = usePlayersStore((s) => s.updatePlayer);
 	const removePlayer = usePlayersStore((s) => s.removePlayer);
+	const removePlayerFromGroups = useGroupsStore((s) => s.removePlayerFromGroups);
 
 	if (!player) {
 		return (
@@ -24,16 +28,36 @@ export default function EditPlayerScreen() {
 	}
 
 	const confirmDelete = () => {
-		confirmDestructive(
-			"Supprimer ce joueur ?",
-			() => {
-				removePlayer(player.id);
-				router.back();
-			},
-			{
-				message: `${player.name} sera définitivement supprimé. Son historique de parties passées est conservé.`,
-			},
+		const usage = getPlayerUsage(
+			player.id,
+			useHistoryStore.getState().sessions,
+			useGroupsStore.getState().groups,
+			useSessionStore.getState().playerIds,
 		);
+		if (usage.inOngoingSession) {
+			Alert.alert(
+				"Joueur en pleine partie",
+				`${player.name} joue la partie en cours. Termine-la ou abandonne-la avant de le supprimer.`,
+			);
+			return;
+		}
+
+		const archive = () => {
+			updatePlayer(player.id, { isArchived: true });
+			router.back();
+		};
+		// Ses scores restent dans l'historique (affichés « Joueur supprimé ») : seuls les groupes,
+		// qui ne sont que des raccourcis de sélection, perdent sa trace.
+		const remove = () => {
+			removePlayerFromGroups(player.id);
+			removePlayer(player.id);
+			router.back();
+		};
+		Alert.alert("Supprimer ce joueur ?", describePlayerDeletion(player, usage), [
+			{ text: "Annuler", style: "cancel" },
+			...(player.isArchived ? [] : [{ text: "Archiver", onPress: archive }]),
+			{ text: "Supprimer", style: "destructive", onPress: remove },
+		]);
 	};
 
 	return (
