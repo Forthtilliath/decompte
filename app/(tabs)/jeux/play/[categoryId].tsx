@@ -1,9 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PlayerScoreRow } from "@/components/players/PlayerScoreRow";
 import { CategoryScoreField } from "@/components/scoring/CategoryScoreField";
+import { type UnitMode, UnitModeToggle } from "@/components/scoring/UnitModeToggle";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
@@ -25,6 +26,7 @@ export default function PlayScoreScreen() {
 	const setCurrentCategory = useSessionStore((s) => s.setCurrentCategory);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 	const allPlayers = usePlayersStore((s) => s.players);
+	const [unitMode, setUnitMode] = useState<UnitMode>("units");
 
 	useEffect(() => {
 		if (playerIds.length === 0) router.replace("/jeux");
@@ -42,6 +44,7 @@ export default function PlayScoreScreen() {
 	if (index === -1) return null;
 
 	const category = categories[index];
+	const unitValue = category.brick.kind === "manual" ? category.brick.unitValue : undefined;
 	const isLast = index === categories.length - 1;
 	const gamePlayers = playerIds
 		.map((id) => allPlayers.find((p) => p.id === id))
@@ -110,6 +113,9 @@ export default function PlayScoreScreen() {
 			</Text>
 
 			<ScrollView contentContainerStyle={styles.list}>
+				{unitValue !== undefined && (
+					<UnitModeToggle unitValue={unitValue} value={unitMode} onChange={setUnitMode} />
+				)}
 				{gamePlayers.map((player) => {
 					const entry = entries[player.id];
 					if (!entry) return null;
@@ -118,6 +124,7 @@ export default function PlayScoreScreen() {
 							<CategoryScoreField
 								category={category}
 								points={entry.scores[category.id]}
+								countUnits={unitMode === "units"}
 								onChange={(value) => updateScore(player.id, category.id, value)}
 							/>
 						</PlayerScoreRow>
