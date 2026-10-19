@@ -17,6 +17,7 @@ function tabIcon(name: ComponentProps<typeof Ionicons>["name"]) {
 export default function TabsLayout() {
 	const colors = useColors();
 
+	// Chaque onglet actif prend la couleur d'un des 4 pions classiques : bleu, rouge, vert, jaune.
 	return (
 		<Tabs
 			screenOptions={{
@@ -42,6 +43,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Joueurs",
 					tabBarIcon: tabIcon("people"),
+					tabBarActiveTintColor: colors.danger,
 				}}
 			/>
 			<Tabs.Screen
@@ -49,6 +51,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Historique",
 					tabBarIcon: tabIcon("time"),
+					tabBarActiveTintColor: colors.success,
 				}}
 			/>
 			<Tabs.Screen
@@ -56,6 +59,7 @@ export default function TabsLayout() {
 				options={{
 					title: "Réglages",
 					tabBarIcon: tabIcon("settings"),
+					tabBarActiveTintColor: colors.gold,
 				}}
 			/>
 		</Tabs>
