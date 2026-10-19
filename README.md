@@ -4,7 +4,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 
 ## Fonctionnalités
 
-- **Feuilles de score personnalisables** : chaque jeu se compose de catégories, chacune avec son mode de calcul :
+- **Feuilles de score personnalisables** : chaque jeu se compose de catégories, chacune avec sa couleur (au choix parmi 18) et son mode de calcul :
   - **points saisis** à la main, négatifs et plafond en option ;
   - **jetons** pondérés à compter (ex. jetons de victoire 1, 3, 5), additionnés automatiquement ;
   - **choix** parmi des options à score fixe (ex. palier atteint) ;
@@ -14,7 +14,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - **Classement final** avec médailles, et ex æquo gérés.
 - **Joueurs et groupes** : avatar photo ou initiales colorées, groupes d'habitués.
 - **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs.
-- **Partage de jeux** : un jeu s'envoie en texte à un autre joueur, qui le colle dans Décompte. Le texte est entièrement vérifié avant d'être ajouté.
+- **Partage de jeux** : un jeu s'envoie en texte à un autre joueur, qui le colle dans Décompte, couleurs des catégories comprises. Le texte est entièrement vérifié avant d'être ajouté.
 - **Sauvegarde** : envoi automatique sur Google Drive après chaque changement (dossier privé de l'app, chiffrement en option), ou export et restauration d'un fichier, avec annulation de la dernière restauration. Chaque sauvegarde est entièrement vérifiée avant d'être appliquée.
 - **Mises à jour en un geste** : l'app annonce une nouvelle version publiée sur GitHub, la télécharge et lance son installation. L'historique des versions et de leurs nouveautés est dans Réglages.
 - **Réglages** : apparence, sauvegarde, mises à jour, soutien au projet (don, partage, signalement de bug), à propos, effacement des données.
