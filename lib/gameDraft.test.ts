@@ -16,7 +16,14 @@ const withBrick = (brick: ScoringBrick, label = "Catégorie"): DraftCategory => 
 const option = (label: string, value: number) => ({ id: label, label, value });
 
 function draft(overrides: Partial<GameDraftInput> = {}): GameDraftInput {
-	return { name: "Azul", minPlayers: "2", maxPlayers: "4", categories: [manual()], ...overrides };
+	return {
+		name: "Azul",
+		minPlayers: "2",
+		maxPlayers: "4",
+		rounds: "1",
+		categories: [manual()],
+		...overrides,
+	};
 }
 
 /** Titre de l'erreur renvoyée, ou "ok". */
@@ -42,7 +49,7 @@ describe("validateGameDraft", () => {
 	it("accepte un jeu complet et nettoie le nom", () => {
 		expect(validateGameDraft(draft({ name: "  Azul  " }))).toEqual({
 			ok: true,
-			values: { name: "Azul", minPlayers: 2, maxPlayers: 4, categories: [manual()] },
+			values: { name: "Azul", minPlayers: 2, maxPlayers: 4, rounds: 1, categories: [manual()] },
 		});
 	});
 
@@ -105,6 +112,28 @@ describe("validateGameDraft", () => {
 			expect(players("2", "50")).toEqual([2, 50]);
 			expect(players("2", "51")).toBe("Trop de joueurs");
 			expect(players("60", "")).toBe("Trop de joueurs");
+		});
+	});
+
+	describe("manches", () => {
+		const rounds = (value: string) => {
+			const result = validateGameDraft(draft({ rounds: value }));
+			return result.ok ? result.values.rounds : result.title;
+		};
+
+		it("lit le nombre de manches saisi", () => {
+			expect(rounds("3")).toBe(3);
+		});
+
+		it("met une seule manche si le champ est vide, nul ou négatif", () => {
+			expect(rounds("")).toBe(1);
+			expect(rounds("0")).toBe(1);
+			expect(rounds("-2")).toBe(1);
+		});
+
+		it("refuse plus de 20 manches (limite de l'import)", () => {
+			expect(rounds("20")).toBe(20);
+			expect(rounds("21")).toBe("Trop de manches");
 		});
 	});
 

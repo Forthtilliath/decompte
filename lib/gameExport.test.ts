@@ -154,7 +154,19 @@ describe("serializeGame / parseGameExport", () => {
 			"maxPlayers",
 			"minPlayers",
 			"name",
+			"rounds",
 		]);
+	});
+
+	it("transmet le nombre de manches, et lit un jeu sans manches comme un jeu en une manche", () => {
+		const exported = parseGameExport(serializeGame(makeGame({ rounds: 3 })));
+		if (!exported.ok) throw new Error(exported.error);
+		expect(exported.game.rounds).toBe(3);
+
+		expect(serializeGame(makeGame({ rounds: 1 }))).not.toMatch(/rounds/);
+		const legacy = parseGameExport(envelope(validGame));
+		if (!legacy.ok) throw new Error(legacy.error);
+		expect(legacy.game.rounds).toBe(1);
 	});
 
 	it("nettoie les espaces des libellés", () => {
@@ -200,6 +212,10 @@ describe("parseGameExport : rejets", () => {
 		["joueurs max < min", { minPlayers: 4, maxPlayers: 2 }],
 		["joueurs non entiers", { minPlayers: 1.5 }],
 		["trop de joueurs", { maxPlayers: 51 }],
+		["aucune manche", { rounds: 0 }],
+		["trop de manches", { rounds: 21 }],
+		["manches non entières", { rounds: 2.5 }],
+		["manches non numériques", { rounds: "3" }],
 		["aucune catégorie", { categories: [] }],
 		["trop de catégories", { categories: Array(31).fill(validGame.categories[0]) }],
 		["mode de calcul inconnu", { categories: [{ label: "A", brick: { kind: "script" } }] }],

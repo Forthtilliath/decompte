@@ -13,6 +13,7 @@ const EMPTY = {
 	entries: {},
 	startedAt: null,
 	currentCategoryId: null,
+	currentRound: null,
 };
 
 const now = jest.spyOn(Date, "now");
@@ -43,6 +44,7 @@ describe("useSessionStore", () => {
 			},
 			startedAt: 1_000,
 			currentCategoryId: null,
+			currentRound: null,
 		});
 		expect(useSessionStore.getState().hasOngoingSession()).toBe(true);
 	});
@@ -84,9 +86,11 @@ describe("useSessionStore", () => {
 		expect(useSessionStore.getState().playerIds).toBe(before);
 	});
 
-	it("mémorise l'étape affichée", () => {
+	it("mémorise l'étape affichée et sa manche", () => {
 		useSessionStore.getState().setCurrentCategory("c2");
-		expect(useSessionStore.getState().currentCategoryId).toBe("c2");
+		expect(useSessionStore.getState()).toMatchObject({ currentCategoryId: "c2", currentRound: 1 });
+		useSessionStore.getState().setCurrentCategory("c1", 3);
+		expect(useSessionStore.getState()).toMatchObject({ currentCategoryId: "c1", currentRound: 3 });
 	});
 
 	it("construit la partie sans la persister ni réinitialiser", () => {
@@ -148,6 +152,7 @@ describe("persistance de la partie en cours", () => {
 			entries: { p1: { playerId: "p1", scores: {} } },
 			startedAt: 1_000,
 			currentCategoryId: null,
+			currentRound: null,
 		});
 	});
 
@@ -182,6 +187,7 @@ describe("persistance de la partie en cours", () => {
 		);
 		await useSessionStore.persist.rehydrate();
 		expect(useSessionStore.getState().currentCategoryId).toBeNull();
+		expect(useSessionStore.getState().currentRound).toBeNull();
 		expect(useSessionStore.getState().gameDefId).toBe("azul");
 	});
 

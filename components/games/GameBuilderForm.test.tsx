@@ -50,6 +50,7 @@ describe("GameBuilderForm", () => {
 			name: "Azul",
 			minPlayers: 2,
 			maxPlayers: 4,
+			rounds: 1,
 			categories: [
 				{ label: "Murs", color: "#ef4444", brick: { kind: "manual", allowNegative: false } },
 			],
