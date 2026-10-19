@@ -73,4 +73,31 @@ describe("RankedPlayerCard", () => {
 		expect(screen.getByText("Murs 4")).toBeOnTheScreen();
 		expect(screen.getByText("Catégories retirées 5")).toBeOnTheScreen();
 	});
+
+	it("détaille chaque manche et additionne les manches par catégorie", async () => {
+		await render(
+			<RankedPlayerCard
+				player={makePlayer()}
+				ranked={{ playerId: "p1", total: 21, rank: 1 }}
+				entry={makeEntry("p1", { murs: 5, "murs#2": 7, bonus: 1, "bonus#3": 8 })}
+				categories={categories}
+				roundCount={3}
+			/>,
+		);
+		expect(screen.getByText("Manche 1 : 6  ·  Manche 2 : 7  ·  Manche 3 : 8")).toBeOnTheScreen();
+		expect(screen.getByText("Murs 12")).toBeOnTheScreen();
+		expect(screen.getByText("Bonus 9")).toBeOnTheScreen();
+	});
+
+	it("n'affiche pas de détail par manche pour un jeu en une manche", async () => {
+		await render(
+			<RankedPlayerCard
+				player={makePlayer()}
+				ranked={{ playerId: "p1", total: 7, rank: 1 }}
+				entry={makeEntry("p1", { murs: 7 })}
+				categories={categories}
+			/>,
+		);
+		expect(screen.queryByText(/Manche/)).not.toBeOnTheScreen();
+	});
 });

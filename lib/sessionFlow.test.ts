@@ -1,25 +1,65 @@
-import { getReplayPlan, getResumeCategoryId } from "@/lib/sessionFlow";
+import {
+	getFirstStepHref,
+	getReplayPlan,
+	getResumeStep,
+	getScoringSteps,
+	getStepHref,
+} from "@/lib/sessionFlow";
 import { makeCategory, makeGame, makePlayer, makeSession } from "@/test/factories";
 
-describe("getResumeCategoryId", () => {
-	const game = makeGame({
-		categories: [
-			makeCategory({ id: "c1" }),
-			makeCategory({ id: "c2" }),
-			makeCategory({ id: "c3" }),
-		],
+const categories = [
+	makeCategory({ id: "c1" }),
+	makeCategory({ id: "c2" }),
+	makeCategory({ id: "c3" }),
+];
+
+describe("getScoringSteps", () => {
+	it("enchaîne les catégories une seule fois pour un jeu sans manches", () => {
+		expect(getScoringSteps(makeGame({ categories }))).toEqual([
+			{ categoryId: "c1", round: 1 },
+			{ categoryId: "c2", round: 1 },
+			{ categoryId: "c3", round: 1 },
+		]);
 	});
 
+	it("rejoue toutes les catégories à chaque manche, manche après manche", () => {
+		const steps = getScoringSteps(makeGame({ categories: categories.slice(0, 2), rounds: 3 }));
+		expect(steps.map((s) => `${s.categoryId}/${s.round}`)).toEqual([
+			"c1/1",
+			"c2/1",
+			"c1/2",
+			"c2/2",
+			"c1/3",
+			"c2/3",
+		]);
+	});
+});
+
+describe("getStepHref", () => {
+	it("met toujours la manche dans l'URL, même la première", () => {
+		expect(getStepHref({ categoryId: "c2", round: 3 })).toBe("/jeux/play/c2?round=3");
+		expect(getFirstStepHref(makeGame({ categories }))).toBe("/jeux/play/c1?round=1");
+	});
+});
+
+describe("getResumeStep", () => {
+	const game = makeGame({ categories, rounds: 2 });
+
 	it("reprend sur la dernière étape affichée", () => {
-		expect(getResumeCategoryId(game, "c2")).toBe("c2");
+		expect(getResumeStep(game, "c2", 2)).toEqual({ categoryId: "c2", round: 2 });
+	});
+
+	it("reprend en manche 1 une partie enregistrée avant les manches", () => {
+		expect(getResumeStep(game, "c2", null)).toEqual({ categoryId: "c2", round: 1 });
 	});
 
 	it("reprend sur la première étape si aucune n'a été mémorisée", () => {
-		expect(getResumeCategoryId(game, null)).toBe("c1");
+		expect(getResumeStep(game, null, null)).toEqual({ categoryId: "c1", round: 1 });
 	});
 
-	it("reprend sur la première étape si la catégorie mémorisée a disparu du jeu", () => {
-		expect(getResumeCategoryId(game, "supprimee")).toBe("c1");
+	it("reprend sur la première étape si la catégorie ou la manche a disparu du jeu", () => {
+		expect(getResumeStep(game, "supprimee", 1)).toEqual({ categoryId: "c1", round: 1 });
+		expect(getResumeStep(game, "c2", 3)).toEqual({ categoryId: "c1", round: 1 });
 	});
 });
 

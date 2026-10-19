@@ -29,6 +29,7 @@ describe("useGamesStore", () => {
 			name: "Azul",
 			minPlayers: 2,
 			maxPlayers: 4,
+			rounds: 1,
 			createdAt: 1_000,
 			isArchived: false,
 		});
@@ -45,9 +46,13 @@ describe("useGamesStore", () => {
 		useGamesStore.setState({ games: [other, game] });
 
 		const categories = [makeCategory({ id: "c1", label: "Renommée" })];
-		useGamesStore
-			.getState()
-			.updateGame("cible", { name: " Nouveau ", categories, minPlayers: 1, maxPlayers: 6 });
+		useGamesStore.getState().updateGame("cible", {
+			name: " Nouveau ",
+			categories,
+			minPlayers: 1,
+			maxPlayers: 6,
+			rounds: 3,
+		});
 
 		const [unchanged, updated] = useGamesStore.getState().games;
 		expect(unchanged).toBe(other);
@@ -57,6 +62,7 @@ describe("useGamesStore", () => {
 			categories,
 			minPlayers: 1,
 			maxPlayers: 6,
+			rounds: 3,
 		});
 	});
 
