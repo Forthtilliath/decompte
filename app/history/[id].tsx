@@ -10,8 +10,9 @@ import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { formatDate } from "@/lib/date";
+import { getRoundCount } from "@/lib/rounds";
 import { rankEntries } from "@/lib/scoring";
-import { getReplayPlan } from "@/lib/sessionFlow";
+import { getFirstStepHref, getReplayPlan } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
@@ -72,7 +73,7 @@ export default function SessionDetailScreen() {
 
 		const start = () => {
 			startNewSession(game.id, plan.playerIds);
-			router.push(`/jeux/play/${game.categories[0].id}`);
+			router.push(getFirstStepHref(game));
 		};
 
 		if (plan.isPartial) {
@@ -105,6 +106,7 @@ export default function SessionDetailScreen() {
 							ranked={ranked}
 							entry={entry}
 							categories={game?.categories ?? []}
+							roundCount={game ? getRoundCount(game) : 1}
 						/>
 					);
 				})}

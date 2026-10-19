@@ -14,14 +14,17 @@ type State = {
 	/** Dernière étape de saisie affichée, pour reprendre la partie là où on l'a laissée. Absente
 	 * d'une partie enregistrée avant son ajout : la fusion de `persist` lui donne `null`. */
 	currentCategoryId: string | null;
+	/** Manche de cette étape, même logique (absente → `null`, lue comme la manche 1). */
+	currentRound: number | null;
 };
 
 type Actions = {
 	startNewSession: (gameDefId: string, playerIds: string[]) => void;
-	updateScore: (playerId: string, categoryId: string, points: number) => void;
+	/** `scoreKey` : l'id de catégorie pour la manche 1, suivi de la manche ensuite (lib/rounds). */
+	updateScore: (playerId: string, scoreKey: string, points: number) => void;
 	/** Change l'ordre de jeu : décale le joueur de `offset` places (négatif = vers le haut). */
 	movePlayer: (playerId: string, offset: number) => void;
-	setCurrentCategory: (categoryId: string) => void;
+	setCurrentCategory: (categoryId: string, round?: number) => void;
 	/** Construit l'objet Session correspondant à l'état courant, sans le persister. */
 	toSession: () => Session;
 	/** Enregistre la partie dans l'historique et réinitialise la partie en cours. */
@@ -36,6 +39,7 @@ const EMPTY_STATE: State = {
 	entries: {},
 	startedAt: null,
 	currentCategoryId: null,
+	currentRound: null,
 };
 
 // Bump on any breaking change to State's shape.
@@ -58,18 +62,20 @@ export const useSessionStore = create<State & Actions>()(
 					entries: Object.fromEntries(playerIds.map((id) => [id, createEmptySessionEntry(id)])),
 					startedAt: Date.now(),
 					currentCategoryId: null,
+					currentRound: null,
 				});
 			},
 
-			setCurrentCategory: (categoryId) => set({ currentCategoryId: categoryId }),
+			setCurrentCategory: (categoryId, round = 1) =>
+				set({ currentCategoryId: categoryId, currentRound: round }),
 
-			updateScore: (playerId, categoryId, points) => {
+			updateScore: (playerId, scoreKey, points) => {
 				const current = get().entries[playerId];
 				if (!current) return;
 				set({
 					entries: {
 						...get().entries,
-						[playerId]: { ...current, scores: { ...current.scores, [categoryId]: points } },
+						[playerId]: { ...current, scores: { ...current.scores, [scoreKey]: points } },
 					},
 				});
 			},

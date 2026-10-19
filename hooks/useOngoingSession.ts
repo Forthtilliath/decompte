@@ -1,6 +1,6 @@
 import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useRouter } from "expo-router";
-import { getResumeCategoryId } from "@/lib/sessionFlow";
+import { getResumeStep, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useSessionStore } from "@/stores/sessionStore";
 
@@ -9,13 +9,14 @@ export function useOngoingSession() {
 	const router = useRouter();
 	const gameDefId = useSessionStore((s) => s.gameDefId);
 	const currentCategoryId = useSessionStore((s) => s.currentCategoryId);
+	const currentRound = useSessionStore((s) => s.currentRound);
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const resetSession = useSessionStore((s) => s.resetSession);
 	const ongoingGame = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 
 	const resume = () => {
 		if (!ongoingGame) return;
-		router.push(`/jeux/play/${getResumeCategoryId(ongoingGame, currentCategoryId)}`);
+		router.push(getStepHref(getResumeStep(ongoingGame, currentCategoryId, currentRound)));
 	};
 
 	const confirmAbandon = () => {

@@ -12,6 +12,8 @@ import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
 import { toggleSelection } from "@/lib/players";
+import { getRoundCount } from "@/lib/rounds";
+import { getFirstStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { selectSortedPlayers, usePlayersStore } from "@/stores/playersStore";
@@ -50,10 +52,11 @@ export default function GameDetailScreen() {
 	};
 
 	const canStart = selectedIds.length >= game.minPlayers;
+	const roundCount = getRoundCount(game);
 
 	const startGame = () => {
 		startNewSession(game.id, selectedIds);
-		router.push(`/jeux/play/${game.categories[0].id}`);
+		router.push(getFirstStepHref(game));
 	};
 
 	const shareGame = () => {
@@ -83,6 +86,7 @@ export default function GameDetailScreen() {
 					{game.minPlayers === game.maxPlayers
 						? `${game.minPlayers} joueur${game.minPlayers > 1 ? "s" : ""}`
 						: `${game.minPlayers}–${game.maxPlayers} joueurs`}
+					{roundCount > 1 && ` · ${roundCount} manches`}
 				</Text>
 
 				<View style={styles.chipsRow}>

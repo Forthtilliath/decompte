@@ -10,13 +10,18 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { getRoundCount, scoreKey } from "@/lib/rounds";
 import { computeEntryTotal } from "@/lib/scoring";
+import { getScoringSteps, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
 
 export default function PlayScoreScreen() {
-	const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
+	const params = useLocalSearchParams<{ categoryId: string; round?: string }>();
+	const { categoryId } = params;
+	// Manche absente de l'URL (lien d'avant les manches) : la première.
+	const round = Number(params.round) || 1;
 	const router = useRouter();
 	const colors = useColors();
 	const styles = useStyles(colors);
@@ -37,18 +42,22 @@ export default function PlayScoreScreen() {
 
 	// Mémorise l'étape affichée pour que "Reprendre la partie" y ramène directement.
 	useEffect(() => {
-		if (categoryId) setCurrentCategory(categoryId);
-	}, [categoryId, setCurrentCategory]);
+		if (categoryId) setCurrentCategory(categoryId, round);
+	}, [categoryId, round, setCurrentCategory]);
 
 	if (!game || playerIds.length === 0) return null;
 
-	const categories = game.categories;
-	const index = categories.findIndex((c) => c.id === categoryId);
+	const steps = getScoringSteps(game);
+	const index = steps.findIndex((s) => s.categoryId === categoryId && s.round === round);
 	if (index === -1) return null;
 
-	const category = categories[index];
+	const category = game.categories.find((c) => c.id === categoryId);
+	if (!category) return null;
+	const key = scoreKey(category.id, round);
+	const roundCount = getRoundCount(game);
+	const categoryCount = game.categories.length;
 	const unitValue = category.brick.kind === "manual" ? category.brick.unitValue : undefined;
-	const isLast = index === categories.length - 1;
+	const isLast = index === steps.length - 1;
 	const gamePlayers = playerIds
 		.map((id) => allPlayers.find((p) => p.id === id))
 		.filter((p): p is NonNullable<typeof p> => p != null);
@@ -57,7 +66,7 @@ export default function PlayScoreScreen() {
 		if (isLast) {
 			router.push("/jeux/play/results");
 		} else {
-			router.push(`/jeux/play/${categories[index + 1].id}`);
+			router.push(getStepHref(steps[index + 1]));
 		}
 	};
 
@@ -65,7 +74,7 @@ export default function PlayScoreScreen() {
 	// dans la pile (on arrive directement sur l'étape mémorisée). dismissTo y revient si elle est
 	// empilée, sinon remplace l'écran courant par elle, sans quitter la saisie.
 	const goPrevious = () => {
-		router.dismissTo(`/jeux/play/${categories[index - 1].id}`);
+		router.dismissTo(getStepHref(steps[index - 1]));
 	};
 
 	return (
@@ -122,14 +131,23 @@ export default function PlayScoreScreen() {
 						styles.progressFill,
 						{
 							backgroundColor: category.color,
-							width: `${((index + 1) / categories.length) * 100}%`,
+							width: `${((index + 1) / steps.length) * 100}%`,
 						},
 					]}
 				/>
 			</View>
-			<Text style={styles.progress}>
-				Étape {index + 1} / {categories.length}
-			</Text>
+			{roundCount > 1 ? (
+				<Text style={styles.progress}>
+					<Text style={styles.round}>
+						Manche {round} / {roundCount}
+					</Text>
+					{"  ·  "}Étape {(index % categoryCount) + 1} / {categoryCount}
+				</Text>
+			) : (
+				<Text style={styles.progress}>
+					Étape {index + 1} / {steps.length}
+				</Text>
+			)}
 
 			<ScrollView contentContainerStyle={styles.list}>
 				{unitValue !== undefined && (
@@ -142,9 +160,9 @@ export default function PlayScoreScreen() {
 						<PlayerScoreRow key={player.id} player={player} total={computeEntryTotal(entry)}>
 							<CategoryScoreField
 								category={category}
-								points={entry.scores[category.id]}
+								points={entry.scores[key]}
 								countUnits={unitMode === "units"}
-								onChange={(value) => updateScore(player.id, category.id, value)}
+								onChange={(value) => updateScore(player.id, key, value)}
 							/>
 						</PlayerScoreRow>
 					);
@@ -184,6 +202,10 @@ function useStyles(colors: ThemeColors) {
 					fontSize: 12,
 					textAlign: "center",
 					paddingVertical: SPACING.xs,
+				},
+				round: {
+					color: colors.text,
+					fontWeight: "700",
 				},
 				list: {
 					gap: SPACING.sm,
