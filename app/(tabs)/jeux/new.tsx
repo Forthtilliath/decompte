@@ -13,7 +13,6 @@ export default function NewGameScreen() {
 			<GameBuilderForm
 				submitLabel="Créer le jeu"
 				onSubmit={(values) => {
-					// Couleur assignée par position (`paletteColor`, comme à l'import d'un jeu partagé).
 					addGame({ ...values, categories: toCategoryDefs(values.categories) });
 					router.back();
 				}}
