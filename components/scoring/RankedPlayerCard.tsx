@@ -7,6 +7,7 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
+import { sumByCategory, sumByRound } from "@/lib/rounds";
 import type { RankedEntry } from "@/lib/scoring";
 import type { CategoryDef, SessionEntry } from "@/types/game";
 import type { Player } from "@/types/player";
@@ -17,17 +18,24 @@ type Props = {
 	ranked: RankedEntry;
 	entry: SessionEntry;
 	categories: CategoryDef[];
+	/** Nombre de manches du jeu : au-delà d'une, le détail par manche. */
+	roundCount?: number;
 };
 
-/** Ligne du classement : rang, joueur, total, et détail des points par catégorie (hors zéros). */
-export function RankedPlayerCard({ player, ranked, entry, categories }: Props) {
+/**
+ * Ligne du classement : rang, joueur, total, points de chaque manche s'il y en a plusieurs, et
+ * détail des points par catégorie toutes manches confondues (hors zéros).
+ */
+export function RankedPlayerCard({ player, ranked, entry, categories, roundCount = 1 }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
+	const byCategory = sumByCategory(entry.scores);
+	const byRound = sumByRound(entry.scores, roundCount);
 	// Points d'une catégorie retirée du jeu depuis la partie : toujours comptés dans le total, on
 	// les montre à part pour que le détail reste égal au total affiché.
 	const knownIds = new Set(categories.map((c) => c.id));
 	const removedPoints = sum(
-		Object.entries(entry.scores)
+		Object.entries(byCategory)
 			.filter(([categoryId]) => !knownIds.has(categoryId))
 			.map(([, points]) => points),
 	);
@@ -48,9 +56,15 @@ export function RankedPlayerCard({ player, ranked, entry, categories }: Props) {
 				<Text style={styles.total}>{ranked.total}</Text>
 			</View>
 
+			{byRound.length > 1 && (
+				<Text style={styles.rounds}>
+					{byRound.map((points, index) => `Manche ${index + 1} : ${points}`).join("  ·  ")}
+				</Text>
+			)}
+
 			<View style={styles.breakdown}>
 				{categories.map((category) => {
-					const value = entry.scores[category.id];
+					const value = byCategory[category.id];
 					if (!value) return null;
 					return (
 						<View key={category.id} style={styles.chip}>
@@ -112,6 +126,11 @@ function useStyles(colors: ThemeColors) {
 					color: colors.gold,
 					fontSize: 22,
 					fontWeight: "800",
+				},
+				rounds: {
+					color: colors.text,
+					fontSize: 13,
+					fontWeight: "600",
 				},
 				breakdown: {
 					flexDirection: "row",

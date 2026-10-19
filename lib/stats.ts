@@ -1,4 +1,5 @@
 import { round } from "@forthtilliath/ts-kit/number/round";
+import { sumByCategory } from "@/lib/rounds";
 import type { CategoryDef, Session } from "@/types/game";
 import type { Player } from "@/types/player";
 import { type RankedEntry, rankEntries } from "./scoring";
@@ -57,7 +58,7 @@ export function computePlayerStats(
 		bestTotal = Math.max(bestTotal, score.total);
 		if (score.rank === 1) wins++;
 
-		const scores = session.entries[playerId].scores;
+		const scores = sumByCategory(session.entries[playerId].scores);
 		for (const category of categories) {
 			categorySums[category.id] = (categorySums[category.id] ?? 0) + (scores[category.id] ?? 0);
 		}
