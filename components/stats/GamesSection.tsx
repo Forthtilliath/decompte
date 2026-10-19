@@ -1,14 +1,12 @@
-import { createPluralize } from "@forthtilliath/ts-kit/string/pluralize";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { RankingRow } from "@/components/stats/RankingRow";
 import { SectionTitle } from "@/components/ui/SectionTitle";
 import { SPACING } from "@/constants/theme";
 import { formatDate } from "@/lib/date";
+import { plural } from "@/lib/plural";
 import { computeGamePlayStats } from "@/lib/stats";
 import type { GameDef, Session } from "@/types/game";
-
-const plural = createPluralize("fr");
 
 type Props = {
 	sessions: Session[];

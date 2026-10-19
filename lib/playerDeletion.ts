@@ -1,8 +1,6 @@
-import { createPluralize } from "@forthtilliath/ts-kit/string/pluralize";
+import { plural } from "@/lib/plural";
 import type { Session } from "@/types/game";
 import type { Player, PlayerGroup } from "@/types/player";
-
-const plural = createPluralize("fr");
 
 /** Affiché à la place d'un joueur supprimé dans l'historique, où ses scores restent comptés. */
 export const DELETED_PLAYER_LABEL = "Joueur supprimé";

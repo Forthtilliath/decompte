@@ -1,4 +1,3 @@
-import { createPluralize } from "@forthtilliath/ts-kit/string/pluralize";
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { GamesSection } from "@/components/stats/GamesSection";
@@ -15,6 +14,7 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { plural } from "@/lib/plural";
 import {
 	computeGlobalRecords,
 	computePlayerLeaderboard,
@@ -24,8 +24,6 @@ import {
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
-
-const plural = createPluralize("fr");
 
 type ViewMode = "graph" | "table";
 type PickerTarget = null | "filters" | "compare";
