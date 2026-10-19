@@ -39,7 +39,7 @@ describe("serializeGame / parseGameExport", () => {
 				makeCategory({
 					id: "a",
 					label: "Points",
-					brick: { kind: "manual", allowNegative: true, max: 50 },
+					brick: { kind: "manual", allowNegative: true, max: 50, unitValue: -4 },
 				}),
 				makeCategory({
 					id: "b",
@@ -82,6 +82,7 @@ describe("serializeGame / parseGameExport", () => {
 			kind: "manual",
 			allowNegative: true,
 			max: 50,
+			unitValue: -4,
 		});
 		expect(result.game.categories[3].brick).toEqual({ kind: "boolean", yesValue: 2, noValue: 0 });
 	});
@@ -239,6 +240,20 @@ describe("parseGameExport : rejets", () => {
 		[
 			"Oui et Non au même score",
 			{ categories: [{ label: "A", brick: { kind: "boolean", yesValue: 0, noValue: 0 } }] },
+		],
+		[
+			"unité à 0 point",
+			{
+				categories: [{ label: "A", brick: { kind: "manual", allowNegative: false, unitValue: 0 } }],
+			},
+		],
+		[
+			"unité décimale",
+			{
+				categories: [
+					{ label: "A", brick: { kind: "manual", allowNegative: false, unitValue: 1.5 } },
+				],
+			},
 		],
 		[
 			"plafond négatif",
