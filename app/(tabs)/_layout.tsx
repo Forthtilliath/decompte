@@ -55,6 +55,14 @@ export default function TabsLayout() {
 				}}
 			/>
 			<Tabs.Screen
+				name="stats"
+				options={{
+					title: "Statistiques",
+					tabBarLabel: "Stats",
+					tabBarIcon: tabIcon("stats-chart"),
+				}}
+			/>
+			<Tabs.Screen
 				name="reglages"
 				options={{
 					title: "Réglages",
