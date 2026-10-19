@@ -5,6 +5,7 @@ import {
 	MAX_GAME_NAME_LENGTH,
 	MAX_LABEL_LENGTH,
 	MAX_PLAYERS,
+	MAX_ROUNDS,
 	MAX_SCORE,
 } from "@/lib/gameLimits";
 import type { GameDef, Session } from "@/types/game";
@@ -66,6 +67,7 @@ const gameSchema = z
 			.max(MAX_CATEGORIES),
 		minPlayers: z.number().int().min(1).max(MAX_PLAYERS),
 		maxPlayers: z.number().int().min(1).max(MAX_PLAYERS),
+		rounds: z.number().int().min(1).max(MAX_ROUNDS).optional(),
 		createdAt: timestampSchema,
 		isArchived: z.boolean(),
 	})
@@ -99,9 +101,10 @@ const sessionSchema = z.object({
 	entries: boundedRecord(
 		z.object({
 			playerId: idSchema,
+			// Une clé par catégorie et par manche (lib/rounds : `scoreKey`).
 			scores: boundedRecord(
 				z.number().min(-MAX_SESSION_SCORE).max(MAX_SESSION_SCORE),
-				MAX_CATEGORIES,
+				MAX_CATEGORIES * MAX_ROUNDS,
 			),
 		}),
 		MAX_PLAYERS,
