@@ -9,6 +9,7 @@ import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { getAvatarColor } from "@/lib/avatarColor";
 import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
+import { sumByCategory } from "@/lib/rounds";
 import type { RankedEntry } from "@/lib/scoring";
 import type { CategoryDef, SessionEntry } from "@/types/game";
 import type { Player } from "@/types/player";
@@ -32,7 +33,8 @@ export function GameCharts({ categories, ranking, entries, players }: Props) {
 	const rows = ranking.map((ranked) => ({
 		ranked,
 		player: players.find((p) => p.id === ranked.playerId),
-		scores: entries[ranked.playerId]?.scores ?? {},
+		// Toutes manches confondues : une part / une barre par catégorie, pas par manche.
+		scores: sumByCategory(entries[ranked.playerId]?.scores ?? {}),
 	}));
 
 	return (
