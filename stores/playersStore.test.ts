@@ -1,3 +1,4 @@
+import { pruneAppDirectory } from "@forthtilliath/react-native-kit/utils/files/appFiles";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
 	migratePlayersStoreData,
@@ -108,6 +109,16 @@ describe("persistance des joueurs", () => {
 		await writePersisted("players-store", { players }, PLAYERS_STORE_VERSION);
 		await usePlayersStore.persist.rehydrate();
 		expect(usePlayersStore.getState().players).toEqual(players);
+	});
+
+	it("supprime au lancement les photos qu'aucun joueur n'utilise plus", async () => {
+		const players = [
+			makePlayer({ id: "a", avatarUri: "file:///documents/avatars/a.jpg" }),
+			makePlayer({ id: "b" }),
+		];
+		await writePersisted("players-store", { players }, PLAYERS_STORE_VERSION);
+		await usePlayersStore.persist.rehydrate();
+		expect(pruneAppDirectory).toHaveBeenCalledWith("avatars", ["file:///documents/avatars/a.jpg"]);
 	});
 
 	it("réinitialise une version inconnue", () => {

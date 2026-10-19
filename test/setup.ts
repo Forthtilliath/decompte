@@ -36,3 +36,21 @@ jest.mock("expo-haptics", () => ({
 	ImpactFeedbackStyle: { Light: "light", Medium: "medium", Heavy: "heavy" },
 	NotificationFeedbackType: { Success: "success", Warning: "warning", Error: "error" },
 }));
+
+// Ni appareil photo ni système de fichiers sous Jest : le choix d'une photo est annulé par défaut
+// (un test qui en veut une la fournit avec `mockResolvedValueOnce`), la miniature enregistrée prend
+// le nom de la photo d'origine, et les suppressions ne font qu'être comptées.
+jest.mock("expo-image-picker", () => ({
+	requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ granted: true })),
+	launchCameraAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: null })),
+	launchImageLibraryAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: null })),
+}));
+jest.mock("@forthtilliath/react-native-kit/utils/files/imageThumbnail", () => ({
+	saveImageThumbnail: jest.fn((uri: string) =>
+		Promise.resolve(`file:///documents/avatars/${uri.slice(uri.lastIndexOf("/") + 1)}`),
+	),
+}));
+jest.mock("@forthtilliath/react-native-kit/utils/files/appFiles", () => ({
+	deleteFileQuietly: jest.fn(),
+	pruneAppDirectory: jest.fn(() => 0),
+}));
