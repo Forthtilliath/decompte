@@ -1,7 +1,6 @@
 import { View } from "react-native";
 import { useBrickEditorStyles } from "@/components/games/bricks/useBrickEditorStyles";
-import { TextField } from "@/components/ui/TextField";
-import { parseNumberOrZero } from "@/lib/numbers";
+import { IntegerField } from "@/components/ui/IntegerField";
 import type { ScoringBrick } from "@/types/game";
 
 type BooleanBrick = Extract<ScoringBrick, { kind: "boolean" }>;
@@ -19,19 +18,17 @@ export function BooleanBrickEditor({ brick, onChange }: Props) {
 		<View style={styles.fields}>
 			<View style={styles.itemFields}>
 				<View style={styles.itemLabel}>
-					<TextField
+					<IntegerField
 						label="Score si Oui"
-						keyboardType="numeric"
-						value={String(brick.yesValue)}
-						onChangeText={(raw) => onChange({ ...brick, yesValue: parseNumberOrZero(raw) })}
+						value={brick.yesValue}
+						onChange={(yesValue) => onChange({ ...brick, yesValue })}
 					/>
 				</View>
 				<View style={styles.itemLabel}>
-					<TextField
+					<IntegerField
 						label="Score si Non"
-						keyboardType="numeric"
-						value={String(brick.noValue)}
-						onChangeText={(raw) => onChange({ ...brick, noValue: parseNumberOrZero(raw) })}
+						value={brick.noValue}
+						onChange={(noValue) => onChange({ ...brick, noValue })}
 					/>
 				</View>
 			</View>
