@@ -10,8 +10,10 @@ import {
 	type DraftCategory,
 	emptyCategory,
 	type GameDraftValues,
+	nextCategoryColor,
 	validateGameDraft,
 } from "@/lib/gameDraft";
+import { paletteColor } from "@/lib/gameExport";
 import type { CategoryDef } from "@/types/game";
 
 export type GameBuilderValues = {
@@ -36,9 +38,12 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	const [minPlayers, setMinPlayers] = useState(String(initial?.minPlayers ?? 1));
 	const [maxPlayers, setMaxPlayers] = useState(String(initial?.maxPlayers ?? 8));
 	const [categories, setCategories] = useState<DraftCategory[]>(
-		initial?.categories.map((c) => ({ id: c.id, label: c.label, brick: c.brick })) ?? [
-			emptyCategory(),
-		],
+		initial?.categories.map((c) => ({
+			id: c.id,
+			label: c.label,
+			brick: c.brick,
+			color: c.color,
+		})) ?? [{ ...emptyCategory(), color: nextCategoryColor([]) }],
 	);
 
 	const updateCategory = (index: number, patch: Partial<DraftCategory>) => {
@@ -46,7 +51,10 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	};
 
 	const addCategory = () => {
-		setCategories((current) => [...current, emptyCategory()]);
+		setCategories((current) => [
+			...current,
+			{ ...emptyCategory(), color: nextCategoryColor(current) },
+		]);
 	};
 
 	const removeCategory = (index: number) => {
@@ -91,6 +99,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 					// biome-ignore lint/suspicious/noArrayIndexKey: liste réordonnée seulement par ajout/suppression en bout, pas de tri
 					key={index}
 					category={category}
+					color={category.color ?? paletteColor(index)}
 					onChange={(patch) => updateCategory(index, patch)}
 					onRemove={() => removeCategory(index)}
 				/>

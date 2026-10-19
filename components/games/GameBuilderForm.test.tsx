@@ -50,8 +50,35 @@ describe("GameBuilderForm", () => {
 			name: "Azul",
 			minPlayers: 2,
 			maxPlayers: 4,
-			categories: [{ label: "Murs", brick: { kind: "manual", allowNegative: false } }],
+			categories: [
+				{ label: "Murs", color: "#ef4444", brick: { kind: "manual", allowNegative: false } },
+			],
 		});
+	});
+
+	it("choisit la couleur d'une catégorie", async () => {
+		const onSubmit = await renderForm();
+		await type("Nom du jeu", "Azul");
+		await type("Nom de la catégorie", "Murs");
+		await press("Couleur de la catégorie, Rouge");
+		await fireEvent.press(screen.getByRole("radio", { name: "Indigo" }));
+		expect(
+			screen.getByRole("button", { name: "Couleur de la catégorie, Indigo" }),
+		).toBeOnTheScreen();
+
+		await press("Créer le jeu");
+		expect(onSubmit.mock.calls[0][0].categories[0].color).toBe("#6366f1");
+	});
+
+	it("donne à une nouvelle catégorie une couleur pas encore prise", async () => {
+		await renderForm();
+		await press("Couleur de la catégorie, Rouge");
+		await fireEvent.press(screen.getByRole("radio", { name: "Orange" }));
+		await press("Ajouter une catégorie");
+		// Rouge est libre à nouveau : la nouvelle catégorie le reprend.
+		expect(
+			screen.getByRole("button", { name: "Couleur de la catégorie, Rouge" }),
+		).toBeOnTheScreen();
 	});
 
 	it("règle une catégorie « Nombre » : négatif et plafond", async () => {
@@ -168,9 +195,12 @@ describe("GameBuilderForm", () => {
 			name: "Azul",
 			minPlayers: 2,
 			maxPlayers: 4,
-			categories: [makeCategory({ id: "murs-id", label: "Murs" })],
+			categories: [makeCategory({ id: "murs-id", label: "Murs", color: "#14b8a6" })],
 		});
 		const onSubmit = await renderForm(game);
+		expect(
+			screen.getByRole("button", { name: "Couleur de la catégorie, Sarcelle" }),
+		).toBeOnTheScreen();
 
 		expect(screen.getByLabelText("Nom du jeu")).toHaveDisplayValue("Azul");
 		await type("Nom de la catégorie", "Murs complets");
@@ -179,7 +209,12 @@ describe("GameBuilderForm", () => {
 		await press("Créer le jeu");
 
 		const { categories } = onSubmit.mock.calls[0][0];
-		expect(categories[0]).toMatchObject({ id: "murs-id", label: "Murs complets" });
+		expect(categories[0]).toMatchObject({
+			id: "murs-id",
+			label: "Murs complets",
+			color: "#14b8a6",
+		});
 		expect(categories[1].id).toBeUndefined();
+		expect(categories[1].color).toBe("#ef4444");
 	});
 });
