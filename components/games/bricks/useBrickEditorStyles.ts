@@ -28,6 +28,10 @@ function useStyles(colors: ThemeColors) {
 					color: colors.text,
 					fontSize: 14,
 				},
+				hint: {
+					color: colors.textMuted,
+					fontSize: 12,
+				},
 				// Chaque jeton/valeur dans sa propre carte : sans ça, les entrées successives se
 				// fondent les unes dans les autres et on ne voit plus où l'une finit et l'autre commence.
 				itemRow: {

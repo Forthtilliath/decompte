@@ -97,6 +97,22 @@ describe("GameBuilderForm", () => {
 		});
 	});
 
+	it("règle une catégorie « Nombre » comptée par unités négatives", async () => {
+		const onSubmit = await renderForm();
+		await type("Nom du jeu", "It's a Wonderful Kingdom");
+		await type("Nom de la catégorie", "Calamités");
+		await fireEvent(screen.getByLabelText("Compter par unités"), "valueChange", true);
+		await type("Points par unité", "-");
+		await type("Points par unité", "-4");
+		await press("Créer le jeu");
+
+		expect(onSubmit.mock.calls[0][0].categories[0].brick).toEqual({
+			kind: "manual",
+			allowNegative: false,
+			unitValue: -4,
+		});
+	});
+
 	it("crée une catégorie « Jetons » et exige au moins un jeton nommé", async () => {
 		const onSubmit = await renderForm();
 		await type("Nom du jeu", "7 Wonders");
