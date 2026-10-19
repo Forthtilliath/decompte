@@ -67,6 +67,9 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 	};
 
 	const startPress = (direction: 1 | -1) => {
+		// Sur une tape de moins de 130 ms, React Native retarde onPressOut et l'appui suivant l'annule :
+		// sans cet arrêt, la répétition de la première tape ne s'arrêterait jamais.
+		stopRepeat();
 		stepOnce(direction);
 		timers.current.delay = setTimeout(() => {
 			timers.current.interval = setInterval(() => stepOnce(direction), REPEAT_INTERVAL_MS);
