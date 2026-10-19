@@ -5,6 +5,7 @@ import { ScrollView, StyleSheet, Text } from "react-native";
 import { SettingsRow } from "@/components/settings/SettingsRow";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { APP_INFO } from "@/constants/app";
+import { findPageBackground } from "@/constants/backgrounds";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
@@ -16,6 +17,8 @@ export default function SettingsScreen() {
 	const styles = useStyles(colors);
 	const router = useRouter();
 	const mode = useThemeStore((s) => s.mode);
+	const backgroundId = useThemeStore((s) => s.backgrounds[mode]);
+	const background = findPageBackground(mode, backgroundId);
 	const cloudAccount = useBackupState(backup).cloudAccount;
 	const backupProblem = useCloudBackupProblem(backup);
 
@@ -32,7 +35,7 @@ export default function SettingsScreen() {
 				<SettingsRow
 					icon="contrast"
 					label="Apparence"
-					value={mode === "dark" ? "Sombre" : "Clair"}
+					value={`${mode === "dark" ? "Sombre" : "Clair"}, fond ${background.label.toLowerCase()}`}
 					onPress={() => router.push("/reglages/apparence")}
 				/>
 
