@@ -58,6 +58,7 @@ export default function TabsLayout() {
 				name="reglages"
 				options={{
 					title: "Réglages",
+					headerShown: false,
 					tabBarIcon: tabIcon("settings"),
 					tabBarActiveTintColor: colors.gold,
 				}}
