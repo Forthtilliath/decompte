@@ -1,8 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Pressable, Text, View } from "react-native";
 import { useBrickEditorStyles } from "@/components/games/bricks/useBrickEditorStyles";
+import { IntegerField } from "@/components/ui/IntegerField";
 import { TextField } from "@/components/ui/TextField";
-import { parseNumberOrZero } from "@/lib/numbers";
 
 type Props = {
 	/** Ex. "Jeton 2", "Valeur 1". */
@@ -44,13 +44,7 @@ export function BrickItemRow({
 					/>
 				</View>
 				<View style={styles.itemValue}>
-					<TextField
-						label={valueLabel}
-						placeholder="0"
-						keyboardType="numeric"
-						value={String(value)}
-						onChangeText={(raw) => onChangeValue(parseNumberOrZero(raw))}
-					/>
+					<IntegerField label={valueLabel} placeholder="0" value={value} onChange={onChangeValue} />
 				</View>
 				<Pressable
 					onPress={onRemove}
