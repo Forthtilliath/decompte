@@ -41,13 +41,17 @@ export type GameDef = {
 	categories: CategoryDef[];
 	minPlayers: number;
 	maxPlayers: number;
+	/** Nombre de manches : toutes les catégories se saisissent une fois par manche (voir
+	 * lib/rounds). Absent d'un jeu créé avant l'ajout des manches : 1. */
+	rounds?: number;
 	createdAt: number;
 	/** Jamais de suppression définitive (même logique que Player/PlayerGroup) : un jeu archivé
 	 * disparaît de la liste active mais reste résolvable pour l'historique des parties déjà jouées. */
 	isArchived: boolean;
 };
 
-/** Scores d'un joueur pour une partie, indexés par id de catégorie. */
+/** Scores d'un joueur pour une partie, indexés par id de catégorie (et par manche, voir
+ * lib/rounds : `scoreKey`). */
 export type SessionEntry = {
 	playerId: string;
 	scores: Record<string, number>;

@@ -8,3 +8,4 @@ export const MAX_CATEGORIES = 30;
 export const MAX_ITEMS = 30;
 export const MAX_SCORE = 10_000;
 export const MAX_PLAYERS = 50;
+export const MAX_ROUNDS = 20;

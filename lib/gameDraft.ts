@@ -6,6 +6,7 @@ import {
 	MAX_ITEMS,
 	MAX_LABEL_LENGTH,
 	MAX_PLAYERS,
+	MAX_ROUNDS,
 	MAX_SCORE,
 } from "@/lib/gameLimits";
 import { createId } from "@/lib/uuid";
@@ -20,11 +21,12 @@ export type DraftCategory = {
 	color?: string;
 };
 
-/** Saisie brute du formulaire de jeu (les bornes de joueurs sont encore du texte). */
+/** Saisie brute du formulaire de jeu (bornes de joueurs et manches encore en texte). */
 export type GameDraftInput = {
 	name: string;
 	minPlayers: string;
 	maxPlayers: string;
+	rounds: string;
 	categories: DraftCategory[];
 };
 
@@ -32,6 +34,7 @@ export type GameDraftValues = {
 	name: string;
 	minPlayers: number;
 	maxPlayers: number;
+	rounds: number;
 	categories: DraftCategory[];
 };
 
@@ -198,7 +201,16 @@ export function validateGameDraft(input: GameDraftInput): GameDraftResult {
 		return fail("Trop de joueurs", `Un jeu se joue à ${MAX_PLAYERS} joueurs maximum.`);
 	}
 
-	return { ok: true, values: { name, minPlayers, maxPlayers, categories: input.categories } };
+	// Champ vide ou nul : une seule manche.
+	const rounds = Math.max(1, Number.parseInt(input.rounds, 10) || 1);
+	if (rounds > MAX_ROUNDS) {
+		return fail("Trop de manches", `Un jeu compte ${MAX_ROUNDS} manches maximum.`);
+	}
+
+	return {
+		ok: true,
+		values: { name, minPlayers, maxPlayers, rounds, categories: input.categories },
+	};
 }
 
 /**
