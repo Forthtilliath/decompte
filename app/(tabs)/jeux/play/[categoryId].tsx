@@ -2,6 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { PlayerOrderSheet } from "@/components/players/PlayerOrderSheet";
 import { PlayerScoreRow } from "@/components/players/PlayerScoreRow";
 import { CategoryScoreField } from "@/components/scoring/CategoryScoreField";
 import { type UnitMode, UnitModeToggle } from "@/components/scoring/UnitModeToggle";
@@ -24,9 +25,11 @@ export default function PlayScoreScreen() {
 	const entries = useSessionStore((s) => s.entries);
 	const updateScore = useSessionStore((s) => s.updateScore);
 	const setCurrentCategory = useSessionStore((s) => s.setCurrentCategory);
+	const movePlayer = useSessionStore((s) => s.movePlayer);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 	const allPlayers = usePlayersStore((s) => s.players);
 	const [unitMode, setUnitMode] = useState<UnitMode>("units");
+	const [orderOpen, setOrderOpen] = useState(false);
 
 	useEffect(() => {
 		if (playerIds.length === 0) router.replace("/jeux");
@@ -85,14 +88,30 @@ export default function PlayScoreScreen() {
 								)
 							: undefined,
 					headerRight: () => (
-						<Pressable
-							onPress={goNext}
-							hitSlop={12}
-							accessibilityRole="button"
-							accessibilityLabel={isLast ? "Voir les résultats" : "Étape suivante"}
-						>
-							<Ionicons name={isLast ? "trophy" : "arrow-forward"} size={24} color={colors.text} />
-						</Pressable>
+						<View style={styles.headerRight}>
+							{gamePlayers.length > 1 && (
+								<Pressable
+									onPress={() => setOrderOpen(true)}
+									hitSlop={12}
+									accessibilityRole="button"
+									accessibilityLabel="Ordre des joueurs"
+								>
+									<Ionicons name="swap-vertical" size={24} color={colors.text} />
+								</Pressable>
+							)}
+							<Pressable
+								onPress={goNext}
+								hitSlop={12}
+								accessibilityRole="button"
+								accessibilityLabel={isLast ? "Voir les résultats" : "Étape suivante"}
+							>
+								<Ionicons
+									name={isLast ? "trophy" : "arrow-forward"}
+									size={24}
+									color={colors.text}
+								/>
+							</Pressable>
+						</View>
 					),
 				}}
 			/>
@@ -131,6 +150,13 @@ export default function PlayScoreScreen() {
 					);
 				})}
 			</ScrollView>
+
+			<PlayerOrderSheet
+				visible={orderOpen}
+				onClose={() => setOrderOpen(false)}
+				players={gamePlayers}
+				onMove={movePlayer}
+			/>
 		</ScreenContainer>
 	);
 }
@@ -141,6 +167,11 @@ function useStyles(colors: ThemeColors) {
 			StyleSheet.create({
 				headerLeft: {
 					marginRight: SPACING.md,
+				},
+				headerRight: {
+					flexDirection: "row",
+					alignItems: "center",
+					gap: SPACING.lg,
 				},
 				progressBar: {
 					height: 4,
