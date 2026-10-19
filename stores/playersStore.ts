@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { pruneAvatarPhotos } from "@/lib/avatarPhotos";
 import { createId } from "@/lib/uuid";
 import type { Player } from "@/types/player";
 
@@ -79,6 +80,11 @@ export const usePlayersStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: PLAYERS_STORE_VERSION,
 			migrate: migratePlayersStoreData,
+			// Une fois les joueurs connus, et seulement au lancement : aucun formulaire n'est encore
+			// ouvert, donc aucune photo tout juste choisie ne risque d'être prise pour un reste.
+			onRehydrateStorage: () => (state) => {
+				if (state) pruneAvatarPhotos(state.players);
+			},
 		},
 	),
 );
