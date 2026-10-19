@@ -4,6 +4,7 @@ import { PlayerForm } from "@/components/players/PlayerForm";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { SPACING } from "@/constants/theme";
+import { deleteAvatarPhoto } from "@/lib/avatarPhotos";
 import { describePlayerDeletion, getPlayerUsage } from "@/lib/playerDeletion";
 import { hasDuplicateName } from "@/lib/players";
 import { useGroupsStore } from "@/stores/groupsStore";
@@ -51,6 +52,7 @@ export default function EditPlayerScreen() {
 		const remove = () => {
 			removePlayerFromGroups(player.id);
 			removePlayer(player.id);
+			deleteAvatarPhoto(player.avatarUri);
 			router.back();
 		};
 		Alert.alert("Supprimer ce joueur ?", describePlayerDeletion(player, usage), [
@@ -65,10 +67,12 @@ export default function EditPlayerScreen() {
 			<PlayerForm
 				playerId={player.id}
 				initialName={player.name}
+				initialAvatarUri={player.avatarUri}
 				submitLabel="Enregistrer"
-				onSubmit={({ name }) => {
+				onSubmit={({ name, avatarUri }) => {
 					const isDuplicate = hasDuplicateName(usePlayersStore.getState().players, name, player.id);
-					updatePlayer(player.id, { name });
+					updatePlayer(player.id, { name, avatarUri });
+					if (avatarUri !== player.avatarUri) deleteAvatarPhoto(player.avatarUri);
 
 					if (isDuplicate) {
 						Alert.alert(

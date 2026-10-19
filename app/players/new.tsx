@@ -19,9 +19,9 @@ export default function NewPlayerScreen() {
 			<PlayerForm
 				playerId={playerId}
 				submitLabel="Créer le joueur"
-				onSubmit={({ name }) => {
+				onSubmit={({ name, avatarUri }) => {
 					const isDuplicate = hasDuplicateName(usePlayersStore.getState().players, name);
-					addPlayer({ id: playerId, name });
+					addPlayer({ id: playerId, name, avatarUri });
 
 					if (isDuplicate) {
 						Alert.alert(
