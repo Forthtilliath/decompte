@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { moveItem } from "@/lib/arrays";
 import { createId } from "@/lib/uuid";
 import { useHistoryStore } from "@/stores/historyStore";
 import { createEmptySessionEntry, type Session, type SessionEntry } from "@/types/game";
@@ -18,6 +19,8 @@ type State = {
 type Actions = {
 	startNewSession: (gameDefId: string, playerIds: string[]) => void;
 	updateScore: (playerId: string, categoryId: string, points: number) => void;
+	/** Change l'ordre de jeu : décale le joueur de `offset` places (négatif = vers le haut). */
+	movePlayer: (playerId: string, offset: number) => void;
 	setCurrentCategory: (categoryId: string) => void;
 	/** Construit l'objet Session correspondant à l'état courant, sans le persister. */
 	toSession: () => Session;
@@ -69,6 +72,12 @@ export const useSessionStore = create<State & Actions>()(
 						[playerId]: { ...current, scores: { ...current.scores, [categoryId]: points } },
 					},
 				});
+			},
+
+			movePlayer: (playerId, offset) => {
+				const { playerIds } = get();
+				const next = moveItem(playerIds, playerIds.indexOf(playerId), offset);
+				if (next !== playerIds) set({ playerIds: next });
 			},
 
 			toSession: () => {
