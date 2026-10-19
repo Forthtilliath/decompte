@@ -142,6 +142,22 @@ describe("NumberStepper", () => {
 			await fireEvent(minus, "pressOut");
 		});
 
+		it("ne s'emballe pas sur deux tapes rapides", async () => {
+			// Sur une tape de moins de 130 ms, React Native retarde onPressOut, et l'appui suivant
+			// l'annule : le stepper reçoit deux pressIn pour un seul pressOut.
+			const onChange = jest.fn();
+			await render(<Controlled label="Points" onChange={onChange} />);
+			const plus = screen.getByRole("button", { name: "Augmenter Points" });
+			await fireEvent(plus, "pressIn");
+			await fireEvent(plus, "pressIn");
+			await fireEvent(plus, "pressOut");
+			expect(input()).toHaveDisplayValue("2");
+
+			onChange.mockClear();
+			await act(() => jest.advanceTimersByTime(5000));
+			expect(onChange).not.toHaveBeenCalled();
+		});
+
 		it("arrête la répétition si l'écran se ferme pendant l'appui", async () => {
 			const onChange = jest.fn();
 			const { unmount } = await render(<Controlled label="Points" onChange={onChange} />);
