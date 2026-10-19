@@ -20,7 +20,7 @@ beforeEach(() => {
 	alert.mockClear();
 	openURL.mockClear();
 	choose();
-	useThemeStore.setState({ mode: "dark" });
+	useThemeStore.setState({ mode: "dark", backgrounds: {} });
 	useGamesStore.setState({ games: [makeGame()] });
 	usePlayersStore.setState({ players: [makePlayer({ id: "alice" })] });
 	useGroupsStore.setState({ groups: [makeGroup({ playerIds: ["alice"] })] });
@@ -46,12 +46,28 @@ describe("réglages", () => {
 
 	it("passe en thème clair depuis le menu et le garde", async () => {
 		const app = await renderApp("/reglages");
-		await fireEvent.press(screen.getByRole("button", { name: "Apparence, Sombre" }));
+		await fireEvent.press(
+			screen.getByRole("button", { name: "Apparence, Sombre, fond bleu nuit" }),
+		);
 		expect(app.getPathname()).toBe("/reglages/apparence");
 
 		await fireEvent.press(screen.getByRole("radio", { name: "Clair" }));
 		expect(useThemeStore.getState().mode).toBe("light");
 		expect(screen.getByRole("radio", { name: "Clair" })).toBeSelected();
+	});
+
+	it("change la couleur de fond du thème affiché, sans toucher à l'autre", async () => {
+		await renderApp("/reglages/apparence");
+		expect(screen.getByRole("radio", { name: "Bleu nuit" })).toBeSelected();
+
+		await fireEvent.press(screen.getByRole("radio", { name: "Tapis vert" }));
+		expect(screen.getByRole("radio", { name: "Tapis vert" })).toBeSelected();
+
+		// Le thème clair propose ses propres fonds et garde celui d'origine.
+		await fireEvent.press(screen.getByRole("radio", { name: "Clair" }));
+		expect(screen.queryByRole("radio", { name: "Tapis vert" })).toBeNull();
+		expect(screen.getByRole("radio", { name: "Carton" })).toBeSelected();
+		expect(useThemeStore.getState().backgrounds).toEqual({ dark: "tapis" });
 	});
 
 	it("ouvre la page de don et le suivi des bugs", async () => {
