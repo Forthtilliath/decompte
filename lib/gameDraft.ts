@@ -1,3 +1,4 @@
+import { AVATAR_PALETTE } from "@/lib/avatarColor";
 import { paletteColor } from "@/lib/gameExport";
 import {
 	MAX_CATEGORIES,
@@ -15,6 +16,8 @@ export type DraftCategory = {
 	id?: string;
 	label: string;
 	brick: ScoringBrick;
+	/** Choisie dans le formulaire ; absente, la catégorie prend la couleur de sa position. */
+	color?: string;
 };
 
 /** Saisie brute du formulaire de jeu (les bornes de joueurs sont encore du texte). */
@@ -52,6 +55,12 @@ export function emptyBrick(kind: ScoringBrick["kind"]): ScoringBrick {
 
 export function emptyCategory(): DraftCategory {
 	return { label: "", brick: emptyBrick("manual") };
+}
+
+/** Couleur d'une nouvelle catégorie : la première de la palette pas encore prise par le jeu. */
+export function nextCategoryColor(categories: DraftCategory[]): string {
+	const used = new Set(categories.map((c, index) => c.color ?? paletteColor(index)));
+	return AVATAR_PALETTE.find((color) => !used.has(color)) ?? paletteColor(categories.length);
 }
 
 const isBlank = (text: string) => !text.trim();
@@ -183,14 +192,14 @@ export function validateGameDraft(input: GameDraftInput): GameDraftResult {
 
 /**
  * Catégories définitives d'un jeu. Celles déjà enregistrées gardent leur id (voir CategoryDef) :
- * c'est ce qui garde l'historique résolvable après modification du jeu. La couleur suit la
- * position, comme à l'import d'un jeu partagé.
+ * c'est ce qui garde l'historique résolvable après modification du jeu. Sans couleur choisie, la
+ * couleur suit la position, comme à l'import d'un jeu partagé sans couleurs.
  */
 export function toCategoryDefs(categories: DraftCategory[]): CategoryDef[] {
 	return categories.map((c, index) => ({
 		id: c.id ?? createId(),
 		label: c.label.trim(),
 		brick: c.brick,
-		color: paletteColor(index),
+		color: c.color ?? paletteColor(index),
 	}));
 }
