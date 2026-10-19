@@ -23,7 +23,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 
 ## Stack
 
-- [Expo](https://docs.expo.dev/versions/v57.0.0/) SDK 57, React Native 0.86, React 19, TypeScript
+- [Expo](https://docs.expo.dev/versions/v58.0.0/) SDK 58, React Native 0.88, React 19, TypeScript
 - [Expo Router](https://docs.expo.dev/router/introduction/) (navigation par fichiers, dossier `app/`)
 - [Zustand](https://zustand.docs.pmnd.rs/) + AsyncStorage pour la persistance locale
 - [Biome](https://biomejs.dev/) pour le lint et le formatage
