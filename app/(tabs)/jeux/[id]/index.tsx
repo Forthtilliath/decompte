@@ -120,10 +120,17 @@ export default function GameDetailScreen() {
 									avatarUri={player.avatarUri}
 									isFavorite={player.isFavorite}
 									selected={selectedIds.includes(player.id)}
+									order={selectedIds.indexOf(player.id) + 1}
 									onPress={() => toggleSelected(player.id)}
 								/>
 							))}
 						</View>
+						{selectedIds.length > 1 && (
+							<Text style={styles.hint}>
+								Les joueurs jouent dans l'ordre où tu les coches. Tu pourras le changer pendant la
+								partie.
+							</Text>
+						)}
 						{activePlayers.length === 0 && (
 							<Text style={styles.hint}>
 								Aucun joueur disponible. Crée d'abord des joueurs dans l'onglet Joueurs.

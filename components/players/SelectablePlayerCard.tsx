@@ -13,6 +13,8 @@ type Props = {
 	avatarUri?: string;
 	isFavorite?: boolean;
 	selected: boolean;
+	/** Place dans l'ordre de jeu (1 = premier), affichée sur l'avatar quand le joueur est choisi. */
+	order?: number;
 	onPress: () => void;
 };
 
@@ -22,6 +24,7 @@ export function SelectablePlayerCard({
 	avatarUri,
 	isFavorite,
 	selected,
+	order,
 	onPress,
 }: Props) {
 	const colors = useColors();
@@ -37,9 +40,15 @@ export function SelectablePlayerCard({
 			accessibilityRole="checkbox"
 			accessibilityState={{ checked: selected }}
 			accessibilityLabel={isFavorite ? `${name}, favori` : name}
+			accessibilityValue={selected && order ? { text: `joue en position ${order}` } : undefined}
 		>
 			<View style={styles.avatarWrapper}>
 				<PlayerAvatar name={name} avatarUri={avatarUri} seed={playerId} size={56} />
+				{selected && order !== undefined && (
+					<View style={styles.orderBadge}>
+						<Text style={styles.orderText}>{order}</Text>
+					</View>
+				)}
 				{isFavorite && (
 					<View style={styles.favoriteBadge}>
 						<Ionicons name="star" size={11} color="#fff" />
@@ -86,6 +95,25 @@ function useStyles(colors: ThemeColors) {
 					justifyContent: "center",
 					borderWidth: 2,
 					borderColor: colors.surface,
+				},
+				orderBadge: {
+					position: "absolute",
+					top: -4,
+					left: -4,
+					minWidth: 20,
+					height: 20,
+					paddingHorizontal: 4,
+					borderRadius: 10,
+					backgroundColor: colors.primary,
+					alignItems: "center",
+					justifyContent: "center",
+					borderWidth: 2,
+					borderColor: colors.surface,
+				},
+				orderText: {
+					color: colors.primaryText,
+					fontSize: 11,
+					fontWeight: "800",
 				},
 				name: {
 					color: colors.text,
