@@ -1,3 +1,4 @@
+import { pruneAppDirectory } from "@forthtilliath/react-native-kit/utils/files/appFiles";
 import { fireEvent, screen } from "expo-router/testing-library";
 import { Linking } from "react-native";
 import { APP_INFO, LINKS } from "@/constants/app";
@@ -93,6 +94,8 @@ describe("réglages", () => {
 		expect(useGroupsStore.getState().groups).toEqual([]);
 		expect(useHistoryStore.getState().sessions).toEqual([]);
 		expect(useSessionStore.getState().hasOngoingSession()).toBe(false);
+		// Les photos des joueurs partent tout de suite, pas au prochain lancement.
+		expect(pruneAppDirectory).toHaveBeenLastCalledWith("avatars", []);
 	});
 
 	it("ne touche à rien si l'effacement est annulé", async () => {
