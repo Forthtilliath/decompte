@@ -103,7 +103,7 @@ export default function GameDetailScreen() {
 					</>
 				) : isThisGameOngoing ? (
 					<>
-						<Button label="Reprendre la partie en cours" onPress={resume} />
+						<Button label="Reprendre la partie en cours" variant="success" onPress={resume} />
 						<Button label="Abandonner la partie" variant="ghost" onPress={confirmAbandon} />
 					</>
 				) : (
@@ -129,7 +129,12 @@ export default function GameDetailScreen() {
 								Aucun joueur disponible. Crée d'abord des joueurs dans l'onglet Joueurs.
 							</Text>
 						)}
-						<Button label="Lancer une partie" disabled={!canStart} onPress={startGame} />
+						<Button
+							label="Lancer une partie"
+							variant="success"
+							disabled={!canStart}
+							onPress={startGame}
+						/>
 					</>
 				)}
 
