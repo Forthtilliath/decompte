@@ -2,25 +2,20 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { useColors } from "@/hooks/useColors";
+import { useCloudAutoBackup } from "@/hooks/useCloudAutoBackup";
+import { useStackScreenOptions } from "@/hooks/useStackScreenOptions";
 import { useThemeStore } from "@/stores/themeStore";
 
 export default function RootLayout() {
-	const colors = useColors();
+	const screenOptions = useStackScreenOptions();
 	const mode = useThemeStore((s) => s.mode);
+	useCloudAutoBackup();
 
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
 			<SafeAreaProvider>
 				<StatusBar style={mode === "light" ? "dark" : "light"} />
-				<Stack
-					screenOptions={{
-						headerStyle: { backgroundColor: colors.surface },
-						headerTintColor: colors.text,
-						headerTitleStyle: { color: colors.text },
-						contentStyle: { backgroundColor: colors.background },
-					}}
-				>
+				<Stack screenOptions={screenOptions}>
 					<Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 					<Stack.Screen
 						name="players/new"
