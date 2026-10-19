@@ -26,7 +26,8 @@ export const MAX_EXPORT_LENGTH = 50_000;
 const label = (max: number) => z.string().trim().min(1).max(max);
 const score = z.number().min(-MAX_SCORE).max(MAX_SCORE);
 
-const brickSchema = z.discriminatedUnion("kind", [
+/** Aussi appliqué aux jeux d'une sauvegarde complète (lib/backupSchema) : mêmes règles partout. */
+export const brickSchema = z.discriminatedUnion("kind", [
 	z.object({
 		kind: z.literal("manual"),
 		allowNegative: z.boolean(),
@@ -124,7 +125,7 @@ export function paletteColor(index: number): string {
 	return AVATAR_PALETTE[index % AVATAR_PALETTE.length];
 }
 
-function importBrick(brick: ExportedBrick): ScoringBrick {
+export function importBrick(brick: ExportedBrick): ScoringBrick {
 	if (brick.kind !== "choice") return brick;
 	// Les options "choice" ont un id local (clé de liste dans l'éditeur) : toujours régénéré.
 	return { kind: "choice", options: brick.options.map((o) => ({ ...o, id: createId() })) };
