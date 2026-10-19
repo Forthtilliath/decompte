@@ -5,6 +5,7 @@ import { SettingsRow } from "@/components/settings/SettingsRow";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { TextField } from "@/components/ui/TextField";
+import { UpdateBanner } from "@/components/updates/UpdateBanner";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
@@ -29,6 +30,7 @@ export default function GamesListScreen() {
 
 	return (
 		<ScreenContainer style={styles.container}>
+			<UpdateBanner />
 			{hasOngoingSession && ongoingGame && (
 				<Button
 					label={`Reprendre la partie en cours (${ongoingGame.name})`}
