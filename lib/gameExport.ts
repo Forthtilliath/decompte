@@ -13,8 +13,11 @@ import type { GameDef, ScoringBrick } from "@/types/game";
 
 /**
  * Format d'échange d'un jeu entre joueurs (partage par message, plus tard via la plateforme).
- * Seule la définition du jeu voyage : ni id, ni date, ni état d'archivage, ni couleur. Tout ça
- * est recréé localement à l'import, pour ne jamais faire confiance à un texte venu d'ailleurs.
+ * Seule la définition du jeu voyage : ni id, ni date, ni état d'archivage. Tout ça est recréé
+ * localement à l'import, pour ne jamais faire confiance à un texte venu d'ailleurs. La couleur
+ * des catégories voyage, mais seulement si elle fait partie de la palette (lisible sous du texte
+ * blanc) ; absente, elle suit la position. Champ optionnel : les versions qui ne le connaissent
+ * pas l'ignorent, d'où pas de changement de version du format.
  */
 export const GAME_EXPORT_FORMAT = "decompte-game";
 // À incrémenter à tout changement incompatible du format (et garder la lecture de l'ancien).
@@ -61,7 +64,13 @@ const gameSchema = z
 		minPlayers: z.number().int().min(1).max(MAX_PLAYERS),
 		maxPlayers: z.number().int().min(1).max(MAX_PLAYERS),
 		categories: z
-			.array(z.object({ label: label(MAX_LABEL_LENGTH), brick: brickSchema }))
+			.array(
+				z.object({
+					label: label(MAX_LABEL_LENGTH),
+					color: z.enum(AVATAR_PALETTE).optional(),
+					brick: brickSchema,
+				}),
+			)
 			.min(1)
 			.max(MAX_CATEGORIES),
 	})
@@ -115,14 +124,23 @@ export function serializeGame(game: GameDef): string {
 			name: game.name,
 			minPlayers: game.minPlayers,
 			maxPlayers: game.maxPlayers,
-			categories: game.categories.map((c) => ({ label: c.label, brick: exportBrick(c.brick) })),
+			categories: game.categories.map((c) => ({
+				label: c.label,
+				// Une couleur hors palette (possible via une sauvegarde) serait refusée à l'import.
+				...(isPaletteColor(c.color) && { color: c.color }),
+				brick: exportBrick(c.brick),
+			})),
 		},
 	});
 }
 
-/** Couleur par position, comme à la création d'un jeu (pas de sélecteur de couleur en V1). */
+/** Couleur par défaut d'une catégorie selon sa position, quand aucune n'a été choisie. */
 export function paletteColor(index: number): string {
 	return AVATAR_PALETTE[index % AVATAR_PALETTE.length];
+}
+
+function isPaletteColor(color: string): boolean {
+	return (AVATAR_PALETTE as readonly string[]).includes(color);
 }
 
 export function importBrick(brick: ExportedBrick): ScoringBrick {
@@ -204,7 +222,7 @@ export function parseGameExport(text: string): ImportResult {
 			maxPlayers: game.maxPlayers,
 			categories: game.categories.map((c, index) => ({
 				label: c.label,
-				color: paletteColor(index),
+				color: c.color ?? paletteColor(index),
 				brick: importBrick(c.brick),
 			})),
 		},

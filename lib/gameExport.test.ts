@@ -86,10 +86,37 @@ describe("serializeGame / parseGameExport", () => {
 		expect(result.game.categories[3].brick).toEqual({ kind: "boolean", yesValue: 2, noValue: 0 });
 	});
 
-	it("n'exporte ni id, ni date, ni archivage, ni couleur", () => {
+	it("n'exporte ni id, ni date, ni archivage", () => {
 		const text = serializeGame(makeGame({ isArchived: true, createdAt: 123 }));
 
-		expect(text).not.toMatch(/"id"|createdAt|isArchived|color/);
+		expect(text).not.toMatch(/"id"|createdAt|isArchived/);
+	});
+
+	it("transmet la couleur choisie de chaque catégorie", () => {
+		const game = makeGame({
+			categories: [
+				makeCategory({ color: "#3b82f6" }),
+				makeCategory({ id: "c2", color: "#78716c" }),
+			],
+		});
+		const result = parseGameExport(serializeGame(game));
+
+		if (!result.ok) throw new Error(result.error);
+		expect(result.game.categories.map((c) => c.color)).toEqual(["#3b82f6", "#78716c"]);
+	});
+
+	it("n'exporte pas une couleur hors palette (venue d'une sauvegarde)", () => {
+		const text = serializeGame(makeGame({ categories: [makeCategory({ color: "#123456" })] }));
+
+		expect(text).not.toMatch(/color/);
+		expect(parseGameExport(text).ok).toBe(true);
+	});
+
+	it("refuse une couleur hors palette", () => {
+		const category = { ...validGame.categories[0], color: "#ffffff" };
+		expect(expectError(envelope({ ...validGame, categories: [category] }))).toMatch(/incorrect/);
+		const notAColor = { ...validGame.categories[0], color: "url(javascript:1)" };
+		expect(expectError(envelope({ ...validGame, categories: [notAColor] }))).toMatch(/incorrect/);
 	});
 
 	it("régénère les id des options et attribue les couleurs par position", () => {
