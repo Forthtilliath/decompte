@@ -1,8 +1,9 @@
 import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text } from "react-native";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
+import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
@@ -27,6 +28,7 @@ export default function SessionDetailScreen() {
 	const players = usePlayersStore((s) => s.players);
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const startNewSession = useSessionStore((s) => s.startNewSession);
+	const [chartsVisible, setChartsVisible] = useState(false);
 
 	const ranking = useMemo(
 		() => (session ? rankEntries(Object.values(session.entries)) : []),
@@ -106,6 +108,23 @@ export default function SessionDetailScreen() {
 						/>
 					);
 				})}
+				{game && (
+					<>
+						<Button
+							label={chartsVisible ? "Masquer les graphiques" : "Voir les graphiques"}
+							variant="ghost"
+							onPress={() => setChartsVisible((visible) => !visible)}
+						/>
+						{chartsVisible && (
+							<GameCharts
+								categories={game.categories}
+								ranking={ranking}
+								entries={session.entries}
+								players={players}
+							/>
+						)}
+					</>
+				)}
 			</ScrollView>
 			{game && !game.isArchived && (
 				<Button

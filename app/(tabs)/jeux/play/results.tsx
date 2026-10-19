@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, Stack } from "expo-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
+import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
@@ -22,6 +23,7 @@ export default function ResultsScreen() {
 	const finishSession = useSessionStore((s) => s.finishSession);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 	const allPlayers = usePlayersStore((s) => s.players);
+	const [chartsVisible, setChartsVisible] = useState(false);
 
 	const ranking = useMemo(
 		() => rankEntries(playerIds.map((id) => entries[id]).filter(Boolean)),
@@ -71,6 +73,19 @@ export default function ResultsScreen() {
 						/>
 					);
 				})}
+				<Button
+					label={chartsVisible ? "Masquer les graphiques" : "Voir les graphiques"}
+					variant="ghost"
+					onPress={() => setChartsVisible((visible) => !visible)}
+				/>
+				{chartsVisible && (
+					<GameCharts
+						categories={game.categories}
+						ranking={ranking}
+						entries={entries}
+						players={allPlayers}
+					/>
+				)}
 			</ScrollView>
 			<Button label="Terminer et enregistrer la partie" variant="success" onPress={confirmFinish} />
 		</ScreenContainer>
