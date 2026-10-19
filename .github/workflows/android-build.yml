@@ -2,17 +2,10 @@ name: Build Android
 
 # Build natif complet, lourd : seulement quand ce qui le compose change (dépendances,
 # configuration Expo) ou à la demande.
+# Pas d'exécution sur main pour remplir un cache Gradle : GitHub efface un cache inutilisé depuis
+# 7 jours, et les PR de dépendances sont mensuelles, il aurait toujours disparu à la suivante.
 on:
   workflow_dispatch:
-  # Sur main, uniquement pour écrire le cache Gradle : une PR peut le lire mais pas l'écrire
-  # (règle GitHub), sans cette exécution chaque PR repartirait de zéro.
-  push:
-    branches: [main]
-    paths:
-      - "package.json"
-      - "package-lock.json"
-      - "app.json"
-      - ".github/workflows/android-build.yml"
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
@@ -31,7 +24,7 @@ permissions:
 
 jobs:
   release-apk:
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -46,9 +39,6 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-
-      # Dépendances et cache de build Gradle : écrits sur main, lus par les PR.
-      - uses: gradle/actions/setup-gradle@v4
 
       - run: npm ci
 
@@ -73,7 +63,7 @@ jobs:
       # qu'une fois, et la signature comme les permissions sont les mêmes quelle que soit l'ABI.
       - name: Build release
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon --build-cache -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
 
       - name: Signature (jamais la clé de debug)
         run: |
