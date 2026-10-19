@@ -89,6 +89,17 @@ function checkCategory({ label, brick }: DraftCategory): GameDraftResult | null 
 			) {
 				return fail("Plafond invalide", `Le plafond est un nombre entier entre 0 et ${MAX_SCORE}.`);
 			}
+			if (
+				brick.unitValue !== undefined &&
+				(!Number.isInteger(brick.unitValue) ||
+					brick.unitValue === 0 ||
+					isScoreOutOfRange(brick.unitValue))
+			) {
+				return fail(
+					"Valeur par unité invalide",
+					`Une unité vaut un nombre entier non nul entre −${MAX_SCORE} et ${MAX_SCORE}.`,
+				);
+			}
 			return null;
 
 		case "tokens":

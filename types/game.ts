@@ -10,14 +10,15 @@ export type ChoiceOption = {
 /**
  * Une catégorie de score se calcule d'une de ces façons :
  * - "manual" : un nombre saisi/ajusté à la main (le cas le plus courant), avec négatif et
- *   plafond en option.
+ *   plafond en option. Avec `unitValue` (ex. −4 par calamité), on saisit au choix le nombre
+ *   d'unités (multiplié automatiquement) ou les points directement, par pas de |unitValue|.
  * - "tokens" : une liste de jetons pondérés à compter, sommés automatiquement (voir
  *   TokenCounterSheet) — pratique pour les jeux à jetons de victoire/défaite type 7 Wonders.
  * - "choice" : une valeur choisie parmi une liste d'options à score fixe (ex. palier atteint).
  * - "boolean" : une condition Oui/Non, chaque réponse rapportant son propre score.
  */
 export type ScoringBrick =
-	| { kind: "manual"; allowNegative: boolean; max?: number }
+	| { kind: "manual"; allowNegative: boolean; max?: number; unitValue?: number }
 	| { kind: "tokens"; tokens: TokenDenomination[] }
 	| { kind: "choice"; options: ChoiceOption[] }
 	| { kind: "boolean"; yesValue: number; noValue: number };

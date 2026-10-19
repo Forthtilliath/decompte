@@ -122,6 +122,22 @@ describe("validateGameDraft", () => {
 			expect(capped(10_001)).toBe("Plafond invalide");
 			expect(capped(2.5)).toBe("Plafond invalide");
 		});
+
+		const perUnit = (unitValue: number) =>
+			outcome(
+				draft({ categories: [withBrick({ kind: "manual", allowNegative: false, unitValue })] }),
+			);
+
+		it("accepte une valeur par unité entière, négative comprise", () => {
+			expect(perUnit(-4)).toBe("ok");
+			expect(perUnit(10_000)).toBe("ok");
+		});
+
+		it("refuse une valeur par unité nulle, décimale ou hors bornes", () => {
+			expect(perUnit(0)).toBe("Valeur par unité invalide");
+			expect(perUnit(1.5)).toBe("Valeur par unité invalide");
+			expect(perUnit(-10_001)).toBe("Valeur par unité invalide");
+		});
 	});
 
 	describe("catégorie « Jetons »", () => {

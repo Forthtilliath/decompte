@@ -35,6 +35,12 @@ export const brickSchema = z.discriminatedUnion("kind", [
 		kind: z.literal("manual"),
 		allowNegative: z.boolean(),
 		max: z.number().int().min(0).max(MAX_SCORE).optional(),
+		// Clé ajoutée sans changer de version : une version antérieure de l'app la supprime à
+		// l'import et garde une catégorie « Nombre » ordinaire, toujours jouable.
+		unitValue: score
+			.int()
+			.refine((v) => v !== 0)
+			.optional(),
 	}),
 	z.object({
 		kind: z.literal("tokens"),
@@ -98,9 +104,12 @@ export type ImportResult = { ok: true; game: ImportedGame } | { ok: false; error
 function exportBrick(brick: ScoringBrick): ExportedBrick {
 	switch (brick.kind) {
 		case "manual":
-			return brick.max === undefined
-				? { kind: "manual", allowNegative: brick.allowNegative }
-				: { kind: "manual", allowNegative: brick.allowNegative, max: brick.max };
+			return {
+				kind: "manual",
+				allowNegative: brick.allowNegative,
+				...(brick.max !== undefined && { max: brick.max }),
+				...(brick.unitValue !== undefined && { unitValue: brick.unitValue }),
+			};
 		case "tokens":
 			return {
 				kind: "tokens",
@@ -161,6 +170,7 @@ const FIELD_NAMES: Record<string, string> = {
 	kind: "mode de calcul",
 	allowNegative: "valeurs négatives",
 	max: "valeur maximum",
+	unitValue: "points par unité",
 	tokens: "jetons",
 	options: "valeurs",
 	value: "valeur",
