@@ -14,7 +14,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - **Ordre de jeu** : les joueurs jouent dans l'ordre où on les coche (numéro affiché sur leur avatar), modifiable à tout moment pendant la saisie.
 - **Partie en cours sauvegardée** : on la reprend à l'étape où on l'avait laissée, ou on l'abandonne.
 - **Classement final** avec médailles, et ex æquo gérés.
-- **Joueurs et groupes** : avatar photo ou initiales colorées, groupes d'habitués.
+- **Joueurs et groupes** : avatar en photo, prise sur le moment ou choisie dans la galerie (miniature gardée dans l'app, sans ses métadonnées), ou initiales colorées ; groupes d'habitués.
 - **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs.
 - **Graphiques d'une partie** (résultats et historique) : répartition des points de chaque joueur, comparaison des joueurs catégorie par catégorie.
 - **Statistiques**, tous jeux confondus ou pour un jeu : records (meilleur score, plus longue série de victoires, partie la plus serrée), taux de victoire, jeux les plus joués, et pour chaque joueur ses points moyens et leur répartition par catégorie, en graphique ou en tableau, avec comparaison entre deux joueurs.
