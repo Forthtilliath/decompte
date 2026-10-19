@@ -1,4 +1,3 @@
-import { createPluralize } from "@forthtilliath/ts-kit/string/pluralize";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { CategoryPieChart } from "@/components/stats/CategoryPieChart";
@@ -10,11 +9,10 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { plural } from "@/lib/plural";
 import { computePlayerGameStats, computePlayerStats, formatAverage, formatRate } from "@/lib/stats";
 import type { GameDef, Session } from "@/types/game";
 import type { Player } from "@/types/player";
-
-const plural = createPluralize("fr");
 
 type Props = {
 	player: Player;

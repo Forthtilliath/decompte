@@ -1,18 +1,16 @@
 import { createBackupManager } from "@forthtilliath/expo-backup";
 import { formatFileTimestamp } from "@forthtilliath/ts-kit/files/formatFileTimestamp";
-import { createPluralize } from "@forthtilliath/ts-kit/string/pluralize";
 import {
 	BACKUP_APP_ID,
 	BACKUP_DATA_VERSION,
 	type BackupData,
 	parseBackup,
 } from "@/lib/backupSchema";
+import { plural } from "@/lib/plural";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useGroupsStore } from "@/stores/groupsStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
-
-const plural = createPluralize("fr");
 
 export function collectBackupData(): BackupData {
 	return {
