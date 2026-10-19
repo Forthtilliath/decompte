@@ -46,7 +46,14 @@ export function Button({
 			accessibilityLabel={accessibilityLabel ?? label}
 			accessibilityState={{ disabled: !!disabled }}
 		>
-			<Text style={[styles.label, variant === "ghost" && styles.ghostLabel]}>{label}</Text>
+			<Text
+				style={[
+					styles.label,
+					(variant === "ghost" || variant === "secondary") && styles.neutralLabel,
+				]}
+			>
+				{label}
+			</Text>
 		</Pressable>
 	);
 }
@@ -67,7 +74,8 @@ function useStyles(colors: ThemeColors) {
 					fontSize: 16,
 					fontWeight: "600",
 				},
-				ghostLabel: {
+				// Fonds neutres (transparent, surfaceAlt) : le blanc y serait illisible en thème clair.
+				neutralLabel: {
 					color: colors.text,
 				},
 				pressed: {
