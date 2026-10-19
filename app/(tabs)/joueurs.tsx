@@ -64,7 +64,7 @@ export default function PlayersScreen() {
 							/>
 							<Text style={styles.sectionTitle}>Joueurs</Text>
 						</View>
-					) : null
+					) : undefined
 				}
 				ListEmptyComponent={
 					<Text style={styles.empty}>
