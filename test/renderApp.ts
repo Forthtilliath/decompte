@@ -7,15 +7,13 @@ import { act, renderRouter } from "expo-router/testing-library";
  * asynchrone de Testing Library v14 se termine.
  */
 export async function renderApp(initialUrl: string) {
-	const app = renderRouter("./app", { initialUrl });
+	const rendering = renderRouter("./app", { initialUrl });
 	await jest.advanceTimersByTimeAsync(100);
-	await app;
-	// `app` est la promesse du rendu, enrichie par expo-router : la renvoyer telle quelle depuis une
-	// fonction async la déballerait et perdrait ces méthodes.
+	const app = await rendering;
 	return {
 		getPathname: () => app.getPathname(),
 		getSearchParams: () => app.getSearchParams(),
-		/** `testRouter` d'expo-router suppose le `render` synchrone de Testing Library v13. */
+		/** `testRouter` d'expo-router vérifie le chemin juste après la navigation, sans attendre le rendu. */
 		navigate: async (path: string) => {
 			await act(async () => {
 				router.navigate(path);

@@ -12,6 +12,14 @@ jest.mock(
 );
 require("react-native-gesture-handler/jestSetup");
 
+// Polices des icônes considérées comme chargées : depuis le SDK 58, expo-font cherche le fichier
+// dans le registre d'assets de Metro, absent sous Jest.
+jest.mock("expo-font", () => ({
+	...jest.requireActual("expo-font"),
+	isLoaded: jest.fn(() => true),
+	loadAsync: jest.fn(() => Promise.resolve()),
+}));
+
 // Les vibrations n'ont pas d'équivalent en test : promesses résolues, enums conservés.
 jest.mock("expo-haptics", () => ({
 	impactAsync: jest.fn(() => Promise.resolve()),
