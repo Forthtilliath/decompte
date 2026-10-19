@@ -10,6 +10,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
   - **choix** parmi des options à score fixe (ex. palier atteint) ;
   - **oui / non**, chaque réponse avec son propre score.
 - **Saisie guidée** : une catégorie à la fois, avec le total de chaque joueur affiché en continu.
+- **Jeux en plusieurs manches** (ex. Pixies, 3 manches) : toutes les catégories se saisissent à chaque manche, puis les manches s'additionnent ; les résultats détaillent les points de chaque manche.
 - **Ordre de jeu** : les joueurs jouent dans l'ordre où on les coche (numéro affiché sur leur avatar), modifiable à tout moment pendant la saisie.
 - **Partie en cours sauvegardée** : on la reprend à l'étape où on l'avait laissée, ou on l'abandonne.
 - **Classement final** avec médailles, et ex æquo gérés.
