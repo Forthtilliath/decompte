@@ -8,6 +8,7 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { pruneAvatarPhotos } from "@/lib/avatarPhotos";
 import { backup } from "@/lib/backup";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useGroupsStore } from "@/stores/groupsStore";
@@ -21,6 +22,7 @@ function clearAllData() {
 	useGroupsStore.getState().replaceAll([]);
 	usePlayersStore.getState().replaceAll([]);
 	useGamesStore.getState().replaceAll([]);
+	pruneAvatarPhotos([]);
 }
 
 export default function DangerZoneSettingsScreen() {
