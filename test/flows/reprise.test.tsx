@@ -60,6 +60,31 @@ describe("partie en cours", () => {
 		expect(useSessionStore.getState().currentCategoryId).toBe("murs");
 	});
 
+	it("lance la partie dans l'ordre où les joueurs ont été cochés", async () => {
+		await renderApp("/jeux/azul");
+		await fireEvent.press(screen.getByRole("checkbox", { name: "Bob" }));
+		await fireEvent.press(screen.getByRole("checkbox", { name: "Alice" }));
+
+		expect(
+			screen.getByRole("checkbox", { name: "Bob", value: { text: "joue en position 1" } }),
+		).toBeOnTheScreen();
+		await press("Lancer une partie");
+		expect(useSessionStore.getState().playerIds).toEqual(["bob", "alice"]);
+	});
+
+	it("change l'ordre des joueurs en cours de partie", async () => {
+		useSessionStore.getState().startNewSession("azul", ["alice", "bob"]);
+		await renderApp("/jeux/play/murs");
+
+		await press("Ordre des joueurs");
+		expect(screen.getByRole("button", { name: "Monter Alice" })).toBeDisabled();
+		await press("Monter Bob");
+
+		expect(useSessionStore.getState().playerIds).toEqual(["bob", "alice"]);
+		expect(screen.getByRole("button", { name: "Monter Bob" })).toBeDisabled();
+		expect(screen.getByRole("button", { name: "Descendre Bob" })).toBeEnabled();
+	});
+
 	it("abandonne la partie après confirmation, sans rien enregistrer", async () => {
 		useSessionStore.getState().startNewSession("azul", ["alice", "bob"]);
 		await renderApp("/jeux");
