@@ -51,6 +51,7 @@ jest.mock("@forthtilliath/react-native-kit/utils/files/imageThumbnail", () => ({
 	),
 }));
 jest.mock("@forthtilliath/react-native-kit/utils/files/appFiles", () => ({
+	getAppDirectory: jest.fn(() => ({ list: () => [] })),
 	deleteFileQuietly: jest.fn(),
 	pruneAppDirectory: jest.fn(() => 0),
 }));
