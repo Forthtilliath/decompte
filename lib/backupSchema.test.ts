@@ -1,3 +1,4 @@
+import { getAppDirectory } from "@forthtilliath/react-native-kit/utils/files/appFiles";
 import {
 	BACKUP_APP_ID,
 	BACKUP_DATA_VERSION,
@@ -55,15 +56,50 @@ describe("parseBackup", () => {
 		expect(restored.options[0].id).not.toBe("o1");
 	});
 
-	it("supprime les clés inconnues, dont la photo d'un joueur", () => {
-		const data = {
-			...validBackup(),
-			extra: "ignoré",
-			players: [{ ...makePlayer({ id: "alice" }), avatarUri: "https://exemple.com/pistage.png" }],
-		};
-		const restored = parse(data);
+	it("supprime les clés inconnues", () => {
+		const restored = parse({ ...validBackup(), extra: "ignoré" });
 		expect(restored).not.toHaveProperty("extra");
-		expect(restored.players[0]).not.toHaveProperty("avatarUri");
+	});
+
+	it("ne charge jamais une photo venue du fichier", () => {
+		const data = validBackup({
+			players: [makePlayer({ id: "alice", avatarUri: "https://exemple.com/pistage.png" })],
+		});
+		expect(parse(data).players[0]).not.toHaveProperty("avatarUri");
+	});
+
+	it("reprend la photo du même nom encore présente dans l'app", () => {
+		jest.mocked(getAppDirectory).mockReturnValueOnce({
+			list: () => [{ uri: "file:///data/user/0/app/files/avatars/avatar-1.jpg" }],
+		} as unknown as ReturnType<typeof getAppDirectory>);
+		const data = validBackup({
+			players: [
+				makePlayer({ id: "alice", avatarUri: "file:///data/data/app/files/avatars/avatar-1.jpg" }),
+				makePlayer({ id: "bob", avatarUri: "file:///autre-telephone/avatars/avatar-2.jpg" }),
+			],
+		});
+		const [alice, bob] = parse(data).players;
+		expect(alice.avatarUri).toBe("file:///data/user/0/app/files/avatars/avatar-1.jpg");
+		expect(bob).not.toHaveProperty("avatarUri");
+	});
+
+	it("garde les manches d'un jeu et tous les scores de ses parties", () => {
+		const categories = Array.from({ length: 30 }, (_, i) => makeCategory({ id: `c${i}` }));
+		const scores = Object.fromEntries(
+			categories.flatMap((c) => [
+				[c.id, 1],
+				[`${c.id}#2`, 2],
+			]),
+		);
+		const data = validBackup({
+			games: [makeGame({ rounds: 2, categories })],
+			sessions: [
+				makeSession({ playerIds: ["alice"], entries: { alice: makeEntry("alice", scores) } }),
+			],
+		});
+		const restored = parse(data);
+		expect(restored.games[0].rounds).toBe(2);
+		expect(Object.keys(restored.sessions[0].entries.alice.scores)).toHaveLength(60);
 	});
 
 	it.each([
