@@ -65,6 +65,25 @@ describe("useSessionStore", () => {
 		expect(Object.keys(useSessionStore.getState().entries)).toEqual(["p1"]);
 	});
 
+	it("change l'ordre des joueurs sans toucher à leurs scores", () => {
+		const store = useSessionStore.getState();
+		store.startNewSession("azul", ["p1", "p2", "p3"]);
+		store.updateScore("p3", "murs", 7);
+		store.movePlayer("p3", -1);
+		store.movePlayer("p1", 1);
+
+		expect(useSessionStore.getState().playerIds).toEqual(["p3", "p1", "p2"]);
+		expect(useSessionStore.getState().entries.p3.scores).toEqual({ murs: 7 });
+	});
+
+	it("ignore un déplacement hors de la liste ou pour un joueur absent", () => {
+		useSessionStore.getState().startNewSession("azul", ["p1", "p2"]);
+		const before = useSessionStore.getState().playerIds;
+		useSessionStore.getState().movePlayer("p1", -1);
+		useSessionStore.getState().movePlayer("intrus", 1);
+		expect(useSessionStore.getState().playerIds).toBe(before);
+	});
+
 	it("mémorise l'étape affichée", () => {
 		useSessionStore.getState().setCurrentCategory("c2");
 		expect(useSessionStore.getState().currentCategoryId).toBe("c2");
