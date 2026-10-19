@@ -21,6 +21,7 @@ export type GameBuilderValues = {
 	categories: CategoryDef[];
 	minPlayers: number;
 	maxPlayers: number;
+	rounds?: number;
 };
 
 type Props = {
@@ -37,6 +38,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	const [name, setName] = useState(initial?.name ?? "");
 	const [minPlayers, setMinPlayers] = useState(String(initial?.minPlayers ?? 1));
 	const [maxPlayers, setMaxPlayers] = useState(String(initial?.maxPlayers ?? 8));
+	const [rounds, setRounds] = useState(String(initial?.rounds ?? 1));
 	const [categories, setCategories] = useState<DraftCategory[]>(
 		initial?.categories.map((c) => ({
 			id: c.id,
@@ -62,7 +64,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	};
 
 	const handleSubmit = () => {
-		const result = validateGameDraft({ name, minPlayers, maxPlayers, categories });
+		const result = validateGameDraft({ name, minPlayers, maxPlayers, rounds, categories });
 		if (!result.ok) {
 			Alert.alert(result.title, result.message);
 			return;
@@ -91,7 +93,20 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 						keyboardType="number-pad"
 					/>
 				</View>
+				<View style={styles.playersField}>
+					<TextField
+						label="Manches"
+						value={rounds}
+						onChangeText={setRounds}
+						keyboardType="number-pad"
+					/>
+				</View>
 			</View>
+			{Number.parseInt(rounds, 10) > 1 && (
+				<Text style={styles.hint}>
+					Toutes les catégories se saisissent à chaque manche, puis les manches s'additionnent.
+				</Text>
+			)}
 
 			<Text style={styles.sectionTitle}>Catégories de score</Text>
 			{categories.map((category, index) => (
@@ -125,6 +140,10 @@ function useStyles(colors: ThemeColors) {
 				},
 				playersField: {
 					flex: 1,
+				},
+				hint: {
+					color: colors.textMuted,
+					fontSize: 13,
 				},
 				sectionTitle: {
 					color: colors.textMuted,

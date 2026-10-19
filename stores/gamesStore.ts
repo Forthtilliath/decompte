@@ -16,6 +16,7 @@ type Actions = {
 		categories: NewCategoryInput[];
 		minPlayers: number;
 		maxPlayers: number;
+		rounds?: number;
 	}) => GameDef;
 	updateGame: (
 		id: string,
@@ -24,6 +25,7 @@ type Actions = {
 			categories: CategoryDef[];
 			minPlayers: number;
 			maxPlayers: number;
+			rounds: number;
 		},
 	) => void;
 	toggleArchived: (id: string) => void;
@@ -44,7 +46,7 @@ export const useGamesStore = create<State & Actions>()(
 		(set, get) => ({
 			games: [],
 
-			addGame: ({ name, categories, minPlayers, maxPlayers }) => {
+			addGame: ({ name, categories, minPlayers, maxPlayers, rounds = 1 }) => {
 				const game: GameDef = {
 					id: createId(),
 					name: name.trim(),
@@ -52,6 +54,7 @@ export const useGamesStore = create<State & Actions>()(
 					categories: categories.map((c) => ({ ...c, id: createId() })),
 					minPlayers,
 					maxPlayers,
+					rounds,
 					createdAt: Date.now(),
 					isArchived: false,
 				};
@@ -69,6 +72,7 @@ export const useGamesStore = create<State & Actions>()(
 									categories: patch.categories,
 									minPlayers: patch.minPlayers,
 									maxPlayers: patch.maxPlayers,
+									rounds: patch.rounds,
 								}
 							: g,
 					),

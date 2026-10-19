@@ -6,6 +6,7 @@ import {
 	MAX_ITEMS,
 	MAX_LABEL_LENGTH,
 	MAX_PLAYERS,
+	MAX_ROUNDS,
 	MAX_SCORE,
 } from "@/lib/gameLimits";
 import { createId } from "@/lib/uuid";
@@ -69,6 +70,9 @@ const gameSchema = z
 		name: label(MAX_GAME_NAME_LENGTH),
 		minPlayers: z.number().int().min(1).max(MAX_PLAYERS),
 		maxPlayers: z.number().int().min(1).max(MAX_PLAYERS),
+		// Clé ajoutée sans changer de version, comme `unitValue` : une version antérieure de l'app
+		// la supprime à l'import et garde un jeu en une seule manche.
+		rounds: z.number().int().min(1).max(MAX_ROUNDS).optional(),
 		categories: z
 			.array(
 				z.object({
@@ -96,6 +100,7 @@ export type ImportedGame = {
 	name: string;
 	minPlayers: number;
 	maxPlayers: number;
+	rounds: number;
 	categories: { label: string; color: string; brick: ScoringBrick }[];
 };
 
@@ -133,6 +138,7 @@ export function serializeGame(game: GameDef): string {
 			name: game.name,
 			minPlayers: game.minPlayers,
 			maxPlayers: game.maxPlayers,
+			...(game.rounds !== undefined && game.rounds > 1 && { rounds: game.rounds }),
 			categories: game.categories.map((c) => ({
 				label: c.label,
 				// Une couleur hors palette (possible via une sauvegarde) serait refusée à l'import.
@@ -164,6 +170,7 @@ const FIELD_NAMES: Record<string, string> = {
 	name: "nom du jeu",
 	minPlayers: "joueurs min.",
 	maxPlayers: "joueurs max.",
+	rounds: "manches",
 	categories: "catégories",
 	label: "libellé",
 	brick: "mode de calcul",
@@ -230,6 +237,7 @@ export function parseGameExport(text: string): ImportResult {
 			name: game.name,
 			minPlayers: game.minPlayers,
 			maxPlayers: game.maxPlayers,
+			rounds: game.rounds ?? 1,
 			categories: game.categories.map((c, index) => ({
 				label: c.label,
 				color: c.color ?? paletteColor(index),
