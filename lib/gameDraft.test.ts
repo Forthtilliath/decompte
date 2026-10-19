@@ -1,8 +1,10 @@
+import { AVATAR_PALETTE } from "@/lib/avatarColor";
 import {
 	type DraftCategory,
 	emptyBrick,
 	emptyCategory,
 	type GameDraftInput,
+	nextCategoryColor,
 	toCategoryDefs,
 	validateGameDraft,
 } from "@/lib/gameDraft";
@@ -198,12 +200,32 @@ describe("validateGameDraft", () => {
 	});
 });
 
+describe("nextCategoryColor", () => {
+	it("prend la première couleur de la palette pas encore utilisée", () => {
+		expect(nextCategoryColor([])).toBe(AVATAR_PALETTE[0]);
+		// La première catégorie, sans couleur choisie, occupe celle de sa position.
+		const taken = [manual(), { ...manual(), color: AVATAR_PALETTE[1] }];
+		expect(nextCategoryColor(taken)).toBe(AVATAR_PALETTE[2]);
+		expect(nextCategoryColor([{ ...manual(), color: AVATAR_PALETTE[1] }])).toBe(AVATAR_PALETTE[0]);
+	});
+
+	it("reprend la palette quand toutes les couleurs sont prises", () => {
+		const all = AVATAR_PALETTE.map((color) => ({ ...manual(), color }));
+		expect(nextCategoryColor(all)).toBe(paletteColor(AVATAR_PALETTE.length));
+	});
+});
+
 describe("toCategoryDefs", () => {
 	it("garde l'id des catégories existantes et en crée pour les nouvelles", () => {
 		const defs = toCategoryDefs([{ ...manual("Murs"), id: "existante" }, manual("Bonus")]);
 		expect(defs[0].id).toBe("existante");
 		expect(defs[1].id).toEqual(expect.any(String));
 		expect(defs[1].id).not.toBe("existante");
+	});
+
+	it("garde la couleur choisie", () => {
+		const defs = toCategoryDefs([{ ...manual("Murs"), color: "#3b82f6" }, manual("Bonus")]);
+		expect(defs.map((d) => d.color)).toEqual(["#3b82f6", paletteColor(1)]);
 	});
 
 	it("colore par position comme l'import et nettoie les libellés", () => {
