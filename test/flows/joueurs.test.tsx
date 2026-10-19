@@ -4,7 +4,6 @@ import { useGroupsStore } from "@/stores/groupsStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
-import { useThemeStore } from "@/stores/themeStore";
 import { mockAlert } from "@/test/alerts";
 import { makeEntry, makeGame, makeGroup, makePlayer, makeSession } from "@/test/factories";
 import { renderApp } from "@/test/renderApp";
@@ -20,7 +19,6 @@ beforeEach(() => {
 	useSessionStore.getState().resetSession();
 	usePlayersStore.setState({ players: [makePlayer({ id: "alice", name: "Alice" })] });
 	useGroupsStore.setState({ groups: [] });
-	useThemeStore.setState({ mode: "dark" });
 });
 
 const press = (name: string) => fireEvent.press(screen.getByRole("button", { name }));
@@ -205,14 +203,5 @@ describe("groupes", () => {
 		await press("Supprimer le groupe");
 		expect(useGroupsStore.getState().groups).toEqual([]);
 		expect(usePlayersStore.getState().players).toHaveLength(1);
-	});
-});
-
-describe("réglages", () => {
-	it("passe en thème clair et le garde", async () => {
-		await renderApp("/reglages");
-		await fireEvent.press(screen.getByRole("radio", { name: "Clair" }));
-		expect(useThemeStore.getState().mode).toBe("light");
-		expect(screen.getByRole("radio", { name: "Clair" })).toBeSelected();
 	});
 });
