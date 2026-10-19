@@ -2,12 +2,13 @@
 	"expo": {
 		"name": "Décompte",
 		"slug": "decompte",
-		"version": "1.0.0",
+		"version": "1.0.0-alpha.2",
 		"scheme": "decompte",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"userInterfaceStyle": "automatic",
 		"android": {
+			"versionCode": 2,
 			"adaptiveIcon": {
 				"backgroundColor": "#0f172a",
 				"foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -15,6 +16,7 @@
 				"monochromeImage": "./assets/images/android-icon-monochrome.png"
 			},
 			"predictiveBackGestureEnabled": false,
+			"permissions": ["android.permission.REQUEST_INSTALL_PACKAGES"],
 			"blockedPermissions": [
 				"android.permission.READ_EXTERNAL_STORAGE",
 				"android.permission.WRITE_EXTERNAL_STORAGE",
@@ -27,6 +29,8 @@
 		},
 		"plugins": [
 			"expo-router",
+			"expo-secure-store",
+			"expo-sharing",
 			["@forthtilliath/expo-config-plugins/withReleaseSigning", { "propertyPrefix": "DECOMPTE" }],
 			"@forthtilliath/expo-config-plugins/withAndroidAbis"
 		]
