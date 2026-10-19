@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { relinkAvatarPhotos } from "@/lib/avatarPhotos";
 import { brickSchema, importBrick } from "@/lib/gameExport";
 import {
 	MAX_CATEGORIES,
@@ -73,11 +74,13 @@ const gameSchema = z
 	})
 	.refine((g) => g.maxPlayers >= g.minPlayers, { path: ["maxPlayers"] });
 
-// Pas d'`avatarUri` : l'app ne permet pas encore d'en choisir, et une URI venue d'un fichier
-// (adresse web, fichier d'un autre téléphone) ne doit jamais être chargée telle quelle.
+// `avatarUri` n'est jamais chargée telle quelle (adresse web, fichier d'un autre téléphone) : elle
+// sert seulement à retrouver, par son nom, une photo encore présente dans le dossier des avatars de
+// l'app (restauration sur le même téléphone, annulation d'une restauration). Voir parseBackup.
 const playerSchema = z.object({
 	id: idSchema,
 	name: nameSchema(MAX_NAME_LENGTH),
+	avatarUri: z.string().max(1024).optional(),
 	isFavorite: z.boolean(),
 	isArchived: z.boolean(),
 	createdAt: timestampSchema,
@@ -172,5 +175,6 @@ export function parseBackup(text: string): BackupData {
 			...game,
 			categories: game.categories.map((c) => ({ ...c, brick: importBrick(c.brick) })),
 		})),
+		players: relinkAvatarPhotos(data.players),
 	};
 }
