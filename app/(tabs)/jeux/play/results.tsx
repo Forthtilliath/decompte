@@ -9,7 +9,9 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { getRoundCount } from "@/lib/rounds";
 import { rankEntries } from "@/lib/scoring";
+import { getFirstStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -33,7 +35,7 @@ export default function ResultsScreen() {
 	if (!game || playerIds.length === 0) return null;
 
 	const correctGame = () => {
-		router.dismissTo(`/jeux/play/${game.categories[0].id}`);
+		router.dismissTo(getFirstStepHref(game));
 	};
 
 	const confirmFinish = () => {
@@ -70,6 +72,7 @@ export default function ResultsScreen() {
 							ranked={ranked}
 							entry={entry}
 							categories={game.categories}
+							roundCount={getRoundCount(game)}
 						/>
 					);
 				})}

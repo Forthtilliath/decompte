@@ -10,6 +10,7 @@ import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
+import { getRoundCount } from "@/lib/rounds";
 import { useGamesStore } from "@/stores/gamesStore";
 
 export default function GamesListScreen() {
@@ -65,7 +66,9 @@ export default function GamesListScreen() {
 						key={game.id}
 						icon="game-controller-outline"
 						label={game.name}
-						value={`${game.categories.length} catégorie${game.categories.length > 1 ? "s" : ""}`}
+						value={`${game.categories.length} catégorie${game.categories.length > 1 ? "s" : ""}${
+							getRoundCount(game) > 1 ? ` · ${getRoundCount(game)} manches` : ""
+						}`}
 						onPress={() => router.push(`/jeux/${game.id}`)}
 					/>
 				))
