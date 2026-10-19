@@ -72,7 +72,7 @@ export default function ResultsScreen() {
 					);
 				})}
 			</ScrollView>
-			<Button label="Terminer et enregistrer la partie" onPress={confirmFinish} />
+			<Button label="Terminer et enregistrer la partie" variant="success" onPress={confirmFinish} />
 		</ScreenContainer>
 	);
 }

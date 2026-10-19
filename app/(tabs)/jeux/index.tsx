@@ -30,7 +30,11 @@ export default function GamesListScreen() {
 	return (
 		<ScreenContainer style={styles.container}>
 			{hasOngoingSession && ongoingGame && (
-				<Button label={`Reprendre la partie en cours (${ongoingGame.name})`} onPress={resume} />
+				<Button
+					label={`Reprendre la partie en cours (${ongoingGame.name})`}
+					variant="success"
+					onPress={resume}
+				/>
 			)}
 			{/* Proposé même si le jeu de la partie est introuvable : sinon la partie bloquerait le
 			    lancement de toute autre partie, sans aucun moyen d'en sortir. */}

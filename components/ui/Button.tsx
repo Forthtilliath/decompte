@@ -5,7 +5,8 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
-type Variant = "primary" | "secondary" | "danger" | "ghost";
+/** `success` (vert) : actions qui font avancer une partie (lancer, reprendre, terminer). */
+type Variant = "primary" | "secondary" | "success" | "danger" | "ghost";
 
 type Props = {
 	label: string;
@@ -86,6 +87,7 @@ function useStyles(colors: ThemeColors) {
 				},
 				primary: { backgroundColor: colors.primary },
 				secondary: { backgroundColor: colors.surfaceAlt },
+				success: { backgroundColor: colors.success },
 				danger: { backgroundColor: colors.danger },
 				ghost: { backgroundColor: "transparent", borderWidth: 1, borderColor: colors.border },
 			}),
