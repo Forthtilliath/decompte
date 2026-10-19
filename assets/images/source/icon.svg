@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+<defs>
+	<radialGradient id="bg" cx="50%" cy="38%" r="75%">
+		<stop offset="0" stop-color="#1c3556"/>
+		<stop offset="1" stop-color="#0d1b2a"/>
+	</radialGradient>
+	<linearGradient id="shine" x1="0" y1="0" x2="1" y2="0">
+		<stop offset="0" stop-color="#fff" stop-opacity="0"/>
+		<stop offset="0.35" stop-color="#fff" stop-opacity="0.28"/>
+		<stop offset="0.6" stop-color="#fff" stop-opacity="0"/>
+	</linearGradient>
+</defs><rect width="1024" height="1024" fill="url(#bg)"/><g transform="translate(512 512) scale(0.92) translate(-512 -496)"><ellipse cx="512" cy="768" rx="320" ry="51" fill="#000" opacity="0.35"/>
+	<rect x="222" y="560" width="190" height="200" rx="22" fill="#3b82f6"/>
+		<rect x="222" y="726" width="190" height="34" fill="#2459b8"/>
+		<rect x="222" y="560" width="190" height="26" rx="13" fill="#fff" opacity="0.18"/>
+	<rect x="612" y="610" width="190" height="150" rx="22" fill="#2fb36d"/>
+		<rect x="612" y="726" width="190" height="34" fill="#1b7a47"/>
+		<rect x="612" y="610" width="190" height="26" rx="13" fill="#fff" opacity="0.18"/>
+	<rect x="412" y="470" width="200" height="290" rx="22" fill="#e5484d"/>
+		<rect x="412" y="726" width="200" height="34" fill="#a92a2f"/>
+		<rect x="412" y="470" width="200" height="26" rx="13" fill="#fff" opacity="0.18"/>
+	<polygon points="512.0,240.0 539.8,306.8 611.9,312.6 556.9,359.6 573.7,429.9 512.0,392.3 450.3,429.9 467.1,359.6 412.1,312.6 484.2,306.8" fill="#f2b632" stroke="#f2b632" stroke-width="16" stroke-linejoin="round"/></g></svg>
