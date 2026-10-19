@@ -9,10 +9,12 @@ type Props = {
 	/** `undefined` tant que rien n'a été saisi pour ce joueur dans cette catégorie. */
 	points: number | undefined;
 	onChange: (points: number) => void;
+	/** Catégorie « Nombre » à valeur par unité : saisir le nombre d'unités plutôt que les points. */
+	countUnits?: boolean;
 };
 
 /** Saisie d'un joueur pour une catégorie, avec le champ propre à son type de calcul. */
-export function CategoryScoreField({ category, points, onChange }: Props) {
+export function CategoryScoreField({ category, points, onChange, countUnits }: Props) {
 	const { brick } = category;
 
 	switch (brick.kind) {
@@ -23,6 +25,9 @@ export function CategoryScoreField({ category, points, onChange }: Props) {
 					color={category.color}
 					allowNegative={brick.allowNegative}
 					max={brick.max}
+					unitValue={brick.unitValue}
+					countUnits={countUnits}
+					label={category.label}
 					onChange={onChange}
 				/>
 			);
