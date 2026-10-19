@@ -20,6 +20,14 @@ jest.mock("expo-font", () => ({
 	loadAsync: jest.fn(() => Promise.resolve()),
 }));
 
+// Graphiques SVG remplacés par une vue vide : leur rendu n'est pas ce qu'on teste, et leurs
+// animations différées s'exécuteraient après la fin des tests.
+jest.mock("react-native-gifted-charts", () => {
+	const { createElement } = require("react");
+	const { View } = require("react-native");
+	return { PieChart: () => createElement(View, { testID: "PieChart" }) };
+});
+
 // Les vibrations n'ont pas d'équivalent en test : promesses résolues, enums conservés.
 jest.mock("expo-haptics", () => ({
 	impactAsync: jest.fn(() => Promise.resolve()),
