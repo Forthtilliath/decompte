@@ -14,6 +14,8 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - **Classement final** avec médailles, et ex æquo gérés.
 - **Joueurs et groupes** : avatar photo ou initiales colorées, groupes d'habitués.
 - **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs.
+- **Graphiques d'une partie** (résultats et historique) : répartition des points de chaque joueur, comparaison des joueurs catégorie par catégorie.
+- **Statistiques**, tous jeux confondus ou pour un jeu : records (meilleur score, plus longue série de victoires, partie la plus serrée), taux de victoire, jeux les plus joués, et pour chaque joueur ses points moyens et leur répartition par catégorie, en graphique ou en tableau, avec comparaison entre deux joueurs.
 - **Partage de jeux** : un jeu s'envoie en texte à un autre joueur, qui le colle dans Décompte, couleurs des catégories comprises. Le texte est entièrement vérifié avant d'être ajouté.
 - **Sauvegarde** : envoi automatique sur Google Drive après chaque changement (dossier privé de l'app, chiffrement en option), ou export et restauration d'un fichier, avec annulation de la dernière restauration. Chaque sauvegarde est entièrement vérifiée avant d'être appliquée.
 - **Mises à jour en un geste** : l'app annonce une nouvelle version publiée sur GitHub, la télécharge et lance son installation. L'historique des versions et de leurs nouveautés est dans Réglages.
@@ -26,6 +28,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - [Expo](https://docs.expo.dev/versions/v58.0.0/) SDK 58, React Native 0.88, React 19, TypeScript
 - [Expo Router](https://docs.expo.dev/router/introduction/) (navigation par fichiers, dossier `app/`)
 - [Zustand](https://zustand.docs.pmnd.rs/) + AsyncStorage pour la persistance locale
+- [react-native-gifted-charts](https://gifted-charts.web.app/) (camemberts, sur `react-native-svg`)
 - [Biome](https://biomejs.dev/) pour le lint et le formatage
 - [Jest](https://jestjs.io/) (preset `jest-expo`) et [Testing Library](https://callstack.github.io/react-native-testing-library/) pour les tests
 - Briques partagées de [`forthtilliath-packages`](https://github.com/Forthtilliath/forthtilliath-packages) : `@forthtilliath/react-native-kit`, `@forthtilliath/ts-kit`, `@forthtilliath/expo-config-plugins`
@@ -61,7 +64,7 @@ Après une montée de version (`npx expo install --fix`), `npm run check` doit p
 
 | Dossier | Contenu |
 |---|---|
-| `app/` | Écrans (Expo Router) : onglets Jeux, Historique, Joueurs, Réglages |
+| `app/` | Écrans (Expo Router) : onglets Jeux, Joueurs, Historique, Stats, Réglages |
 | `components/` | Composants : `ui/` génériques, `scoring/` saisie des scores, `games/`, `players/`, `groups/`, `history/` |
 | `stores/` | États Zustand persistés : jeux, joueurs, groupes, partie en cours, historique, thème |
 | `lib/` | Logique pure : calcul des scores, déroulé d'une partie, validation et import des jeux |
