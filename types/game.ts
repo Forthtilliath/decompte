@@ -33,6 +33,10 @@ export type CategoryDef = {
 	label: string;
 	color: string;
 	brick: ScoringBrick;
+	/** Critère à remplir pour que la catégorie compte (ex. un objectif minimum) : pendant la
+	 * partie, chaque joueur a une case à cocher, et ses points ne se saisissent qu'une fois cochée.
+	 * Absent d'une catégorie créée avant son ajout : pas de critère. */
+	requiresValidation?: boolean;
 };
 
 export type GameDef = {
@@ -55,6 +59,10 @@ export type GameDef = {
 export type SessionEntry = {
 	playerId: string;
 	scores: Record<string, number>;
+	/** Clés de score (même format que `scores`) dont le critère est validé par ce joueur, pour les
+	 * catégories à critère. Un critère non validé n'a pas de score : les totaux n'en dépendent pas,
+	 * et l'historique reste juste même si le jeu est modifié ensuite. */
+	validated?: string[];
 };
 
 export type Session = {

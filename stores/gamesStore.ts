@@ -5,13 +5,13 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { gameSchema, MAX_ENTITIES } from "@/lib/backupSchema";
 import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
-import type { CategoryDef, GameDef, ScoringBrick } from "@/types/game";
+import type { CategoryDef, GameDef } from "@/types/game";
 
 type State = {
 	games: GameDef[];
 };
 
-type NewCategoryInput = { label: string; color: string; brick: ScoringBrick };
+type NewCategoryInput = Omit<CategoryDef, "id">;
 
 type Actions = {
 	addGame: (input: {
