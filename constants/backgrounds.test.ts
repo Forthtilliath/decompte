@@ -58,7 +58,13 @@ describe("fonds de page", () => {
 		"$mode / $background.label : icônes de pions visibles sur les cartes (≥ 3)",
 		({ mode, background }) => {
 			const colors = resolveThemeColors(mode, background.id);
-			for (const tint of [colors.primary, colors.gold, colors.danger, colors.success]) {
+			for (const tint of [
+				colors.primary,
+				colors.gold,
+				colors.danger,
+				colors.success,
+				colors.purple,
+			]) {
 				expect(contrast(tint, colors.surface)).toBeGreaterThanOrEqual(3);
 			}
 		},
