@@ -1,3 +1,4 @@
+import { usePressRepeat } from "@forthtilliath/react-native-kit/hooks/usePressRepeat";
 import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { clamp } from "@forthtilliath/ts-kit/number/clamp";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -21,13 +22,8 @@ type Props = {
 	label?: string;
 };
 
-// Réglages de l'accélération en appui long : un premier pas immédiat, puis une répétition qui
-// démarre après INITIAL_DELAY et s'accélère après ACCELERATE_AFTER pour saisir vite les grandes valeurs.
-const INITIAL_DELAY_MS = 450;
-const REPEAT_INTERVAL_MS = 180;
-const ACCELERATE_AFTER_MS = 1200;
-const FAST_INTERVAL_MS = 60;
-
+// Garde son propre stepper plutôt que le QuantityStepper de la lib, qui n'a ni `step`, ni retour
+// haptique, ni bornes optionnelles (noté dans A-FAIRE.md de forthtilliath-packages).
 export function NumberStepper({ value, onChange, min, max, step = 1, accentColor, label }: Props) {
 	const bound = (n: number) => clamp(n, min ?? -Infinity, max ?? Infinity);
 
@@ -38,49 +34,22 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 		valueRef.current = value;
 	}, [value]);
 
-	const timers = useRef<{
-		delay?: ReturnType<typeof setTimeout>;
-		interval?: ReturnType<typeof setInterval>;
-		accelerate?: ReturnType<typeof setTimeout>;
-	}>({});
-
-	const stopRepeat = () => {
-		clearTimeout(timers.current.delay);
-		clearInterval(timers.current.interval);
-		clearTimeout(timers.current.accelerate);
-		timers.current = {};
-	};
-
-	useEffect(() => {
-		return () => {
-			clearTimeout(timers.current.delay);
-			clearInterval(timers.current.interval);
-			clearTimeout(timers.current.accelerate);
-		};
-	}, []);
+	// Un premier pas immédiat, puis une répétition qui s'accélère pour saisir vite les grandes
+	// valeurs. `start` arrête d'abord la répétition en cours : sur une tape de moins de 130 ms,
+	// React Native retarde onPressOut et l'appui suivant l'annule.
+	const repeat = usePressRepeat();
 
 	const stepOnce = (direction: 1 | -1) => {
 		const next = bound(valueRef.current + direction * step);
 		// Borne atteinte : la répétition n'a plus rien à faire.
-		if (next === valueRef.current) stopRepeat();
+		if (next === valueRef.current) repeat.stop();
 		else tapFeedback();
 		valueRef.current = next;
 		onChange(next);
 	};
 
-	const startPress = (direction: 1 | -1) => {
-		// Sur une tape de moins de 130 ms, React Native retarde onPressOut et l'appui suivant l'annule :
-		// sans cet arrêt, la répétition de la première tape ne s'arrêterait jamais.
-		stopRepeat();
-		stepOnce(direction);
-		timers.current.delay = setTimeout(() => {
-			timers.current.interval = setInterval(() => stepOnce(direction), REPEAT_INTERVAL_MS);
-			timers.current.accelerate = setTimeout(() => {
-				clearInterval(timers.current.interval);
-				timers.current.interval = setInterval(() => stepOnce(direction), FAST_INTERVAL_MS);
-			}, ACCELERATE_AFTER_MS);
-		}, INITIAL_DELAY_MS);
-	};
+	const startPress = (direction: 1 | -1) => repeat.start(() => stepOnce(direction));
+	const stopRepeat = repeat.stop;
 
 	const colors = useColors();
 	const styles = useStyles(colors);
