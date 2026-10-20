@@ -83,6 +83,11 @@ export default function GamesListScreen() {
 
 			<Button label="Créer un jeu" onPress={() => router.push("/jeux/new")} />
 			<Button
+				label="Partir d'un modèle"
+				variant="secondary"
+				onPress={() => router.push("/jeux/modeles")}
+			/>
+			<Button
 				label="Importer un jeu partagé"
 				variant="ghost"
 				onPress={() => router.push("/jeux/import")}
