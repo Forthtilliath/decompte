@@ -33,14 +33,14 @@ export type BackupData = {
 
 // Bornes larges par rapport à un usage réel, pour ne jamais refuser une sauvegarde légitime, mais
 // assez serrées pour qu'un fichier modifié à la main ne fasse ni planter ni geler l'app.
-const MAX_ENTITIES = 1000;
-const MAX_SESSIONS = 100_000;
+export const MAX_ENTITIES = 1000;
+export const MAX_SESSIONS = 100_000;
 const MAX_NAME_LENGTH = 100;
 /** Total d'une catégorie pour un joueur : des jetons nombreux peuvent dépasser MAX_SCORE. */
 const MAX_SESSION_SCORE = MAX_SCORE * 1000;
 
-const idSchema = z.string().min(1).max(64);
-const timestampSchema = z.number().int().nonnegative();
+export const idSchema = z.string().min(1).max(64);
+export const timestampSchema = z.number().int().nonnegative();
 const nameSchema = (max: number) => z.string().trim().min(1).max(max);
 const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
@@ -51,7 +51,7 @@ function boundedRecord<T extends z.ZodType>(value: T, maxEntries: number) {
 		.refine((record) => Object.keys(record).length <= maxEntries, { message: "trop d'entrées" });
 }
 
-const gameSchema = z
+export const gameSchema = z
 	.object({
 		id: idSchema,
 		name: nameSchema(MAX_GAME_NAME_LENGTH),
@@ -77,7 +77,7 @@ const gameSchema = z
 // `avatarUri` n'est jamais chargée telle quelle (adresse web, fichier d'un autre téléphone) : elle
 // sert seulement à retrouver, par son nom, une photo encore présente dans le dossier des avatars de
 // l'app (restauration sur le même téléphone, annulation d'une restauration). Voir parseBackup.
-const playerSchema = z.object({
+export const playerSchema = z.object({
 	id: idSchema,
 	name: nameSchema(MAX_NAME_LENGTH),
 	avatarUri: z.string().max(1024).optional(),
@@ -86,7 +86,7 @@ const playerSchema = z.object({
 	createdAt: timestampSchema,
 });
 
-const groupSchema = z.object({
+export const groupSchema = z.object({
 	id: idSchema,
 	name: nameSchema(MAX_NAME_LENGTH),
 	playerIds: z.array(idSchema).max(MAX_ENTITIES),
@@ -95,23 +95,26 @@ const groupSchema = z.object({
 	createdAt: timestampSchema,
 });
 
-const sessionSchema = z.object({
+/** Scores d'une partie par joueur : partie terminée ou partie en cours (stores/sessionStore). */
+export const sessionEntriesSchema = boundedRecord(
+	z.object({
+		playerId: idSchema,
+		// Une clé par catégorie et par manche (lib/rounds : `scoreKey`).
+		scores: boundedRecord(
+			z.number().min(-MAX_SESSION_SCORE).max(MAX_SESSION_SCORE),
+			MAX_CATEGORIES * MAX_ROUNDS,
+		),
+	}),
+	MAX_PLAYERS,
+);
+
+export const sessionSchema = z.object({
 	id: idSchema,
 	gameDefId: idSchema,
 	createdAt: timestampSchema,
 	finishedAt: timestampSchema.optional(),
 	playerIds: z.array(idSchema).max(MAX_PLAYERS),
-	entries: boundedRecord(
-		z.object({
-			playerId: idSchema,
-			// Une clé par catégorie et par manche (lib/rounds : `scoreKey`).
-			scores: boundedRecord(
-				z.number().min(-MAX_SESSION_SCORE).max(MAX_SESSION_SCORE),
-				MAX_CATEGORIES * MAX_ROUNDS,
-			),
-		}),
-		MAX_PLAYERS,
-	),
+	entries: sessionEntriesSchema,
 });
 
 function uniqueIds(items: { id: string }[]): boolean {

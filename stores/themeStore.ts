@@ -1,6 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { validatedMerge } from "@/lib/persistedState";
 
 export type ThemeMode = "dark" | "light";
 
@@ -18,6 +20,12 @@ type Actions = {
 
 // Bump on any breaking change to State's shape.
 export const THEME_STORE_VERSION = 2;
+
+const backgroundIdSchema = z.string().max(64).optional();
+const themeStateSchema = z.object({
+	mode: z.enum(["dark", "light"]),
+	backgrounds: z.object({ dark: backgroundIdSchema, light: backgroundIdSchema }),
+});
 
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
 export function migrateThemeStoreData(persistedState: unknown, version: number): State {
@@ -46,6 +54,7 @@ export const useThemeStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: THEME_STORE_VERSION,
 			migrate: migrateThemeStoreData,
+			merge: validatedMerge<State>("theme-store", themeStateSchema),
 		},
 	),
 );

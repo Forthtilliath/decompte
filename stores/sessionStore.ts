@@ -1,7 +1,11 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { moveItem } from "@/lib/arrays";
+import { idSchema, sessionEntriesSchema, timestampSchema } from "@/lib/backupSchema";
+import { MAX_PLAYERS, MAX_ROUNDS } from "@/lib/gameLimits";
+import { validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
 import { useHistoryStore } from "@/stores/historyStore";
 import { createEmptySessionEntry, type Session, type SessionEntry } from "@/types/game";
@@ -44,6 +48,17 @@ const EMPTY_STATE: State = {
 
 // Bump on any breaking change to State's shape.
 export const SESSION_STORE_VERSION = 1;
+
+/** Mêmes règles qu'une partie d'une sauvegarde importée (lib/backupSchema). Les deux derniers
+ * champs manquent à une partie enregistrée avant leur ajout (voir State). */
+const sessionStateSchema = z.object({
+	gameDefId: idSchema.nullable(),
+	playerIds: z.array(idSchema).max(MAX_PLAYERS),
+	entries: sessionEntriesSchema,
+	startedAt: timestampSchema.nullable(),
+	currentCategoryId: idSchema.nullable().optional(),
+	currentRound: z.number().int().min(1).max(MAX_ROUNDS).nullable().optional(),
+});
 
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
 export function migrateSessionStoreData(persistedState: unknown, version: number): State {
@@ -112,6 +127,7 @@ export const useSessionStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: SESSION_STORE_VERSION,
 			migrate: migrateSessionStoreData,
+			merge: validatedMerge<State>("session-store", sessionStateSchema),
 		},
 	),
 );

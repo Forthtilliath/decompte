@@ -1,6 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { MAX_SESSIONS, sessionSchema } from "@/lib/backupSchema";
+import { validatedMerge } from "@/lib/persistedState";
 import type { Session } from "@/types/game";
 
 type State = {
@@ -15,6 +18,9 @@ type Actions = {
 
 // Bump on any breaking change to Session's shape.
 export const HISTORY_STORE_VERSION = 1;
+
+/** Mêmes règles qu'une sauvegarde importée (lib/backupSchema). */
+const historyStateSchema = z.object({ sessions: z.array(sessionSchema).max(MAX_SESSIONS) });
 
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
 export function migrateHistoryStoreData(persistedState: unknown, version: number): State {
@@ -39,6 +45,7 @@ export const useHistoryStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: HISTORY_STORE_VERSION,
 			migrate: migrateHistoryStoreData,
+			merge: validatedMerge<State>("history-store", historyStateSchema),
 		},
 	),
 );

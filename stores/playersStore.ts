@@ -1,7 +1,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { pruneAvatarPhotos } from "@/lib/avatarPhotos";
+import { MAX_ENTITIES, playerSchema } from "@/lib/backupSchema";
+import { validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
 import type { Player } from "@/types/player";
 
@@ -20,6 +23,9 @@ type Actions = {
 
 // Bump on any breaking change to Player's shape.
 export const PLAYERS_STORE_VERSION = 1;
+
+/** Mêmes règles qu'une sauvegarde importée (lib/backupSchema). */
+const playersStateSchema = z.object({ players: z.array(playerSchema).max(MAX_ENTITIES) });
 
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
 export function migratePlayersStoreData(persistedState: unknown, version: number): State {
@@ -80,6 +86,7 @@ export const usePlayersStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: PLAYERS_STORE_VERSION,
 			migrate: migratePlayersStoreData,
+			merge: validatedMerge<State>("players-store", playersStateSchema),
 			// Une fois les joueurs connus, et seulement au lancement : aucun formulaire n'est encore
 			// ouvert, donc aucune photo tout juste choisie ne risque d'être prise pour un reste.
 			onRehydrateStorage: () => (state) => {
