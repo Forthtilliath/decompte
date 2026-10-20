@@ -2,6 +2,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { UndoHost } from "@/components/ui/UndoHost";
 import { useCloudAutoBackup } from "@/hooks/useCloudAutoBackup";
 import { useDataIssuesAlert } from "@/hooks/useDataIssuesAlert";
 import { useStackScreenOptions } from "@/hooks/useStackScreenOptions";
@@ -37,6 +38,7 @@ export default function RootLayout() {
 					/>
 					<Stack.Screen name="history/[id]" options={{ title: "Détail de la partie" }} />
 				</Stack>
+				<UndoHost />
 			</SafeAreaProvider>
 		</GestureHandlerRootView>
 	);
