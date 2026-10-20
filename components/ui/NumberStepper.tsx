@@ -61,7 +61,9 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 
 	const stepOnce = (direction: 1 | -1) => {
 		const next = bound(valueRef.current + direction * step);
-		if (next !== valueRef.current) tapFeedback();
+		// Borne atteinte : la répétition n'a plus rien à faire.
+		if (next === valueRef.current) stopRepeat();
+		else tapFeedback();
 		valueRef.current = next;
 		onChange(next);
 	};
@@ -86,6 +88,10 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 	// "number-pad" a un clavier purement numérique, sans touche "-" sur Android. Dès qu'un
 	// négatif est possible, on bascule sur "numeric" qui affiche le signe.
 	const allowsNegative = min === undefined || min < 0;
+	// Bouton grisé à la borne. Pas de `disabled` sur le Pressable : le bouton se désactiverait en
+	// plein appui long, et onPressOut, qui arrête la répétition, pourrait ne jamais arriver.
+	const atMin = min !== undefined && value <= min;
+	const atMax = max !== undefined && value >= max;
 
 	// Texte affiché, distinct de `value` : le temps de taper "-13", l'état intermédiaire ("-",
 	// "-1"...) n'est pas un nombre valide et ne doit pas être écrasé par la valeur committée.
@@ -103,10 +109,11 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 	return (
 		<View style={styles.row}>
 			<Pressable
-				style={[styles.button, { backgroundColor: color }]}
+				style={[styles.button, { backgroundColor: color }, atMin && styles.buttonAtBound]}
 				onPressIn={() => startPress(-1)}
 				onPressOut={stopRepeat}
 				accessibilityRole="button"
+				accessibilityState={{ disabled: atMin }}
 				accessibilityLabel={label ? `Diminuer ${label}` : "Diminuer"}
 			>
 				<Text style={styles.buttonLabel}>–</Text>
@@ -127,10 +134,11 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 			/>
 
 			<Pressable
-				style={[styles.button, { backgroundColor: color }]}
+				style={[styles.button, { backgroundColor: color }, atMax && styles.buttonAtBound]}
 				onPressIn={() => startPress(1)}
 				onPressOut={stopRepeat}
 				accessibilityRole="button"
+				accessibilityState={{ disabled: atMax }}
 				accessibilityLabel={label ? `Augmenter ${label}` : "Augmenter"}
 			>
 				<Text style={styles.buttonLabel}>+</Text>
@@ -154,6 +162,10 @@ function useStyles(colors: ThemeColors) {
 					borderRadius: RADIUS.sm,
 					alignItems: "center",
 					justifyContent: "center",
+				},
+				// Même opacité que les boutons désactivés (components/ui/Button).
+				buttonAtBound: {
+					opacity: 0.4,
 				},
 				buttonLabel: {
 					color: colors.primaryText,
