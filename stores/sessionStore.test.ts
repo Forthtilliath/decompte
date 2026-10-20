@@ -14,6 +14,9 @@ const EMPTY = {
 	startedAt: null,
 	currentCategoryId: null,
 	currentRound: null,
+	lowestWins: false,
+	tieBreakerId: null,
+	teams: null,
 };
 
 const now = jest.spyOn(Date, "now");
@@ -77,6 +80,24 @@ describe("useSessionStore", () => {
 		const { entries } = useSessionStore.getState();
 		expect(entries.p1).toMatchObject({ validated: ["bonus#2"], scores: { "bonus#2": 3 } });
 		expect(entries.p2.validated).toBeUndefined();
+	});
+
+	it("garde les règles du jeu et les équipes jusqu'à l'enregistrement, puis les oublie", () => {
+		const teams = [
+			{ id: "t1", name: "Équipe 1", playerIds: ["p1"] },
+			{ id: "t2", name: "Équipe 2", playerIds: ["p2"] },
+		];
+		const store = useSessionStore.getState();
+		store.startNewSession("skyjo", ["p1", "p2"], { lowestWins: true, tieBreakerId: "c", teams });
+		expect(store.toSession()).toMatchObject({ lowestWins: true, tieBreakerId: "c", teams });
+
+		store.finishSession();
+		expect(useHistoryStore.getState().sessions[0]).toMatchObject({ lowestWins: true, teams });
+		store.startNewSession("azul", ["p1"]);
+		const session = useSessionStore.getState().toSession();
+		expect(session).not.toHaveProperty("lowestWins");
+		expect(session).not.toHaveProperty("tieBreakerId");
+		expect(session).not.toHaveProperty("teams");
 	});
 
 	it("ne duplique pas un critère validé deux fois", () => {
@@ -179,6 +200,9 @@ describe("persistance de la partie en cours", () => {
 			startedAt: 1_000,
 			currentCategoryId: null,
 			currentRound: null,
+			lowestWins: false,
+			tieBreakerId: null,
+			teams: null,
 		});
 	});
 

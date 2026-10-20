@@ -3,12 +3,18 @@ import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { moveItem } from "@/lib/arrays";
-import { idSchema, sessionEntriesSchema, timestampSchema } from "@/lib/backupSchema";
+import { idSchema, sessionEntriesSchema, teamsSchema, timestampSchema } from "@/lib/backupSchema";
 import { MAX_PLAYERS, MAX_ROUNDS } from "@/lib/gameLimits";
 import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
 import { useHistoryStore } from "@/stores/historyStore";
-import { createEmptySessionEntry, type Session, type SessionEntry } from "@/types/game";
+import {
+	createEmptySessionEntry,
+	type Session,
+	type SessionEntry,
+	type SessionSetup,
+	type Team,
+} from "@/types/game";
 
 type State = {
 	gameDefId: string | null;
@@ -20,10 +26,16 @@ type State = {
 	currentCategoryId: string | null;
 	/** Manche de cette étape, même logique (absente → `null`, lue comme la manche 1). */
 	currentRound: number | null;
+	/** Règles de classement du jeu au lancement (voir RankingRules) et équipes : absentes d'une
+	 * partie lancée avant leur ajout, la fusion de `persist` leur donne les valeurs par défaut. */
+	lowestWins: boolean;
+	tieBreakerId: string | null;
+	teams: Team[] | null;
 };
 
 type Actions = {
-	startNewSession: (gameDefId: string, playerIds: string[]) => void;
+	/** `teams` : seulement pour un jeu en équipes ; joueurs déjà regroupés par équipe. */
+	startNewSession: (gameDefId: string, playerIds: string[], setup?: SessionSetup) => void;
 	/** `scoreKey` : l'id de catégorie pour la manche 1, suivi de la manche ensuite (lib/rounds). */
 	updateScore: (playerId: string, scoreKey: string, points: number) => void;
 	/** Coche ou décoche le critère d'une catégorie pour un joueur. Décoché, son score est effacé. */
@@ -46,6 +58,9 @@ const EMPTY_STATE: State = {
 	startedAt: null,
 	currentCategoryId: null,
 	currentRound: null,
+	lowestWins: false,
+	tieBreakerId: null,
+	teams: null,
 };
 
 // À incrémenter à tout changement incompatible de State, en ajoutant son étape à SESSION_MIGRATIONS.
@@ -60,6 +75,9 @@ const sessionStateSchema = z.object({
 	startedAt: timestampSchema.nullable(),
 	currentCategoryId: idSchema.nullable().optional(),
 	currentRound: z.number().int().min(1).max(MAX_ROUNDS).nullable().optional(),
+	lowestWins: z.boolean().optional(),
+	tieBreakerId: idSchema.nullable().optional(),
+	teams: teamsSchema.nullable().optional(),
 });
 
 /** Voir MigrationSteps : aucune étape tant que la version 1 est la seule. */
@@ -78,7 +96,7 @@ export const useSessionStore = create<State & Actions>()(
 		(set, get) => ({
 			...EMPTY_STATE,
 
-			startNewSession: (gameDefId, playerIds) => {
+			startNewSession: (gameDefId, playerIds, setup = {}) => {
 				set({
 					gameDefId,
 					playerIds,
@@ -86,6 +104,9 @@ export const useSessionStore = create<State & Actions>()(
 					startedAt: Date.now(),
 					currentCategoryId: null,
 					currentRound: null,
+					lowestWins: setup.lowestWins ?? false,
+					tieBreakerId: setup.tieBreakerId ?? null,
+					teams: setup.teams && setup.teams.length > 0 ? setup.teams : null,
 				});
 			},
 
@@ -132,6 +153,9 @@ export const useSessionStore = create<State & Actions>()(
 					createdAt: state.startedAt ?? Date.now(),
 					playerIds: state.playerIds,
 					entries: state.entries,
+					...(state.lowestWins && { lowestWins: true }),
+					...(state.tieBreakerId && { tieBreakerId: state.tieBreakerId }),
+					...(state.teams && { teams: state.teams }),
 				};
 			},
 
