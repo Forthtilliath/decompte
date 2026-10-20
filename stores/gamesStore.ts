@@ -1,6 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { gameSchema, MAX_ENTITIES } from "@/lib/backupSchema";
+import { validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
 import type { CategoryDef, GameDef, ScoringBrick } from "@/types/game";
 
@@ -35,6 +38,9 @@ type Actions = {
 // Bump on any breaking change to GameDef's shape.
 // v2 : ScoringBrick "manual" remplace `min` par `allowNegative`, ajout des kinds "choice"/"boolean".
 export const GAMES_STORE_VERSION = 2;
+
+/** Mêmes règles qu'une sauvegarde importée (lib/backupSchema). */
+const gamesStateSchema = z.object({ games: z.array(gameSchema).max(MAX_ENTITIES) });
 
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
 export function migrateGamesStoreData(persistedState: unknown, version: number): State {
@@ -92,6 +98,7 @@ export const useGamesStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: GAMES_STORE_VERSION,
 			migrate: migrateGamesStoreData,
+			merge: validatedMerge<State>("games-store", gamesStateSchema),
 		},
 	),
 );

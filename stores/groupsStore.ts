@@ -1,6 +1,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { groupSchema, MAX_ENTITIES } from "@/lib/backupSchema";
+import { validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
 import type { PlayerGroup } from "@/types/player";
 
@@ -21,6 +24,9 @@ type Actions = {
 
 // Bump on any breaking change to PlayerGroup's shape.
 export const GROUPS_STORE_VERSION = 1;
+
+/** Mêmes règles qu'une sauvegarde importée (lib/backupSchema). */
+const groupsStateSchema = z.object({ groups: z.array(groupSchema).max(MAX_ENTITIES) });
 
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
 export function migrateGroupsStoreData(persistedState: unknown, version: number): State {
@@ -86,6 +92,7 @@ export const useGroupsStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: GROUPS_STORE_VERSION,
 			migrate: migrateGroupsStoreData,
+			merge: validatedMerge<State>("groups-store", groupsStateSchema),
 		},
 	),
 );
