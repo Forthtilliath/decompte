@@ -105,6 +105,10 @@ export type Session = {
 	entries: Record<string, SessionEntry>;
 	/** Équipes d'une partie en équipes (absentes : chacun pour soi). */
 	teams?: Team[];
+	/** Notes libres sur la partie, ajoutées depuis l'historique. */
+	notes?: string;
+	/** Photo de la table, dans le dossier privé de l'app (lib/sessionPhotos). */
+	photoUri?: string;
 } & RankingRules;
 
 export function createEmptySessionEntry(playerId: string): SessionEntry {

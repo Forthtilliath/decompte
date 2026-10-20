@@ -113,8 +113,9 @@ describe("réglages", () => {
 		expect(useGroupsStore.getState().groups).toEqual([]);
 		expect(useHistoryStore.getState().sessions).toEqual([]);
 		expect(useSessionStore.getState().hasOngoingSession()).toBe(false);
-		// Les photos des joueurs partent tout de suite, pas au prochain lancement.
-		expect(pruneAppDirectory).toHaveBeenLastCalledWith("avatars", []);
+		// Les photos des joueurs et des parties partent tout de suite, pas au prochain lancement.
+		expect(pruneAppDirectory).toHaveBeenCalledWith("avatars", []);
+		expect(pruneAppDirectory).toHaveBeenLastCalledWith("parties", []);
 	});
 
 	it("déconnecte Google Drive avant d'effacer, pour ne pas y envoyer une copie vide", async () => {

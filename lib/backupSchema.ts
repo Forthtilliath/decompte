@@ -7,11 +7,13 @@ import {
 	MAX_FACTOR,
 	MAX_GAME_NAME_LENGTH,
 	MAX_LABEL_LENGTH,
+	MAX_NOTES_LENGTH,
 	MAX_PLAYERS,
 	MAX_ROUNDS,
 	MAX_SESSION_SCORE,
 	MAX_TEAM_NAME_LENGTH,
 } from "@/lib/gameLimits";
+import { relinkSessionPhotos } from "@/lib/sessionPhotos";
 import type { GameDef, Session } from "@/types/game";
 import type { Player, PlayerGroup } from "@/types/player";
 
@@ -172,6 +174,9 @@ export const sessionSchema = z
 		entries: sessionEntriesSchema,
 		...rankingRulesShape,
 		teams: teamsSchema.optional(),
+		notes: z.string().max(MAX_NOTES_LENGTH).optional(),
+		// Comme `avatarUri` : jamais chargée telle quelle, voir parseBackup.
+		photoUri: z.string().max(1024).optional(),
 	})
 	// Une équipe ne compte que des joueurs de la partie.
 	.refine(
@@ -243,5 +248,6 @@ export function parseBackup(text: string): BackupData {
 			categories: game.categories.map((c) => ({ ...c, brick: importBrick(c.brick) })),
 		})),
 		players: relinkAvatarPhotos(data.players),
+		sessions: relinkSessionPhotos(data.sessions),
 	};
 }

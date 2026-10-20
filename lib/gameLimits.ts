@@ -12,5 +12,6 @@ export const MAX_ROUNDS = 20;
 export const MAX_TEAM_NAME_LENGTH = 30;
 /** Total d'une catégorie pour un joueur : des jetons nombreux peuvent dépasser MAX_SCORE. */
 export const MAX_SESSION_SCORE = MAX_SCORE * 1000;
+export const MAX_NOTES_LENGTH = 1000;
 /** Nombre saisi dans une catégorie multiplicateur. */
 export const MAX_FACTOR = 100;
