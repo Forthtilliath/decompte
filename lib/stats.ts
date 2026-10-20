@@ -4,9 +4,19 @@ import type { CategoryDef, Session } from "@/types/game";
 import type { Player } from "@/types/player";
 import { type RankedEntry, rankEntries } from "./scoring";
 
-/** Classement d'une partie de l'historique (même calcul que l'écran de détail). */
-export function getSessionRanking(session: Session): RankedEntry[] {
-	return rankEntries(Object.values(session.entries));
+// Une partie enregistrée n'est jamais modifiée (le store remplace le tableau, pas ses éléments) :
+// son classement peut être gardé tant qu'elle existe, et partagé entre toutes les statistiques et
+// la liste de l'historique, qui sinon le retrieraient chacune à chaque rendu.
+const rankingCache = new WeakMap<Session, readonly RankedEntry[]>();
+
+/** Classement d'une partie de l'historique (même calcul que l'écran de détail), calculé une fois. */
+export function getSessionRanking(session: Session): readonly RankedEntry[] {
+	let ranking = rankingCache.get(session);
+	if (!ranking) {
+		ranking = rankEntries(Object.values(session.entries));
+		rankingCache.set(session, ranking);
+	}
+	return ranking;
 }
 
 /** Date de fin d'une partie : `finishedAt` n'existe pas sur les très anciennes parties. */
