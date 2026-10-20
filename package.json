@@ -8,7 +8,7 @@
 		"@forthtilliath/expo-backup-ui": "^0.3.0",
 		"@forthtilliath/expo-release-updates": "^0.7.1",
 		"@forthtilliath/expo-release-updates-ui": "^0.4.1",
-		"@forthtilliath/react-native-kit": "^0.17.1",
+		"@forthtilliath/react-native-kit": "^0.18.0",
 		"@forthtilliath/ts-kit": "^0.13.0",
 		"@react-native-async-storage/async-storage": "2.2.0",
 		"@react-native-google-signin/google-signin": "^16.1.5",
@@ -43,6 +43,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",
 		"@forthtilliath/expo-config-plugins": "^0.1.0",
+		"@forthtilliath/test-kit": "^0.4.0",
 		"@react-native/jest-preset": "0.88.0",
 		"@testing-library/react-native": "^14.1.0",
 		"@types/jest": "30.0.0",
