@@ -61,6 +61,32 @@ describe("useSessionStore", () => {
 		expect(entries.p2.scores).toEqual({});
 	});
 
+	it("valide un critère, puis l'invalide en effaçant son seul score", () => {
+		const store = useSessionStore.getState();
+		store.startNewSession("azul", ["p1", "p2"]);
+		store.setValidated("p1", "murs", true);
+		store.setValidated("p1", "bonus#2", true);
+		store.updateScore("p1", "murs", 12);
+		store.updateScore("p1", "bonus#2", 3);
+		expect(useSessionStore.getState().entries.p1).toMatchObject({
+			validated: ["murs", "bonus#2"],
+			scores: { murs: 12, "bonus#2": 3 },
+		});
+
+		store.setValidated("p1", "murs", false);
+		const { entries } = useSessionStore.getState();
+		expect(entries.p1).toMatchObject({ validated: ["bonus#2"], scores: { "bonus#2": 3 } });
+		expect(entries.p2.validated).toBeUndefined();
+	});
+
+	it("ne duplique pas un critère validé deux fois", () => {
+		const store = useSessionStore.getState();
+		store.startNewSession("azul", ["p1"]);
+		store.setValidated("p1", "murs", true);
+		store.setValidated("p1", "murs", true);
+		expect(useSessionStore.getState().entries.p1.validated).toEqual(["murs"]);
+	});
+
 	it("ignore un score pour un joueur absent de la partie", () => {
 		useSessionStore.getState().startNewSession("azul", ["p1"]);
 		useSessionStore.getState().updateScore("intrus", "murs", 99);

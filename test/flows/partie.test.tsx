@@ -80,4 +80,44 @@ describe("une partie de bout en bout", () => {
 		expect(saved.playerIds).toEqual(["alice", "bob"]);
 		expect(saved.finishedAt).toEqual(expect.any(Number));
 	});
+
+	it("ne compte les points d'une catégorie à critère qu'une fois le critère validé", async () => {
+		const app = await renderApp("/jeux");
+
+		await press("Créer un jeu");
+		await type("Nom du jeu", "Kingdomino");
+		await type("Nom de la catégorie", "Royaume");
+		await fireEvent(screen.getByLabelText("Critère à valider"), "valueChange", true);
+		await press("Créer le jeu");
+		expect(useGamesStore.getState().games[0].categories[0].requiresValidation).toBe(true);
+		const key = useGamesStore.getState().games[0].categories[0].id;
+
+		await press("Kingdomino, 1 catégorie");
+		await fireEvent.press(screen.getByRole("checkbox", { name: "Alice" }));
+		await fireEvent.press(screen.getByRole("checkbox", { name: "Bob" }));
+		await press("Lancer une partie");
+
+		// Aucun champ de points tant que le critère n'est pas coché.
+		expect(await screen.findByText("Étape 1 / 1")).toBeOnTheScreen();
+		const [aliceCheck, bobCheck] = screen.getAllByRole("checkbox", { name: "Critère validé" });
+		expect(screen.queryAllByDisplayValue("0")).toHaveLength(0);
+
+		await fireEvent.press(aliceCheck);
+		await fireEvent.press(bobCheck);
+		const [aliceField, bobField] = screen.getAllByDisplayValue("0");
+		await fireEvent.changeText(aliceField, "20");
+		await fireEvent.changeText(bobField, "30");
+
+		// Bob ne remplit finalement pas le critère : ses points disparaissent du total.
+		await fireEvent.press(bobCheck);
+		expect(screen.getAllByDisplayValue(/^\d+$/)).toHaveLength(1);
+		const { entries } = useSessionStore.getState();
+		expect(entries.alice).toMatchObject({ scores: { [key]: 20 }, validated: [key] });
+		expect(entries.bob).toMatchObject({ scores: {}, validated: [] });
+
+		await press("Voir les résultats");
+		expect(await screen.findByText("Classement")).toBeOnTheScreen();
+		expect(app.getPathname()).toBe("/jeux/play/results");
+		expect(screen.getAllByText(/^(20|0)$/).map((t) => t.props.children)).toEqual([20, 0]);
+	});
 });
