@@ -100,15 +100,6 @@ describe("persistance des jeux", () => {
 
 		expect(useGamesStore.getState().games).toEqual(games);
 	});
-
-	it("repart d'une liste vide depuis une version incompatible (v1 : brique manual avec `min`)", async () => {
-		const legacy = makeGame({ categories: [] });
-		await writePersisted("games-store", { games: [legacy] }, 1);
-
-		await useGamesStore.persist.rehydrate();
-
-		expect(useGamesStore.getState().games).toEqual([]);
-	});
 });
 
 describe("migrateGamesStoreData", () => {
@@ -117,7 +108,8 @@ describe("migrateGamesStoreData", () => {
 		expect(migrateGamesStoreData(state, GAMES_STORE_VERSION)).toBe(state);
 	});
 
-	it("réinitialise toute autre version", () => {
+	// Conversion v1 → v2 et copie de secours : stores/rehydration.test.ts.
+	it("démarre vide depuis une version sans conversion", () => {
 		expect(migrateGamesStoreData({ games: [makeGame()] }, 0)).toEqual({ games: [] });
 	});
 });

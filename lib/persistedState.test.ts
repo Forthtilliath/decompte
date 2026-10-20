@@ -1,107 +1,150 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { z } from "zod";
-import { rejectedStateKey, validatedMerge } from "@/lib/persistedState";
-import { GAMES_STORE_VERSION, useGamesStore } from "@/stores/gamesStore";
-import { SESSION_STORE_VERSION, useSessionStore } from "@/stores/sessionStore";
-import { THEME_STORE_VERSION, useThemeStore } from "@/stores/themeStore";
-import { makeEntry, makeGame } from "@/test/factories";
-import { writePersisted } from "@/test/persistence";
+import { createStoreMigrate, runMigrationSteps, validatedMerge } from "@/lib/persistedState";
+import { rescueStorageKey } from "@/lib/rescueCopies";
+import { useDataIssuesStore } from "@/stores/dataIssuesStore";
+import { fileSystemControl, memoryFiles, resetMemoryFiles } from "@/test/fileSystem";
 
-const merge = validatedMerge<{ count: number }>("test-store", z.object({ count: z.number() }));
-const current = { count: 0, increment: () => {} };
+jest.mock("expo-file-system", () => require("@/test/fileSystem").memoryFileSystem);
+jest.mock("@forthtilliath/react-native-kit/utils/files/appFiles", () =>
+	jest.requireActual("@forthtilliath/react-native-kit/utils/files/appFiles"),
+);
 
-/** Les écritures de la copie refusée ne sont pas attendues par `merge` : on les laisse finir. */
+const RESCUE_DIRECTORY = "file:///documents/secours";
+const readCopy = (name: string) =>
+	JSON.parse(memoryFiles.get(`${RESCUE_DIRECTORY}/${name}`) ?? "null");
+const issues = () => useDataIssuesStore.getState().issues;
+
+/** Les écritures de secours dans AsyncStorage ne sont pas attendues : on les laisse finir. */
 const flushStorage = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 beforeEach(async () => {
 	await AsyncStorage.clear();
+	resetMemoryFiles();
+	useDataIssuesStore.getState().clear();
 });
 
 describe("validatedMerge", () => {
+	const merge = validatedMerge<{ count: number }>("test-store", 3, z.object({ count: z.number() }));
+	const current = { count: 0, increment: () => {} };
+
 	it("reprend un état valide tel qu'enregistré, sans toucher aux actions", () => {
 		expect(merge({ count: 3 }, current)).toEqual({ ...current, count: 3 });
+		expect(memoryFiles.size).toBe(0);
 	});
 
 	it("garde l'état initial quand rien n'est enregistré", async () => {
 		expect(merge(undefined, current)).toBe(current);
 		await flushStorage();
+		expect(memoryFiles.size).toBe(0);
 		expect(await AsyncStorage.getAllKeys()).toEqual([]);
 	});
 
-	it("refuse un état invalide et le met de côté tel quel", async () => {
+	it("refuse un état invalide, le garde en copie de secours et prévient l'utilisateur", () => {
 		expect(merge({ count: "3" }, current)).toBe(current);
-		await flushStorage();
-		expect(JSON.parse((await AsyncStorage.getItem(rejectedStateKey("test-store"))) ?? "")).toEqual({
-			count: "3",
+		expect(readCopy("test-store-v3-refuse.json")).toMatchObject({
+			store: "test-store",
+			version: 3,
+			reason: "refuse",
+			state: { count: "3" },
 		});
+		expect(issues()).toEqual([
+			{
+				storeName: "test-store",
+				kind: "invalid",
+				copyUri: `${RESCUE_DIRECTORY}/test-store-v3-refuse.json`,
+			},
+		]);
 	});
 
-	it("n'écrase jamais une copie déjà mise de côté", async () => {
+	it("n'écrase jamais une copie déjà gardée, et ne prévient qu'une fois", () => {
 		merge({ count: "premier" }, current);
-		await flushStorage();
 		merge({ count: "second" }, current);
+		expect(readCopy("test-store-v3-refuse.json").state).toEqual({ count: "premier" });
+		expect(issues()).toHaveLength(1);
+	});
+
+	it("garde la copie dans AsyncStorage si le fichier ne peut pas être écrit", async () => {
+		fileSystemControl.failWrites = true;
+		merge({ count: "3" }, current);
 		await flushStorage();
-		expect(await AsyncStorage.getItem(rejectedStateKey("test-store"))).toBe('{"count":"premier"}');
+		const kept = JSON.parse((await AsyncStorage.getItem(rescueStorageKey("test-store"))) ?? "");
+		expect(kept.state).toEqual({ count: "3" });
+		expect(issues()).toEqual([{ storeName: "test-store", kind: "invalid", copyUri: null }]);
+	});
+
+	it("garde la copie sans prévenir pour un réglage de l'appareil", () => {
+		const settingsMerge = validatedMerge("reglage", 1, z.object({ count: z.number() }), {
+			report: false,
+		});
+		settingsMerge({ count: "3" }, current);
+		expect(readCopy("reglage-v1-refuse.json").state).toEqual({ count: "3" });
+		expect(issues()).toEqual([]);
 	});
 });
 
-describe("relecture des stores", () => {
-	beforeEach(() => {
-		useGamesStore.setState({ games: [] });
-		useSessionStore.getState().resetSession();
+describe("runMigrationSteps", () => {
+	const steps = {
+		1: (s: unknown) => [...(s as number[]), 2],
+		2: (s: unknown) => [...(s as number[]), 3],
+	};
+
+	it("applique chaque étape dans l'ordre, depuis n'importe quelle version", () => {
+		expect(runMigrationSteps([1], 1, 3, steps)).toEqual([1, 2, 3]);
+		expect(runMigrationSteps([1, 2], 2, 3, steps)).toEqual([1, 2, 3]);
 	});
 
-	it("recharge des jeux valides", async () => {
-		const games = [makeGame()];
-		await writePersisted("games-store", { games }, GAMES_STORE_VERSION);
+	it("échoue s'il manque une étape ou si la version est plus récente", () => {
+		expect(() => runMigrationSteps([], 0, 3, steps)).toThrow("version 0 à 1");
+		expect(() => runMigrationSteps([], 4, 3, steps)).toThrow("plus récente");
+	});
+});
 
-		await useGamesStore.persist.rehydrate();
+describe("createStoreMigrate", () => {
+	const migrate = createStoreMigrate(
+		"test-store",
+		2,
+		{ 1: (s) => ({ ...(s as object), b: 2 }) },
+		{
+			empty: true,
+		},
+	);
 
-		expect(useGamesStore.getState().games).toEqual(games);
+	it("garde une copie de l'état d'origine avant de le convertir", () => {
+		expect(migrate({ a: 1 }, 1)).toEqual({ a: 1, b: 2 });
+		expect(readCopy("test-store-v1-avant-migration.json").state).toEqual({ a: 1 });
+		expect(issues()).toEqual([]);
 	});
 
-	it("démarre sans jeux si l'un d'eux est abîmé, en gardant la copie brute", async () => {
-		const games = [makeGame(), makeGame({ id: "abime", minPlayers: 5, maxPlayers: 2 })];
-		await writePersisted("games-store", { games }, GAMES_STORE_VERSION);
-
-		await useGamesStore.persist.rehydrate();
-		await flushStorage();
-
-		expect(useGamesStore.getState().games).toEqual([]);
-		expect(JSON.parse((await AsyncStorage.getItem("games-store:refuse")) ?? "")).toEqual({ games });
+	it("démarre vide sans conversion possible, en gardant la copie et en prévenant", () => {
+		expect(migrate({ a: 1 }, 0)).toEqual({ empty: true });
+		expect(readCopy("test-store-v0-avant-migration.json").state).toEqual({ a: 1 });
+		expect(issues()).toEqual([
+			{
+				storeName: "test-store",
+				kind: "migration",
+				copyUri: `${RESCUE_DIRECTORY}/test-store-v0-avant-migration.json`,
+			},
+		]);
 	});
 
-	it("reprend une partie en cours enregistrée avant l'ajout de l'étape courante", async () => {
-		const legacy = {
-			gameDefId: "game1",
-			playerIds: ["p1"],
-			entries: { p1: makeEntry("p1", { c1: 4 }) },
-			startedAt: 1_000,
-		};
-		await writePersisted("session-store", legacy, SESSION_STORE_VERSION);
-
-		await useSessionStore.persist.rehydrate();
-
-		expect(useSessionStore.getState()).toMatchObject({ ...legacy, currentCategoryId: null });
+	it("signale des données d'une version plus récente de l'app", () => {
+		expect(migrate({ a: 1 }, 3)).toEqual({ empty: true });
+		expect(issues()[0].kind).toBe("newer");
 	});
 
-	it("ignore une partie en cours aux scores illisibles", async () => {
-		await writePersisted(
-			"session-store",
-			{ gameDefId: "game1", playerIds: ["p1"], entries: { p1: { scores: "12" } }, startedAt: 0 },
-			SESSION_STORE_VERSION,
+	it("traite une étape qui échoue comme une conversion impossible", () => {
+		const failing = createStoreMigrate(
+			"test-store",
+			2,
+			{
+				1: () => {
+					throw new Error("forme inattendue");
+				},
+			},
+			{},
 		);
-
-		await useSessionStore.persist.rehydrate();
-
-		expect(useSessionStore.getState().hasOngoingSession()).toBe(false);
-	});
-
-	it("revient au thème sombre sur un mode inconnu", async () => {
-		await writePersisted("theme-store", { mode: "rose", backgrounds: {} }, THEME_STORE_VERSION);
-
-		await useThemeStore.persist.rehydrate();
-
-		expect(useThemeStore.getState().mode).toBe("dark");
+		expect(failing({ a: 1 }, 1)).toEqual({});
+		expect(issues()[0].kind).toBe("migration");
 	});
 });
