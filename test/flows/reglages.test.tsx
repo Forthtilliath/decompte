@@ -2,6 +2,7 @@ import { pruneAppDirectory } from "@forthtilliath/react-native-kit/utils/files/a
 import { fireEvent, screen } from "expo-router/testing-library";
 import { Linking } from "react-native";
 import { APP_INFO, LINKS } from "@/constants/app";
+import { backup } from "@/lib/backup";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useGroupsStore } from "@/stores/groupsStore";
 import { useHistoryStore } from "@/stores/historyStore";
@@ -28,6 +29,23 @@ beforeEach(() => {
 	useHistoryStore.setState({ sessions: [makeSession({ playerIds: ["alice"] })] });
 	useSessionStore.getState().startNewSession("game1", ["alice"]);
 });
+
+// Pas de `jest.restoreAllMocks()` : il retirerait aussi les remplaçants d'Alert et de Linking.
+const backupSpies: jest.SpyInstance[] = [];
+afterEach(() => {
+	for (const spy of backupSpies.splice(0)) spy.mockRestore();
+});
+
+/** Compte Google relié, sans passer par la connexion réelle. */
+function linkCloud(disconnect: () => Promise<void>) {
+	const state = backup.getState();
+	backupSpies.push(
+		jest.spyOn(backup, "getState").mockReturnValue({ ...state, cloudAccount: { email: "a@b.c" } }),
+	);
+	const spy = jest.spyOn(backup, "disconnectCloud").mockImplementation(disconnect);
+	backupSpies.push(spy);
+	return spy;
+}
 
 describe("réglages", () => {
 	it("liste les sections et la version installée", async () => {
@@ -96,6 +114,28 @@ describe("réglages", () => {
 		expect(useSessionStore.getState().hasOngoingSession()).toBe(false);
 		// Les photos des joueurs partent tout de suite, pas au prochain lancement.
 		expect(pruneAppDirectory).toHaveBeenLastCalledWith("avatars", []);
+	});
+
+	it("déconnecte Google Drive avant d'effacer, pour ne pas y envoyer une copie vide", async () => {
+		const disconnect = linkCloud(async () => {
+			expect(useGamesStore.getState().games).toHaveLength(1);
+		});
+		await renderApp("/reglages/zone-dangereuse");
+		expect(screen.getByText(/sa copie restera telle quelle/)).toBeOnTheScreen();
+		await fireEvent.press(screen.getByRole("button", { name: "Effacer toutes les données" }));
+
+		expect(disconnect).toHaveBeenCalledTimes(1);
+		expect(useGamesStore.getState().games).toEqual([]);
+	});
+
+	it("n'efface rien si Google Drive ne se déconnecte pas", async () => {
+		linkCloud(() => Promise.reject(new Error("hors ligne")));
+		await renderApp("/reglages/zone-dangereuse");
+		await fireEvent.press(screen.getByRole("button", { name: "Effacer toutes les données" }));
+
+		expect(alert).toHaveBeenLastCalledWith("Rien n'a été effacé", expect.any(String));
+		expect(useGamesStore.getState().games).toHaveLength(1);
+		expect(useHistoryStore.getState().sessions).toHaveLength(1);
 	});
 
 	it("ne touche à rien si l'effacement est annulé", async () => {
