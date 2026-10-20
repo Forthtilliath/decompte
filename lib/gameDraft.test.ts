@@ -273,6 +273,17 @@ describe("toCategoryDefs", () => {
 		expect(defs.map((d) => d.color)).toEqual(["#3b82f6", paletteColor(1)]);
 	});
 
+	it("garde le critère à valider, sans l'écrire sur les autres catégories", () => {
+		const defs = toCategoryDefs([
+			{ ...manual("Murs"), requiresValidation: true },
+			{ ...manual("Bonus"), requiresValidation: false },
+			manual("Lignes"),
+		]);
+		expect(defs[0].requiresValidation).toBe(true);
+		expect(defs[1]).not.toHaveProperty("requiresValidation");
+		expect(defs[2]).not.toHaveProperty("requiresValidation");
+	});
+
 	it("colore par position comme l'import et nettoie les libellés", () => {
 		const defs = toCategoryDefs([manual(" Murs "), manual("Bonus")]);
 		expect(defs.map((d) => [d.label, d.color])).toEqual([

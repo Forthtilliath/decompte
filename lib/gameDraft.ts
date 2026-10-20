@@ -19,6 +19,7 @@ export type DraftCategory = {
 	brick: ScoringBrick;
 	/** Choisie dans le formulaire ; absente, la catégorie prend la couleur de sa position. */
 	color?: string;
+	requiresValidation?: boolean;
 };
 
 /** Saisie brute du formulaire de jeu (bornes de joueurs et manches encore en texte). */
@@ -224,5 +225,6 @@ export function toCategoryDefs(categories: DraftCategory[]): CategoryDef[] {
 		label: c.label.trim(),
 		brick: c.brick,
 		color: c.color ?? paletteColor(index),
+		...(c.requiresValidation && { requiresValidation: true }),
 	}));
 }

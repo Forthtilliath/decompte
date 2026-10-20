@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { BooleanBrickEditor } from "@/components/games/bricks/BooleanBrickEditor";
 import { ChoiceBrickEditor } from "@/components/games/bricks/ChoiceBrickEditor";
 import { ManualBrickEditor } from "@/components/games/bricks/ManualBrickEditor";
@@ -36,6 +36,8 @@ export function CategoryEditor({ category, color, onChange, onRemove }: Props) {
 	const [colorSheetOpen, setColorSheetOpen] = useState(false);
 	const { brick } = category;
 	const setBrick = (next: ScoringBrick) => onChange({ brick: next });
+	const requiresValidation = category.requiresValidation ?? false;
+	const setRequiresValidation = (next: boolean) => onChange({ requiresValidation: next });
 
 	return (
 		<View style={styles.card}>
@@ -75,6 +77,25 @@ export function CategoryEditor({ category, color, onChange, onRemove }: Props) {
 			{brick.kind === "choice" && <ChoiceBrickEditor brick={brick} onChange={setBrick} />}
 			{brick.kind === "boolean" && <BooleanBrickEditor brick={brick} onChange={setBrick} />}
 
+			<Pressable
+				style={styles.switchRow}
+				onPress={() => setRequiresValidation(!requiresValidation)}
+			>
+				<Switch
+					value={requiresValidation}
+					onValueChange={setRequiresValidation}
+					trackColor={{ false: colors.border, true: colors.primary }}
+					accessibilityLabel="Critère à valider"
+				/>
+				<Text style={styles.switchLabel}>Critère à valider</Text>
+			</Pressable>
+			{requiresValidation && (
+				<Text style={styles.hint}>
+					Pendant la partie, chaque joueur a une case à cocher : ses points ne comptent que si le
+					critère est validé.
+				</Text>
+			)}
+
 			<CategoryColorSheet
 				visible={colorSheetOpen}
 				value={color}
@@ -107,6 +128,21 @@ function useStyles(colors: ThemeColors) {
 				},
 				labelField: {
 					flex: 1,
+				},
+				switchRow: {
+					flexDirection: "row",
+					alignItems: "center",
+					gap: SPACING.sm,
+					marginTop: SPACING.xs,
+				},
+				switchLabel: {
+					flex: 1,
+					color: colors.text,
+					fontSize: 14,
+				},
+				hint: {
+					color: colors.textMuted,
+					fontSize: 12,
 				},
 			}),
 		[colors],

@@ -45,6 +45,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 			label: c.label,
 			brick: c.brick,
 			color: c.color,
+			requiresValidation: c.requiresValidation,
 		})) ?? [{ ...emptyCategory(), color: nextCategoryColor([]) }],
 	);
 
