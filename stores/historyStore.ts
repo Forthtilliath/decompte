@@ -13,6 +13,8 @@ type State = {
 type Actions = {
 	addSession: (session: Session) => void;
 	removeSession: (id: string) => void;
+	/** Remet une partie supprimée à sa place d'origine (`index`), pour annuler la suppression. */
+	restoreSession: (session: Session, index: number) => void;
 	replaceAll: (sessions: Session[]) => void;
 };
 
@@ -42,6 +44,12 @@ export const useHistoryStore = create<State & Actions>()(
 
 			removeSession: (id) => {
 				set({ sessions: get().sessions.filter((s) => s.id !== id) });
+			},
+
+			restoreSession: (session, index) => {
+				const sessions = get().sessions;
+				if (sessions.some((s) => s.id === session.id)) return;
+				set({ sessions: [...sessions.slice(0, index), session, ...sessions.slice(index)] });
 			},
 
 			replaceAll: (sessions) => set({ sessions }),

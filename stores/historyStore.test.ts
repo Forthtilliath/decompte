@@ -26,6 +26,15 @@ describe("useHistoryStore", () => {
 		expect(useHistoryStore.getState().sessions.map((s) => s.id)).toEqual(["b"]);
 	});
 
+	it("remet une partie supprimée à sa place, sans la dupliquer", () => {
+		const b = makeSession({ id: "b" });
+		useHistoryStore.setState({ sessions: [makeSession({ id: "a" }), makeSession({ id: "c" })] });
+		const { restoreSession } = useHistoryStore.getState();
+		restoreSession(b, 1);
+		restoreSession(b, 0);
+		expect(useHistoryStore.getState().sessions.map((s) => s.id)).toEqual(["a", "b", "c"]);
+	});
+
 	it("remplace tout l'historique", () => {
 		const sessions = [makeSession({ id: "x" })];
 		useHistoryStore.getState().replaceAll(sessions);

@@ -1,4 +1,3 @@
-import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text } from "react-native";
@@ -17,6 +16,7 @@ import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
+import { useUndoStore } from "@/stores/undoStore";
 
 export default function SessionDetailScreen() {
 	const router = useRouter();
@@ -25,6 +25,8 @@ export default function SessionDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
 	const session = useHistoryStore((s) => s.sessions.find((sess) => sess.id === id));
 	const removeSession = useHistoryStore((s) => s.removeSession);
+	const restoreSession = useHistoryStore((s) => s.restoreSession);
+	const offerUndo = useUndoStore((s) => s.offerUndo);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === session?.gameDefId));
 	const players = usePlayersStore((s) => s.players);
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
@@ -44,15 +46,12 @@ export default function SessionDetailScreen() {
 		);
 	}
 
-	const confirmDelete = () => {
-		confirmDestructive(
-			"Supprimer cette partie ?",
-			() => {
-				removeSession(session.id);
-				router.back();
-			},
-			{ message: "Elle disparaîtra de l'historique. C'est irréversible." },
-		);
+	// Suppression immédiate plutôt qu'une confirmation : la barre « Annuler » la rattrape.
+	const deleteSession = () => {
+		const index = useHistoryStore.getState().sessions.indexOf(session);
+		removeSession(session.id);
+		offerUndo("Partie supprimée", () => restoreSession(session, index));
+		router.back();
 	};
 
 	const replay = () => {
@@ -136,7 +135,7 @@ export default function SessionDetailScreen() {
 					style={styles.replayButton}
 				/>
 			)}
-			<Button label="Supprimer cette partie" variant="danger" onPress={confirmDelete} />
+			<Button label="Supprimer cette partie" variant="danger" onPress={deleteSession} />
 		</ScreenContainer>
 	);
 }
