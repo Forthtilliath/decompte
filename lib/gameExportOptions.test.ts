@@ -59,6 +59,38 @@ describe("options de classement d'un jeu partagé", () => {
 		expect(new Set(ids).size).toBe(2);
 	});
 
+	it("transmet un multiplicateur en désignant sa catégorie par position", () => {
+		const game = makeGame({
+			categories: [
+				...categories,
+				makeCategory({ id: "c", label: "Bonus", brick: { kind: "product", sourceId: "b" } }),
+			],
+		});
+		const text = serializeGame(game);
+		expect(text).toContain('"brick":{"kind":"product","source":1}');
+
+		const result = parseGameExport(text);
+		if (!result.ok) throw new Error(result.error);
+		const [, pieces, bonus] = result.game.categories;
+		expect(bonus.brick).toEqual({ kind: "product", sourceId: pieces.id });
+	});
+
+	it("refuse un multiplicateur sur lui-même ou sur une catégorie placée après lui", () => {
+		const productOn = (source: number) =>
+			envelope({
+				categories: [
+					{ label: "A", brick: { kind: "product", source } },
+					{ label: "B", brick: { kind: "manual", allowNegative: false } },
+				],
+			});
+		for (const source of [0, 1]) {
+			expect(parseGameExport(productOn(source))).toEqual({
+				ok: false,
+				error: "Jeu invalide : catégories incorrect.",
+			});
+		}
+	});
+
 	it.each([
 		["un départage hors des catégories", { tieBreaker: 2 }, "départage"],
 		["un départage négatif", { tieBreaker: -1 }, "départage"],

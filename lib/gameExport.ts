@@ -4,6 +4,7 @@ import {
 	exportSchema,
 	GAME_EXPORT_FORMAT,
 	GAME_EXPORT_VERSION,
+	type StoredBrick,
 } from "@/lib/gameExportSchema";
 import { createId } from "@/lib/uuid";
 import type { GameDef, ScoringBrick } from "@/types/game";
@@ -21,7 +22,8 @@ export type ImportedGame = Pick<
 
 export type ImportResult = { ok: true; game: ImportedGame } | { ok: false; error: string };
 
-function exportBrick(brick: ScoringBrick): ExportedBrick {
+/** `positionOf` : position d'une catégorie du jeu d'après son id (le multiplicateur la désigne). */
+function exportBrick(brick: ScoringBrick, positionOf: (id: string) => number): ExportedBrick {
 	switch (brick.kind) {
 		case "manual":
 			return {
@@ -42,11 +44,14 @@ function exportBrick(brick: ScoringBrick): ExportedBrick {
 			};
 		case "boolean":
 			return { kind: "boolean", yesValue: brick.yesValue, noValue: brick.noValue };
+		case "product":
+			return { kind: "product", source: positionOf(brick.sourceId) };
 	}
 }
 
 export function serializeGame(game: GameDef): string {
-	const tieBreaker = game.categories.findIndex((c) => c.id === game.tieBreakerId);
+	const positionOf = (id: string) => game.categories.findIndex((c) => c.id === id);
+	const tieBreaker = game.tieBreakerId ? positionOf(game.tieBreakerId) : -1;
 	return JSON.stringify({
 		format: GAME_EXPORT_FORMAT,
 		version: GAME_EXPORT_VERSION,
@@ -59,7 +64,7 @@ export function serializeGame(game: GameDef): string {
 				label: c.label,
 				// Une couleur hors palette (possible via une sauvegarde) serait refusée à l'import.
 				...(isPaletteColor(c.color) && { color: c.color }),
-				brick: exportBrick(c.brick),
+				brick: exportBrick(c.brick, positionOf),
 				...(c.requiresValidation && { requiresValidation: true }),
 			})),
 			...(game.lowestWins && { lowestWins: true }),
@@ -78,7 +83,7 @@ function isPaletteColor(color: string): boolean {
 	return (AVATAR_PALETTE as readonly string[]).includes(color);
 }
 
-export function importBrick(brick: ExportedBrick): ScoringBrick {
+export function importBrick(brick: StoredBrick): ScoringBrick {
 	if (brick.kind !== "choice") return brick;
 	// Les options "choice" ont un id local (clé de liste dans l'éditeur) : toujours régénéré.
 	return { kind: "choice", options: brick.options.map((o) => ({ ...o, id: createId() })) };
@@ -107,6 +112,7 @@ const FIELD_NAMES: Record<string, string> = {
 	lowestWins: "le plus bas gagne",
 	teamPlay: "jeu en équipes",
 	tieBreaker: "départage",
+	source: "catégorie multipliée",
 };
 
 /** Chemin zod (`game.categories.1.label`) lisible : « catégories n° 2 › libellé ». */
@@ -156,11 +162,15 @@ export function parseGameExport(text: string): ImportResult {
 
 	const { game } = parsed.data;
 	// Id créés ici plutôt qu'à l'ajout : le départage, donné par position, les désigne déjà.
+	const ids = game.categories.map(() => createId());
 	const categories = game.categories.map((c, index) => ({
-		id: createId(),
+		id: ids[index],
 		label: c.label,
 		color: c.color ?? paletteColor(index),
-		brick: importBrick(c.brick),
+		brick: importBrick(
+			// Le schéma garantit une position valide, placée avant le multiplicateur.
+			c.brick.kind === "product" ? { kind: "product", sourceId: ids[c.brick.source] } : c.brick,
+		),
 		...(c.requiresValidation && { requiresValidation: true }),
 	}));
 	return {
