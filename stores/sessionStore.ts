@@ -6,7 +6,9 @@ import { moveItem } from "@/lib/arrays";
 import { idSchema, sessionEntriesSchema, teamsSchema, timestampSchema } from "@/lib/backupSchema";
 import { MAX_PLAYERS, MAX_ROUNDS } from "@/lib/gameLimits";
 import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
+import { applyProducts } from "@/lib/products";
 import { createId } from "@/lib/uuid";
+import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import {
 	createEmptySessionEntry,
@@ -38,6 +40,8 @@ type Actions = {
 	startNewSession: (gameDefId: string, playerIds: string[], setup?: SessionSetup) => void;
 	/** `scoreKey` : l'id de catégorie pour la manche 1, suivi de la manche ensuite (lib/rounds). */
 	updateScore: (playerId: string, scoreKey: string, points: number) => void;
+	/** Nombre saisi dans une catégorie multiplicateur : ses points en sont recalculés. */
+	updateFactor: (playerId: string, scoreKey: string, factor: number) => void;
 	/** Coche ou décoche le critère d'une catégorie pour un joueur. Décoché, son score est effacé. */
 	setValidated: (playerId: string, scoreKey: string, validated: boolean) => void;
 	/** Change l'ordre de jeu : décale le joueur de `offset` places (négatif = vers le haut). */
@@ -93,82 +97,99 @@ export const migrateSessionStoreData = createStoreMigrate<State>(
 
 export const useSessionStore = create<State & Actions>()(
 	persist(
-		(set, get) => ({
-			...EMPTY_STATE,
-
-			startNewSession: (gameDefId, playerIds, setup = {}) => {
-				set({
-					gameDefId,
-					playerIds,
-					entries: Object.fromEntries(playerIds.map((id) => [id, createEmptySessionEntry(id)])),
-					startedAt: Date.now(),
-					currentCategoryId: null,
-					currentRound: null,
-					lowestWins: setup.lowestWins ?? false,
-					tieBreakerId: setup.tieBreakerId ?? null,
-					teams: setup.teams && setup.teams.length > 0 ? setup.teams : null,
-				});
-			},
-
-			setCurrentCategory: (categoryId, round = 1) =>
-				set({ currentCategoryId: categoryId, currentRound: round }),
-
-			updateScore: (playerId, scoreKey, points) => {
-				const current = get().entries[playerId];
-				if (!current) return;
+		(set, get) => {
+			/** Enregistre la feuille d'un joueur, multiplicateurs recalculés (lib/products). */
+			const setEntry = (playerId: string, entry: SessionEntry) => {
+				const game = useGamesStore.getState().games.find((g) => g.id === get().gameDefId);
 				set({
 					entries: {
 						...get().entries,
-						[playerId]: { ...current, scores: { ...current.scores, [scoreKey]: points } },
+						[playerId]: game ? applyProducts(entry, game.categories) : entry,
 					},
 				});
-			},
+			};
 
-			setValidated: (playerId, scoreKey, validated) => {
-				const current = get().entries[playerId];
-				if (!current) return;
-				const others = (current.validated ?? []).filter((key) => key !== scoreKey);
-				const { [scoreKey]: _removed, ...otherScores } = current.scores;
-				set({
-					entries: {
-						...get().entries,
-						[playerId]: validated
-							? { ...current, validated: [...others, scoreKey] }
-							: { ...current, validated: others, scores: otherScores },
-					},
-				});
-			},
+			return {
+				...EMPTY_STATE,
 
-			movePlayer: (playerId, offset) => {
-				const { playerIds } = get();
-				const next = moveItem(playerIds, playerIds.indexOf(playerId), offset);
-				if (next !== playerIds) set({ playerIds: next });
-			},
+				startNewSession: (gameDefId, playerIds, setup = {}) => {
+					set({
+						gameDefId,
+						playerIds,
+						entries: Object.fromEntries(playerIds.map((id) => [id, createEmptySessionEntry(id)])),
+						startedAt: Date.now(),
+						currentCategoryId: null,
+						currentRound: null,
+						lowestWins: setup.lowestWins ?? false,
+						tieBreakerId: setup.tieBreakerId ?? null,
+						teams: setup.teams && setup.teams.length > 0 ? setup.teams : null,
+					});
+				},
 
-			toSession: () => {
-				const state = get();
-				return {
-					id: createId(),
-					gameDefId: state.gameDefId ?? "",
-					createdAt: state.startedAt ?? Date.now(),
-					playerIds: state.playerIds,
-					entries: state.entries,
-					...(state.lowestWins && { lowestWins: true }),
-					...(state.tieBreakerId && { tieBreakerId: state.tieBreakerId }),
-					...(state.teams && { teams: state.teams }),
-				};
-			},
+				setCurrentCategory: (categoryId, round = 1) =>
+					set({ currentCategoryId: categoryId, currentRound: round }),
 
-			finishSession: () => {
-				const session = get().toSession();
-				useHistoryStore.getState().addSession({ ...session, finishedAt: Date.now() });
-				set(EMPTY_STATE);
-			},
+				updateScore: (playerId, scoreKey, points) => {
+					const current = get().entries[playerId];
+					if (!current) return;
+					setEntry(playerId, { ...current, scores: { ...current.scores, [scoreKey]: points } });
+				},
 
-			resetSession: () => set(EMPTY_STATE),
+				updateFactor: (playerId, scoreKey, factor) => {
+					const current = get().entries[playerId];
+					if (!current) return;
+					setEntry(playerId, { ...current, factors: { ...current.factors, [scoreKey]: factor } });
+				},
 
-			hasOngoingSession: () => get().playerIds.length > 0,
-		}),
+				setValidated: (playerId, scoreKey, validated) => {
+					const current = get().entries[playerId];
+					if (!current) return;
+					const others = (current.validated ?? []).filter((key) => key !== scoreKey);
+					if (validated) {
+						setEntry(playerId, { ...current, validated: [...others, scoreKey] });
+						return;
+					}
+					const { [scoreKey]: _score, ...scores } = current.scores;
+					const { [scoreKey]: _factor, ...factors } = current.factors ?? {};
+					setEntry(playerId, {
+						...current,
+						validated: others,
+						scores,
+						...(current.factors && { factors }),
+					});
+				},
+
+				movePlayer: (playerId, offset) => {
+					const { playerIds } = get();
+					const next = moveItem(playerIds, playerIds.indexOf(playerId), offset);
+					if (next !== playerIds) set({ playerIds: next });
+				},
+
+				toSession: () => {
+					const state = get();
+					return {
+						id: createId(),
+						gameDefId: state.gameDefId ?? "",
+						createdAt: state.startedAt ?? Date.now(),
+						playerIds: state.playerIds,
+						entries: state.entries,
+						...(state.lowestWins && { lowestWins: true }),
+						...(state.tieBreakerId && { tieBreakerId: state.tieBreakerId }),
+						...(state.teams && { teams: state.teams }),
+					};
+				},
+
+				finishSession: () => {
+					const session = get().toSession();
+					useHistoryStore.getState().addSession({ ...session, finishedAt: Date.now() });
+					set(EMPTY_STATE);
+				},
+
+				resetSession: () => set(EMPTY_STATE),
+
+				hasOngoingSession: () => get().playerIds.length > 0,
+			};
+		},
 		{
 			name: "session-store",
 			storage: createJSONStorage(() => AsyncStorage),

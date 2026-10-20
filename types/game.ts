@@ -16,12 +16,15 @@ export type ChoiceOption = {
  *   TokenCounterSheet) — pratique pour les jeux à jetons de victoire/défaite type 7 Wonders.
  * - "choice" : une valeur choisie parmi une liste d'options à score fixe (ex. palier atteint).
  * - "boolean" : une condition Oui/Non, chaque réponse rapportant son propre score.
+ * - "product" : un multiplicateur, un nombre saisi multiplié par les points du joueur dans une
+ *   catégorie placée avant elle (même manche), ex. nombre de sets × valeur des sets (lib/products).
  */
 export type ScoringBrick =
 	| { kind: "manual"; allowNegative: boolean; max?: number; unitValue?: number }
 	| { kind: "tokens"; tokens: TokenDenomination[] }
 	| { kind: "choice"; options: ChoiceOption[] }
-	| { kind: "boolean"; yesValue: number; noValue: number };
+	| { kind: "boolean"; yesValue: number; noValue: number }
+	| { kind: "product"; sourceId: string };
 
 /**
  * `id` généré une fois à la création et jamais réutilisé même si la catégorie est renommée ou
@@ -88,6 +91,9 @@ export type SessionEntry = {
 	 * catégories à critère. Un critère non validé n'a pas de score : les totaux n'en dépendent pas,
 	 * et l'historique reste juste même si le jeu est modifié ensuite. */
 	validated?: string[];
+	/** Nombre saisi pour chaque catégorie multiplicateur, par clé de score. Ses points restent
+	 * dans `scores` (recalculés quand la catégorie multipliée change, voir lib/products). */
+	factors?: Record<string, number>;
 };
 
 export type Session = {
