@@ -11,6 +11,7 @@ import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { getRoundCount } from "@/lib/rounds";
+import { matchesSearch, normalizeForSearch } from "@/lib/search";
 import { useGamesStore } from "@/stores/gamesStore";
 
 export default function GamesListScreen() {
@@ -23,10 +24,10 @@ export default function GamesListScreen() {
 
 	const activeGames = useMemo(() => games.filter((g) => !g.isArchived), [games]);
 	const filteredGames = useMemo(() => {
-		const needle = query.trim().toLowerCase();
+		const needle = normalizeForSearch(query);
 		return needle.length === 0
 			? activeGames
-			: activeGames.filter((g) => g.name.toLowerCase().includes(needle));
+			: activeGames.filter((g) => matchesSearch(g.name, needle));
 	}, [activeGames, query]);
 
 	return (

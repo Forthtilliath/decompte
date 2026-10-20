@@ -9,6 +9,7 @@ import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { matchesSearch, normalizeForSearch } from "@/lib/search";
 import { selectSortedGroups, useGroupsStore } from "@/stores/groupsStore";
 import { selectSortedPlayers, usePlayersStore } from "@/stores/playersStore";
 
@@ -26,7 +27,8 @@ export default function PlayersScreen() {
 
 	const sorted = selectSortedPlayers(players);
 	const sortedGroups = selectSortedGroups(groups);
-	const filtered = sorted.filter((p) => p.name.toLowerCase().includes(query.trim().toLowerCase()));
+	const needle = normalizeForSearch(query);
+	const filtered = sorted.filter((p) => matchesSearch(p.name, needle));
 
 	return (
 		<ScreenContainer>
