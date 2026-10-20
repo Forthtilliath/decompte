@@ -3,7 +3,7 @@ import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { groupSchema, MAX_ENTITIES } from "@/lib/backupSchema";
-import { validatedMerge } from "@/lib/persistedState";
+import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
 import type { PlayerGroup } from "@/types/player";
 
@@ -22,16 +22,22 @@ type Actions = {
 	replaceAll: (groups: PlayerGroup[]) => void;
 };
 
-// Bump on any breaking change to PlayerGroup's shape.
+// À incrémenter à tout changement incompatible de PlayerGroup, en ajoutant son étape à GROUPS_MIGRATIONS.
 export const GROUPS_STORE_VERSION = 1;
 
 /** Mêmes règles qu'une sauvegarde importée (lib/backupSchema). */
 const groupsStateSchema = z.object({ groups: z.array(groupSchema).max(MAX_ENTITIES) });
 
+/** Voir MigrationSteps : aucune étape tant que la version 1 est la seule. */
+export const GROUPS_MIGRATIONS: MigrationSteps = {};
+
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
-export function migrateGroupsStoreData(persistedState: unknown, version: number): State {
-	return version === GROUPS_STORE_VERSION ? (persistedState as State) : { groups: [] };
-}
+export const migrateGroupsStoreData = createStoreMigrate<State>(
+	"groups-store",
+	GROUPS_STORE_VERSION,
+	GROUPS_MIGRATIONS,
+	{ groups: [] },
+);
 
 export const useGroupsStore = create<State & Actions>()(
 	persist(
@@ -92,7 +98,7 @@ export const useGroupsStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: GROUPS_STORE_VERSION,
 			migrate: migrateGroupsStoreData,
-			merge: validatedMerge<State>("groups-store", groupsStateSchema),
+			merge: validatedMerge<State>("groups-store", GROUPS_STORE_VERSION, groupsStateSchema),
 		},
 	),
 );

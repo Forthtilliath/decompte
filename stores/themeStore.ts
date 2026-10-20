@@ -54,7 +54,9 @@ export const useThemeStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: THEME_STORE_VERSION,
 			migrate: migrateThemeStoreData,
-			merge: validatedMerge<State>("theme-store", themeStateSchema),
+			merge: validatedMerge<State>("theme-store", THEME_STORE_VERSION, themeStateSchema, {
+				report: false,
+			}),
 		},
 	),
 );

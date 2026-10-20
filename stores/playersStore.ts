@@ -4,7 +4,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { pruneAvatarPhotos } from "@/lib/avatarPhotos";
 import { MAX_ENTITIES, playerSchema } from "@/lib/backupSchema";
-import { validatedMerge } from "@/lib/persistedState";
+import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
 import type { Player } from "@/types/player";
 
@@ -21,16 +21,22 @@ type Actions = {
 	replaceAll: (players: Player[]) => void;
 };
 
-// Bump on any breaking change to Player's shape.
+// À incrémenter à tout changement incompatible de Player, en ajoutant son étape à PLAYERS_MIGRATIONS.
 export const PLAYERS_STORE_VERSION = 1;
 
 /** Mêmes règles qu'une sauvegarde importée (lib/backupSchema). */
 const playersStateSchema = z.object({ players: z.array(playerSchema).max(MAX_ENTITIES) });
 
+/** Voir MigrationSteps : aucune étape tant que la version 1 est la seule. */
+export const PLAYERS_MIGRATIONS: MigrationSteps = {};
+
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
-export function migratePlayersStoreData(persistedState: unknown, version: number): State {
-	return version === PLAYERS_STORE_VERSION ? (persistedState as State) : { players: [] };
-}
+export const migratePlayersStoreData = createStoreMigrate<State>(
+	"players-store",
+	PLAYERS_STORE_VERSION,
+	PLAYERS_MIGRATIONS,
+	{ players: [] },
+);
 
 export const usePlayersStore = create<State & Actions>()(
 	persist(
@@ -86,7 +92,7 @@ export const usePlayersStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: PLAYERS_STORE_VERSION,
 			migrate: migratePlayersStoreData,
-			merge: validatedMerge<State>("players-store", playersStateSchema),
+			merge: validatedMerge<State>("players-store", PLAYERS_STORE_VERSION, playersStateSchema),
 			// Une fois les joueurs connus, et seulement au lancement : aucun formulaire n'est encore
 			// ouvert, donc aucune photo tout juste choisie ne risque d'être prise pour un reste.
 			onRehydrateStorage: () => (state) => {
