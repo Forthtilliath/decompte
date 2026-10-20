@@ -2,7 +2,7 @@ import { useBackupState } from "@forthtilliath/expo-backup-ui/hooks";
 import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
-import { StyleSheet, Text } from "react-native";
+import { Alert, StyleSheet, Text } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
@@ -16,7 +16,13 @@ import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
 
-function clearAllData() {
+/**
+ * Google Drive d'abord : sinon l'effacement déclencherait l'envoi automatique d'une copie vide
+ * par-dessus la sauvegarde. Déconnecté, Drive garde sa copie ; le reconnecter demande alors quelles
+ * données garder. Si la déconnexion échoue, rien n'est effacé.
+ */
+async function clearAllData() {
+	if (backup.getState().cloudAccount) await backup.disconnectCloud();
 	useSessionStore.getState().resetSession();
 	useHistoryStore.getState().replaceAll([]);
 	useGroupsStore.getState().replaceAll([]);
@@ -35,11 +41,19 @@ export default function DangerZoneSettingsScreen() {
 		confirmDestructive(
 			"Effacer toutes les données ?",
 			() => {
-				clearAllData();
-				router.back();
+				clearAllData().then(
+					() => router.back(),
+					() =>
+						Alert.alert(
+							"Rien n'a été effacé",
+							"Google Drive n'a pas pu être déconnecté. Réessaie, ou déconnecte-le depuis Sauvegarde et restauration.",
+						),
+				);
 			},
 			{
-				message: "Jeux, joueurs, groupes, historique et partie en cours seront supprimés.",
+				message: cloudLinked
+					? "Jeux, joueurs, groupes, historique et partie en cours seront supprimés. Google Drive sera déconnecté et gardera sa copie."
+					: "Jeux, joueurs, groupes, historique et partie en cours seront supprimés.",
 				confirmLabel: "Tout effacer",
 			},
 		);
@@ -53,8 +67,9 @@ export default function DangerZoneSettingsScreen() {
 			</Text>
 			{cloudLinked && (
 				<Text style={styles.warning}>
-					La sauvegarde Google Drive est active : sa copie sera elle aussi remplacée par des données
-					vides. Déconnecte d'abord Google Drive pour la garder.
+					La sauvegarde Google Drive est active : elle sera déconnectée avant l'effacement et sa
+					copie restera telle quelle. Pour la récupérer, reconnecte Google Drive et choisis de
+					garder ses données.
 				</Text>
 			)}
 			<Button label="Effacer toutes les données" variant="danger" onPress={confirmClear} />
