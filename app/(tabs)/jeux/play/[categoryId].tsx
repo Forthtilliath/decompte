@@ -4,17 +4,14 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PlayerOrderSheet } from "@/components/players/PlayerOrderSheet";
-import { PlayerScoreRow } from "@/components/players/PlayerScoreRow";
-import { CategoryScoreField } from "@/components/scoring/CategoryScoreField";
-import { ValidationCheckbox } from "@/components/scoring/ValidationCheckbox";
+import { PlayerCategoryEntry } from "@/components/scoring/PlayerCategoryEntry";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { SwipeView } from "@/components/ui/SwipeView";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { getRoundCount, scoreKey } from "@/lib/rounds";
-import { computeEntryTotal } from "@/lib/scoring";
+import { getRoundCount } from "@/lib/rounds";
 import { getScoringSteps, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { usePlayersStore } from "@/stores/playersStore";
@@ -31,8 +28,6 @@ export default function PlayScoreScreen() {
 	const gameDefId = useSessionStore((s) => s.gameDefId);
 	const playerIds = useSessionStore((s) => s.playerIds);
 	const entries = useSessionStore((s) => s.entries);
-	const updateScore = useSessionStore((s) => s.updateScore);
-	const setValidated = useSessionStore((s) => s.setValidated);
 	const setCurrentCategory = useSessionStore((s) => s.setCurrentCategory);
 	const movePlayer = useSessionStore((s) => s.movePlayer);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
@@ -58,7 +53,6 @@ export default function PlayScoreScreen() {
 
 	const category = game.categories.find((c) => c.id === categoryId);
 	if (!category) return null;
-	const key = scoreKey(category.id, round);
 	const roundCount = getRoundCount(game);
 	const categoryCount = game.categories.length;
 	const isLast = index === steps.length - 1;
@@ -165,28 +159,15 @@ export default function PlayScoreScreen() {
 					{gamePlayers.map((player) => {
 						const entry = entries[player.id];
 						if (!entry) return null;
-						// Un score déjà saisi vaut validation : critère ajouté au jeu en cours de partie.
-						const validated =
-							!category.requiresValidation ||
-							entry.validated?.includes(key) ||
-							entry.scores[key] !== undefined;
 						return (
-							<PlayerScoreRow key={player.id} player={player} total={computeEntryTotal(entry)}>
-								{category.requiresValidation && (
-									<ValidationCheckbox
-										checked={validated}
-										color={category.color}
-										onChange={(checked) => setValidated(player.id, key, checked)}
-									/>
-								)}
-								{validated && (
-									<CategoryScoreField
-										category={category}
-										points={entry.scores[key]}
-										onChange={(value) => updateScore(player.id, key, value)}
-									/>
-								)}
-							</PlayerScoreRow>
+							<PlayerCategoryEntry
+								key={player.id}
+								player={player}
+								entry={entry}
+								category={category}
+								categories={game.categories}
+								round={round}
+							/>
 						);
 					})}
 				</ScrollView>

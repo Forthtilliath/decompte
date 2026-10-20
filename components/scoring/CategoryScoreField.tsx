@@ -51,5 +51,8 @@ export function CategoryScoreField({ category, points, onChange }: Props) {
 					onChange={onChange}
 				/>
 			);
+		// Saisie d'un nombre et non de points : voir ProductScoreField, choisi par l'écran de saisie.
+		case "product":
+			return null;
 	}
 }
