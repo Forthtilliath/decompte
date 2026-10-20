@@ -37,7 +37,7 @@ export default function GameDetailScreen() {
 	);
 	const sessionGameDefId = useSessionStore((s) => s.gameDefId);
 	const startNewSession = useSessionStore((s) => s.startNewSession);
-	const { hasOngoingSession, resume, confirmAbandon } = useOngoingSession();
+	const { hasOngoingSession, isOrphan, resume, confirmAbandon } = useOngoingSession();
 
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
@@ -100,8 +100,9 @@ export default function GameDetailScreen() {
 				{otherGameOngoing ? (
 					<>
 						<Text style={styles.hint}>
-							Une partie est en cours sur un autre jeu. Termine-la ou abandonne-la avant d'en lancer
-							une ici.
+							{isOrphan
+								? "Une partie est en cours sur un jeu qui n'existe plus sur ce téléphone : elle ne peut pas être reprise. Abandonne-la avant d'en lancer une ici."
+								: "Une partie est en cours sur un autre jeu. Termine-la ou abandonne-la avant d'en lancer une ici."}
 						</Text>
 						<Button label="Abandonner l'autre partie" variant="ghost" onPress={confirmAbandon} />
 					</>

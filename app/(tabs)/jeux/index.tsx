@@ -18,7 +18,7 @@ export default function GamesListScreen() {
 	const styles = useStyles(colors);
 	const router = useRouter();
 	const games = useGamesStore((s) => s.games);
-	const { hasOngoingSession, ongoingGame, resume, confirmAbandon } = useOngoingSession();
+	const { hasOngoingSession, ongoingGame, isOrphan, resume, confirmAbandon } = useOngoingSession();
 	const [query, setQuery] = useState("");
 
 	const activeGames = useMemo(() => games.filter((g) => !g.isArchived), [games]);
@@ -38,6 +38,12 @@ export default function GamesListScreen() {
 					variant="success"
 					onPress={resume}
 				/>
+			)}
+			{isOrphan && (
+				<Text style={styles.orphan}>
+					Une partie est en cours sur un jeu qui n'existe plus sur ce téléphone (retiré par une
+					restauration). Elle ne peut pas être reprise : abandonne-la pour en lancer une autre.
+				</Text>
 			)}
 			{/* Proposé même si le jeu de la partie est introuvable : sinon la partie bloquerait le
 			    lancement de toute autre partie, sans aucun moyen d'en sortir. */}
@@ -95,6 +101,10 @@ function useStyles(colors: ThemeColors) {
 					color: colors.textMuted,
 					textAlign: "center",
 					marginVertical: SPACING.lg,
+				},
+				orphan: {
+					color: colors.textMuted,
+					textAlign: "center",
 				},
 			}),
 		[colors],
