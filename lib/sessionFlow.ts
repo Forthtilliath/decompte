@@ -1,6 +1,6 @@
 import type { Href } from "expo-router";
-import { getRoundCount } from "@/lib/rounds";
-import type { GameDef, Session } from "@/types/game";
+import { getRoundCount, scoreKey } from "@/lib/rounds";
+import type { GameDef, Session, SessionEntry } from "@/types/game";
 import type { Player } from "@/types/player";
 
 /** Une étape de saisie : une catégorie dans une manche (numérotée à partir de 1). */
@@ -38,6 +38,29 @@ export function getResumeStep(
 	const steps = getScoringSteps(game);
 	const round = currentRound ?? 1;
 	return steps.find((s) => s.categoryId === currentCategoryId && s.round === round) ?? steps[0];
+}
+
+/** Étape où au moins un joueur n'a rien de saisi. */
+export type MissingStep = ScoringStep & { playerIds: string[] };
+
+/**
+ * Étapes laissées vides, dans l'ordre de la partie, avec les joueurs concernés. Un score jamais
+ * saisi n'est pas un 0 saisi : le champ affiche 0, mais personne n'a confirmé cette valeur.
+ */
+export function getMissingSteps(
+	game: GameDef,
+	playerIds: string[],
+	entries: Record<string, SessionEntry>,
+): MissingStep[] {
+	return getScoringSteps(game)
+		.map((step) => {
+			const key = scoreKey(step.categoryId, step.round);
+			const missing = playerIds.filter(
+				(id) => entries[id] && entries[id].scores[key] === undefined,
+			);
+			return { ...step, playerIds: missing };
+		})
+		.filter((step) => step.playerIds.length > 0);
 }
 
 export type ReplayPlan =

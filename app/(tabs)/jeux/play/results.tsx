@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useKeepAwake } from "expo-keep-awake";
 import { router, Stack } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { MissingScoresNotice } from "@/components/scoring/MissingScoresNotice";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
 import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
@@ -9,9 +11,10 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { indexById } from "@/lib/byId";
 import { getRoundCount } from "@/lib/rounds";
 import { rankEntries } from "@/lib/scoring";
-import { getFirstStepHref } from "@/lib/sessionFlow";
+import { getFirstStepHref, getMissingSteps, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -26,10 +29,17 @@ export default function ResultsScreen() {
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 	const allPlayers = usePlayersStore((s) => s.players);
 	const [chartsVisible, setChartsVisible] = useState(false);
+	// Le téléphone posé sur la table pendant qu'on commente le classement ne doit pas se verrouiller.
+	useKeepAwake();
 
 	const ranking = useMemo(
 		() => rankEntries(playerIds.map((id) => entries[id]).filter(Boolean)),
 		[playerIds, entries],
+	);
+	const playersById = useMemo(() => indexById(allPlayers), [allPlayers]);
+	const missingSteps = useMemo(
+		() => (game ? getMissingSteps(game, playerIds, entries) : []),
+		[game, playerIds, entries],
 	);
 
 	if (!game || playerIds.length === 0) return null;
@@ -61,6 +71,13 @@ export default function ResultsScreen() {
 			/>
 			<Text style={styles.title}>Classement</Text>
 			<ScrollView contentContainerStyle={styles.list}>
+				<MissingScoresNotice
+					steps={missingSteps}
+					categories={game.categories}
+					players={playersById}
+					roundCount={getRoundCount(game)}
+					onOpen={(step) => router.dismissTo(getStepHref(step))}
+				/>
 				{ranking.map((ranked) => {
 					const player = allPlayers.find((p) => p.id === ranked.playerId);
 					const entry = entries[ranked.playerId];

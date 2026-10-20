@@ -1,11 +1,12 @@
 import {
 	getFirstStepHref,
+	getMissingSteps,
 	getReplayPlan,
 	getResumeStep,
 	getScoringSteps,
 	getStepHref,
 } from "@/lib/sessionFlow";
-import { makeCategory, makeGame, makePlayer, makeSession } from "@/test/factories";
+import { makeCategory, makeEntry, makeGame, makePlayer, makeSession } from "@/test/factories";
 
 const categories = [
 	makeCategory({ id: "c1" }),
@@ -117,5 +118,26 @@ describe("getReplayPlan", () => {
 			ok: false,
 			reason: "Il faut au moins 2 joueur(s) disponible(s) parmi ceux de cette partie.",
 		});
+	});
+});
+
+describe("getMissingSteps", () => {
+	const game = makeGame({ categories: categories.slice(0, 2), rounds: 2 });
+
+	it("liste les étapes vides et leurs joueurs, dans l'ordre de la partie", () => {
+		const entries = {
+			a: makeEntry("a", { c1: 3, c2: 0, "c1#2": 1 }),
+			b: makeEntry("b", { c1: 0 }),
+		};
+		expect(getMissingSteps(game, ["a", "b"], entries)).toEqual([
+			{ categoryId: "c2", round: 1, playerIds: ["b"] },
+			{ categoryId: "c1", round: 2, playerIds: ["b"] },
+			{ categoryId: "c2", round: 2, playerIds: ["a", "b"] },
+		]);
+	});
+
+	it("ne signale rien quand tout est saisi, même à 0", () => {
+		const scores = { c1: 0, c2: 0, "c1#2": 0, "c2#2": 0 };
+		expect(getMissingSteps(game, ["a"], { a: makeEntry("a", scores) })).toEqual([]);
 	});
 });
