@@ -1,7 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
+import { shareTextFile } from "@forthtilliath/react-native-kit/utils/helpers/shareTextFile";
+import { formatFileTimestamp } from "@forthtilliath/ts-kit/files/formatFileTimestamp";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, type ListRenderItemInfo, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+	Alert,
+	FlatList,
+	type ListRenderItemInfo,
+	Pressable,
+	StyleSheet,
+	Text,
+	View,
+} from "react-native";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { TextField } from "@/components/ui/TextField";
@@ -9,6 +19,7 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { indexById } from "@/lib/byId";
+import { buildHistoryCsv } from "@/lib/historyCsv";
 import { matchesSearch, normalizeForSearch } from "@/lib/search";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
@@ -41,6 +52,19 @@ export default function HistoryScreen() {
 	}, [sessions, filterGame, gamesById, playersById, needle]);
 	const isFiltered = needle.length > 0 || filterGame !== undefined;
 
+	// Les parties affichées (recherche et filtre compris), pour un tableur.
+	const exportCsv = async () => {
+		try {
+			await shareTextFile(
+				`decompte-historique-${formatFileTimestamp(new Date())}.csv`,
+				buildHistoryCsv(filteredSessions, gamesById, playersById),
+				{ mimeType: "text/csv", dialogTitle: "Exporter l'historique" },
+			);
+		} catch (error) {
+			Alert.alert("Export impossible", error instanceof Error ? error.message : String(error));
+		}
+	};
+
 	const openSession = useCallback(
 		(sessionId: string) => router.push(`/history/${sessionId}`),
 		[router],
@@ -60,13 +84,25 @@ export default function HistoryScreen() {
 	return (
 		<ScreenContainer>
 			{sessions.length > 0 && (
-				<TextField
-					placeholder="Rechercher par jeu ou joueur..."
-					value={query}
-					onChangeText={setQuery}
-					style={styles.search}
-					autoCapitalize="none"
-				/>
+				<View style={styles.toolbar}>
+					<View style={styles.search}>
+						<TextField
+							placeholder="Rechercher par jeu ou joueur..."
+							value={query}
+							onChangeText={setQuery}
+							autoCapitalize="none"
+						/>
+					</View>
+					<Pressable
+						onPress={exportCsv}
+						disabled={filteredSessions.length === 0}
+						hitSlop={8}
+						accessibilityRole="button"
+						accessibilityLabel="Exporter ces parties en CSV"
+					>
+						<Ionicons name="download-outline" size={26} color={colors.text} />
+					</Pressable>
+				</View>
 			)}
 			{filterGame && (
 				<Pressable
@@ -114,8 +150,14 @@ function useStyles(colors: ThemeColors) {
 	return useMemo(
 		() =>
 			StyleSheet.create({
-				search: {
+				toolbar: {
+					flexDirection: "row",
+					alignItems: "center",
+					gap: SPACING.sm,
 					marginBottom: SPACING.md,
+				},
+				search: {
+					flex: 1,
 				},
 				filterChip: {
 					flexDirection: "row",
