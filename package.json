@@ -1,6 +1,6 @@
 {
 	"name": "decompte",
-	"version": "1.0.0-alpha.7",
+	"version": "1.0.0-alpha.8",
 	"main": "expo-router/entry",
 	"dependencies": {
 		"@expo/vector-icons": "^15.0.2",
