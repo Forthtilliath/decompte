@@ -48,7 +48,12 @@ export const SessionSummaryCard = memo(function SessionSummaryCard({
 						{game?.name ?? "Jeu introuvable"}
 					</Text>
 				)}
-				<Text style={styles.date}>{formatDate(session.createdAt)}</Text>
+				<Text style={styles.date}>
+					{formatDate(session.createdAt)}
+					{(session.notes || session.photoUri) && " · "}
+					{session.notes && "📝"}
+					{session.photoUri && "📷"}
+				</Text>
 			</View>
 
 			<View style={styles.playersRow}>
