@@ -4,7 +4,10 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { MAX_SESSIONS, sessionSchema } from "@/lib/backupSchema";
 import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
+import { pruneSessionPhotos } from "@/lib/sessionPhotos";
 import type { Session } from "@/types/game";
+
+export type SessionExtras = Pick<Session, "notes" | "photoUri">;
 
 type State = {
 	sessions: Session[];
@@ -15,6 +18,8 @@ type Actions = {
 	removeSession: (id: string) => void;
 	/** Remet une partie supprimée à sa place d'origine (`index`), pour annuler la suppression. */
 	restoreSession: (session: Session, index: number) => void;
+	/** Notes et photo d'une partie enregistrée (le reste ne change jamais : voir lib/stats). */
+	updateSessionExtras: (id: string, extras: SessionExtras) => void;
 	replaceAll: (sessions: Session[]) => void;
 };
 
@@ -52,6 +57,21 @@ export const useHistoryStore = create<State & Actions>()(
 				set({ sessions: [...sessions.slice(0, index), session, ...sessions.slice(index)] });
 			},
 
+			updateSessionExtras: (id, { notes, photoUri }) => {
+				set({
+					sessions: get().sessions.map((s) => {
+						if (s.id !== id) return s;
+						// Vides : retirés, la partie garde la forme d'avant leur ajout.
+						const { notes: _notes, photoUri: _photo, ...rest } = s;
+						return {
+							...rest,
+							...(notes?.trim() && { notes: notes.trim() }),
+							...(photoUri && { photoUri }),
+						};
+					}),
+				});
+			},
+
 			replaceAll: (sessions) => set({ sessions }),
 		}),
 		{
@@ -60,6 +80,10 @@ export const useHistoryStore = create<State & Actions>()(
 			version: HISTORY_STORE_VERSION,
 			migrate: migrateHistoryStoreData,
 			merge: validatedMerge<State>("history-store", HISTORY_STORE_VERSION, historyStateSchema),
+			// Au lancement seulement, comme les avatars (stores/playersStore).
+			onRehydrateStorage: () => (state) => {
+				if (state) pruneSessionPhotos(state.sessions);
+			},
 		},
 	),
 );

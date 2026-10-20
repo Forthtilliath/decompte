@@ -35,6 +35,24 @@ describe("useHistoryStore", () => {
 		expect(useHistoryStore.getState().sessions.map((s) => s.id)).toEqual(["a", "b", "c"]);
 	});
 
+	it("ajoute, modifie puis retire les notes et la photo d'une partie, sans toucher aux autres", () => {
+		const other = makeSession({ id: "b" });
+		useHistoryStore.setState({ sessions: [makeSession({ id: "a" }), other] });
+		const { updateSessionExtras } = useHistoryStore.getState();
+
+		updateSessionExtras("a", { notes: "  Extension Pavillon  ", photoUri: "file:///p.jpg" });
+		expect(useHistoryStore.getState().sessions[0]).toMatchObject({
+			notes: "Extension Pavillon",
+			photoUri: "file:///p.jpg",
+		});
+		expect(useHistoryStore.getState().sessions[1]).toBe(other);
+
+		updateSessionExtras("a", { notes: " ", photoUri: undefined });
+		const [cleared] = useHistoryStore.getState().sessions;
+		expect(cleared).not.toHaveProperty("notes");
+		expect(cleared).not.toHaveProperty("photoUri");
+	});
+
 	it("remplace tout l'historique", () => {
 		const sessions = [makeSession({ id: "x" })];
 		useHistoryStore.getState().replaceAll(sessions);

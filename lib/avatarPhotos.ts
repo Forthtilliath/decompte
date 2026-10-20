@@ -30,15 +30,17 @@ function fileNameOf(uri: string): string {
 }
 
 /**
- * Photos des joueurs d'une sauvegarde : chaque `avatarUri` est remplacée par la photo du même nom
- * encore présente dans le dossier des avatars (même téléphone), ou retirée sinon. Une URI venue
- * d'un fichier n'est donc jamais chargée telle quelle : seuls les fichiers de l'app sont repris.
+ * Photo d'une donnée venue d'une sauvegarde : l'URI de la photo du même nom encore présente dans
+ * le dossier `directory` de l'app (même téléphone), `undefined` sinon. Une URI venue d'un fichier
+ * n'est donc jamais chargée telle quelle : seuls les fichiers de l'app sont repris.
  */
-export function relinkAvatarPhotos<T extends { avatarUri?: string }>(players: T[]): T[] {
+export function createPhotoRelinker(
+	directory: string,
+): (uri: string | undefined) => string | undefined {
 	let photos = new Map<string, string>();
 	try {
 		photos = new Map(
-			getAppDirectory(AVATAR_DIRECTORY)
+			getAppDirectory(directory)
 				.list()
 				.map((entry) => [fileNameOf(entry.uri), entry.uri] as const)
 				.filter(([name]) => name.length > 0),
@@ -46,8 +48,14 @@ export function relinkAvatarPhotos<T extends { avatarUri?: string }>(players: T[
 	} catch {
 		// Dossier illisible : aucune photo n'est reprise.
 	}
+	return (uri) => (uri ? photos.get(fileNameOf(uri)) : undefined);
+}
+
+/** Photos des joueurs d'une sauvegarde (voir createPhotoRelinker). */
+export function relinkAvatarPhotos<T extends { avatarUri?: string }>(players: T[]): T[] {
+	const relink = createPhotoRelinker(AVATAR_DIRECTORY);
 	return players.map(({ avatarUri, ...player }) => {
-		const photo = avatarUri ? photos.get(fileNameOf(avatarUri)) : undefined;
+		const photo = relink(avatarUri);
 		return (photo ? { ...player, avatarUri: photo } : player) as T;
 	});
 }

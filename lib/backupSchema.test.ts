@@ -188,6 +188,7 @@ describe("parseBackup", () => {
 				sessions: [makeSession({ entries: { a: { ...makeEntry("a"), validated: ["c1#2#3"] } } })],
 			},
 		],
+		["des notes trop longues", { sessions: [makeSession({ notes: "x".repeat(1001) })] }],
 		["un départage sur une catégorie inconnue", { games: [makeGame({ tieBreakerId: "x" })] }],
 		[
 			"un multiplicateur sur une catégorie placée après lui",

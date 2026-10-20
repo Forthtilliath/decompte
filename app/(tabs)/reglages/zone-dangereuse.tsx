@@ -10,6 +10,7 @@ import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { pruneAvatarPhotos } from "@/lib/avatarPhotos";
 import { backup } from "@/lib/backup";
+import { pruneSessionPhotos } from "@/lib/sessionPhotos";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useGroupsStore } from "@/stores/groupsStore";
 import { useHistoryStore } from "@/stores/historyStore";
@@ -31,6 +32,7 @@ async function clearAllData() {
 	usePlayersStore.getState().replaceAll([]);
 	useGamesStore.getState().replaceAll([]);
 	pruneAvatarPhotos([]);
+	pruneSessionPhotos([]);
 }
 
 export default function DangerZoneSettingsScreen() {
