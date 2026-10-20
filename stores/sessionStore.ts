@@ -5,7 +5,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { moveItem } from "@/lib/arrays";
 import { idSchema, sessionEntriesSchema, timestampSchema } from "@/lib/backupSchema";
 import { MAX_PLAYERS, MAX_ROUNDS } from "@/lib/gameLimits";
-import { validatedMerge } from "@/lib/persistedState";
+import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
 import { createId } from "@/lib/uuid";
 import { useHistoryStore } from "@/stores/historyStore";
 import { createEmptySessionEntry, type Session, type SessionEntry } from "@/types/game";
@@ -46,7 +46,7 @@ const EMPTY_STATE: State = {
 	currentRound: null,
 };
 
-// Bump on any breaking change to State's shape.
+// À incrémenter à tout changement incompatible de State, en ajoutant son étape à SESSION_MIGRATIONS.
 export const SESSION_STORE_VERSION = 1;
 
 /** Mêmes règles qu'une partie d'une sauvegarde importée (lib/backupSchema). Les deux derniers
@@ -60,10 +60,16 @@ const sessionStateSchema = z.object({
 	currentRound: z.number().int().min(1).max(MAX_ROUNDS).nullable().optional(),
 });
 
+/** Voir MigrationSteps : aucune étape tant que la version 1 est la seule. */
+export const SESSION_MIGRATIONS: MigrationSteps = {};
+
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
-export function migrateSessionStoreData(persistedState: unknown, version: number): State {
-	return version === SESSION_STORE_VERSION ? (persistedState as State) : EMPTY_STATE;
-}
+export const migrateSessionStoreData = createStoreMigrate<State>(
+	"session-store",
+	SESSION_STORE_VERSION,
+	SESSION_MIGRATIONS,
+	EMPTY_STATE,
+);
 
 export const useSessionStore = create<State & Actions>()(
 	persist(
@@ -127,7 +133,7 @@ export const useSessionStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: SESSION_STORE_VERSION,
 			migrate: migrateSessionStoreData,
-			merge: validatedMerge<State>("session-store", sessionStateSchema),
+			merge: validatedMerge<State>("session-store", SESSION_STORE_VERSION, sessionStateSchema),
 		},
 	),
 );

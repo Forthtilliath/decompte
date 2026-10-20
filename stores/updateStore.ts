@@ -41,7 +41,9 @@ export const useUpdateStore = create<State & Actions>()(
 			name: "update-store",
 			storage: createJSONStorage(() => AsyncStorage),
 			version: UPDATE_STORE_VERSION,
-			merge: validatedMerge<State>("update-store", updateStateSchema),
+			merge: validatedMerge<State>("update-store", UPDATE_STORE_VERSION, updateStateSchema, {
+				report: false,
+			}),
 		},
 	),
 );

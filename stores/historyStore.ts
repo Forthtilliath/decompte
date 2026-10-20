@@ -3,7 +3,7 @@ import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { MAX_SESSIONS, sessionSchema } from "@/lib/backupSchema";
-import { validatedMerge } from "@/lib/persistedState";
+import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
 import type { Session } from "@/types/game";
 
 type State = {
@@ -16,16 +16,22 @@ type Actions = {
 	replaceAll: (sessions: Session[]) => void;
 };
 
-// Bump on any breaking change to Session's shape.
+// À incrémenter à tout changement incompatible de Session, en ajoutant son étape à HISTORY_MIGRATIONS.
 export const HISTORY_STORE_VERSION = 1;
 
 /** Mêmes règles qu'une sauvegarde importée (lib/backupSchema). */
 const historyStateSchema = z.object({ sessions: z.array(sessionSchema).max(MAX_SESSIONS) });
 
+/** Voir MigrationSteps : aucune étape tant que la version 1 est la seule. */
+export const HISTORY_MIGRATIONS: MigrationSteps = {};
+
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
-export function migrateHistoryStoreData(persistedState: unknown, version: number): State {
-	return version === HISTORY_STORE_VERSION ? (persistedState as State) : { sessions: [] };
-}
+export const migrateHistoryStoreData = createStoreMigrate<State>(
+	"history-store",
+	HISTORY_STORE_VERSION,
+	HISTORY_MIGRATIONS,
+	{ sessions: [] },
+);
 
 export const useHistoryStore = create<State & Actions>()(
 	persist(
@@ -45,7 +51,7 @@ export const useHistoryStore = create<State & Actions>()(
 			storage: createJSONStorage(() => AsyncStorage),
 			version: HISTORY_STORE_VERSION,
 			migrate: migrateHistoryStoreData,
-			merge: validatedMerge<State>("history-store", historyStateSchema),
+			merge: validatedMerge<State>("history-store", HISTORY_STORE_VERSION, historyStateSchema),
 		},
 	),
 );
