@@ -2,16 +2,19 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text } from "react-native";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
+import { TeamRankingCard } from "@/components/scoring/TeamRankingCard";
 import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { indexById } from "@/lib/byId";
 import { formatDate } from "@/lib/date";
 import { getRoundCount } from "@/lib/rounds";
-import { rankEntries } from "@/lib/scoring";
-import { getFirstStepHref, getReplayPlan } from "@/lib/sessionFlow";
+import { getFirstStepHref, getReplayPlan, getSessionSetup } from "@/lib/sessionFlow";
+import { getFullSessionRanking } from "@/lib/stats";
+import { replayTeams } from "@/lib/teams";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
@@ -33,8 +36,9 @@ export default function SessionDetailScreen() {
 	const startNewSession = useSessionStore((s) => s.startNewSession);
 	const [chartsVisible, setChartsVisible] = useState(false);
 
-	const ranking = useMemo(
-		() => (session ? rankEntries(Object.values(session.entries)) : []),
+	const playersById = useMemo(() => indexById(players), [players]);
+	const { players: ranking, teams: teamRanking } = useMemo(
+		() => (session ? getFullSessionRanking(session) : { players: [], teams: null }),
 		[session],
 	);
 
@@ -70,8 +74,18 @@ export default function SessionDetailScreen() {
 			return;
 		}
 
+		// Jeu en équipes : mêmes équipes, sans les joueurs indisponibles.
+		const teams = game.teamPlay ? replayTeams(session.teams, plan.playerIds) : null;
+		if (game.teamPlay && !teams) {
+			Alert.alert(
+				"Impossible de rejouer",
+				"Les équipes de cette partie ne sont plus complètes : lance la partie depuis la fiche du jeu pour les recomposer.",
+			);
+			return;
+		}
+
 		const start = () => {
-			startNewSession(game.id, plan.playerIds);
+			startNewSession(game.id, plan.playerIds, getSessionSetup(game, teams));
 			router.push(getFirstStepHref(game));
 		};
 
@@ -94,6 +108,9 @@ export default function SessionDetailScreen() {
 			<Stack.Screen options={{ title: game?.name ?? "Détail de la partie" }} />
 			<Text style={styles.date}>{formatDate(session.createdAt)}</Text>
 			<ScrollView contentContainerStyle={styles.list}>
+				{teamRanking?.map((team) => (
+					<TeamRankingCard key={team.teamId} team={team} playersById={playersById} />
+				))}
 				{ranking.map((ranked) => {
 					const player = players.find((p) => p.id === ranked.playerId);
 					const entry = session.entries[ranked.playerId];

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
 import { PlayerSelection } from "@/components/players/PlayerSelection";
+import { TeamSetup } from "@/components/players/TeamSetup";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
@@ -12,7 +13,8 @@ import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { indexById } from "@/lib/byId";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
 import { getRoundCount } from "@/lib/rounds";
-import { getFirstStepHref } from "@/lib/sessionFlow";
+import { getFirstStepHref, getSessionSetup } from "@/lib/sessionFlow";
+import { buildTeams, MIN_TEAMS, playersByTeam, type TeamAssignment } from "@/lib/teams";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
@@ -45,17 +47,29 @@ export default function GameDetailScreen() {
 	const { hasOngoingSession, isOrphan, resume, confirmAbandon } = useOngoingSession();
 
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
+	const [teamCount, setTeamCount] = useState(MIN_TEAMS);
+	const [assignment, setAssignment] = useState<TeamAssignment>({});
 
 	if (!game) return null;
 
 	const isThisGameOngoing = hasOngoingSession && sessionGameDefId === game.id;
 	const otherGameOngoing = hasOngoingSession && sessionGameDefId !== game.id;
 
-	const canStart = selectedIds.length >= game.minPlayers;
+	const teams = game.teamPlay ? buildTeams(selectedIds, assignment, teamCount) : null;
+	const canStart =
+		selectedIds.length >= game.minPlayers && (teams === null || teams.length >= MIN_TEAMS);
 	const roundCount = getRoundCount(game);
+	const selectedPlayers = selectedIds
+		.map((playerId) => playersById.get(playerId))
+		.filter((p) => p !== undefined);
 
 	const startGame = () => {
-		startNewSession(game.id, selectedIds);
+		// En équipes, la saisie suit les équipes : les coéquipiers se suivent.
+		startNewSession(
+			game.id,
+			teams ? playersByTeam(teams) : selectedIds,
+			getSessionSetup(game, teams),
+		);
 		router.push(getFirstStepHref(game));
 	};
 
@@ -88,6 +102,8 @@ export default function GameDetailScreen() {
 						? `${game.minPlayers} joueur${game.minPlayers > 1 ? "s" : ""}`
 						: `${game.minPlayers}–${game.maxPlayers} joueurs`}
 					{roundCount > 1 && ` · ${roundCount} manches`}
+					{game.teamPlay && " · en équipes"}
+					{game.lowestWins && " · le plus bas gagne"}
 				</Text>
 
 				<View style={styles.chipsRow}>
@@ -119,6 +135,17 @@ export default function GameDetailScreen() {
 							selectedIds={selectedIds}
 							onChange={setSelectedIds}
 						/>
+						{game.teamPlay && selectedPlayers.length >= MIN_TEAMS && (
+							<TeamSetup
+								players={selectedPlayers}
+								teamCount={teamCount}
+								onTeamCountChange={setTeamCount}
+								assignment={assignment}
+								onAssign={(playerId, team) =>
+									setAssignment((current) => ({ ...current, [playerId]: team }))
+								}
+							/>
+						)}
 						<Button
 							label="Lancer une partie"
 							variant="success"

@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { MissingScoresNotice } from "@/components/scoring/MissingScoresNotice";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
+import { TeamRankingCard } from "@/components/scoring/TeamRankingCard";
 import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
@@ -13,7 +14,7 @@ import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { indexById } from "@/lib/byId";
 import { getRoundCount } from "@/lib/rounds";
-import { rankEntries } from "@/lib/scoring";
+import { rankSession } from "@/lib/scoring";
 import { getFirstStepHref, getMissingSteps, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { usePlayersStore } from "@/stores/playersStore";
@@ -32,9 +33,19 @@ export default function ResultsScreen() {
 	// Le téléphone posé sur la table pendant qu'on commente le classement ne doit pas se verrouiller.
 	useKeepAwake();
 
-	const ranking = useMemo(
-		() => rankEntries(playerIds.map((id) => entries[id]).filter(Boolean)),
-		[playerIds, entries],
+	const lowestWins = useSessionStore((s) => s.lowestWins);
+	const tieBreakerId = useSessionStore((s) => s.tieBreakerId);
+	const teams = useSessionStore((s) => s.teams);
+	const { players: ranking, teams: teamRanking } = useMemo(
+		() =>
+			rankSession({
+				playerIds,
+				entries,
+				lowestWins,
+				tieBreakerId: tieBreakerId ?? undefined,
+				teams: teams ?? undefined,
+			}),
+		[playerIds, entries, lowestWins, tieBreakerId, teams],
 	);
 	const playersById = useMemo(() => indexById(allPlayers), [allPlayers]);
 	const missingSteps = useMemo(
@@ -78,6 +89,9 @@ export default function ResultsScreen() {
 					roundCount={getRoundCount(game)}
 					onOpen={(step) => router.dismissTo(getStepHref(step))}
 				/>
+				{teamRanking?.map((team) => (
+					<TeamRankingCard key={team.teamId} team={team} playersById={playersById} />
+				))}
 				{ranking.map((ranked) => {
 					const player = allPlayers.find((p) => p.id === ranked.playerId);
 					const entry = entries[ranked.playerId];

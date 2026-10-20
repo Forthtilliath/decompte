@@ -1,7 +1,16 @@
 import type { Href } from "expo-router";
 import { getRoundCount, scoreKey } from "@/lib/rounds";
-import type { GameDef, Session, SessionEntry } from "@/types/game";
+import type { GameDef, Session, SessionEntry, SessionSetup, Team } from "@/types/game";
 import type { Player } from "@/types/player";
+
+/** Ce qu'une partie reprend de son jeu à son lancement : règles de classement et équipes. */
+export function getSessionSetup(game: GameDef, teams?: Team[] | null): SessionSetup {
+	return {
+		...(game.lowestWins && { lowestWins: true }),
+		...(game.tieBreakerId && { tieBreakerId: game.tieBreakerId }),
+		...(game.teamPlay && teams && { teams }),
+	};
+}
 
 /** Une étape de saisie : une catégorie dans une manche (numérotée à partir de 1). */
 export type ScoringStep = { categoryId: string; round: number };
