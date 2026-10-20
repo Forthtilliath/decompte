@@ -26,6 +26,8 @@ type Actions = {
 	startNewSession: (gameDefId: string, playerIds: string[]) => void;
 	/** `scoreKey` : l'id de catégorie pour la manche 1, suivi de la manche ensuite (lib/rounds). */
 	updateScore: (playerId: string, scoreKey: string, points: number) => void;
+	/** Coche ou décoche le critère d'une catégorie pour un joueur. Décoché, son score est effacé. */
+	setValidated: (playerId: string, scoreKey: string, validated: boolean) => void;
 	/** Change l'ordre de jeu : décale le joueur de `offset` places (négatif = vers le haut). */
 	movePlayer: (playerId: string, offset: number) => void;
 	setCurrentCategory: (categoryId: string, round?: number) => void;
@@ -97,6 +99,21 @@ export const useSessionStore = create<State & Actions>()(
 					entries: {
 						...get().entries,
 						[playerId]: { ...current, scores: { ...current.scores, [scoreKey]: points } },
+					},
+				});
+			},
+
+			setValidated: (playerId, scoreKey, validated) => {
+				const current = get().entries[playerId];
+				if (!current) return;
+				const others = (current.validated ?? []).filter((key) => key !== scoreKey);
+				const { [scoreKey]: _removed, ...otherScores } = current.scores;
+				set({
+					entries: {
+						...get().entries,
+						[playerId]: validated
+							? { ...current, validated: [...others, scoreKey] }
+							: { ...current, validated: others, scores: otherScores },
 					},
 				});
 			},

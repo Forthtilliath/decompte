@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PlayerOrderSheet } from "@/components/players/PlayerOrderSheet";
 import { PlayerScoreRow } from "@/components/players/PlayerScoreRow";
 import { CategoryScoreField } from "@/components/scoring/CategoryScoreField";
+import { ValidationCheckbox } from "@/components/scoring/ValidationCheckbox";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { SwipeView } from "@/components/ui/SwipeView";
@@ -31,6 +32,7 @@ export default function PlayScoreScreen() {
 	const playerIds = useSessionStore((s) => s.playerIds);
 	const entries = useSessionStore((s) => s.entries);
 	const updateScore = useSessionStore((s) => s.updateScore);
+	const setValidated = useSessionStore((s) => s.setValidated);
 	const setCurrentCategory = useSessionStore((s) => s.setCurrentCategory);
 	const movePlayer = useSessionStore((s) => s.movePlayer);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
@@ -163,13 +165,27 @@ export default function PlayScoreScreen() {
 					{gamePlayers.map((player) => {
 						const entry = entries[player.id];
 						if (!entry) return null;
+						// Un score déjà saisi vaut validation : critère ajouté au jeu en cours de partie.
+						const validated =
+							!category.requiresValidation ||
+							entry.validated?.includes(key) ||
+							entry.scores[key] !== undefined;
 						return (
 							<PlayerScoreRow key={player.id} player={player} total={computeEntryTotal(entry)}>
-								<CategoryScoreField
-									category={category}
-									points={entry.scores[key]}
-									onChange={(value) => updateScore(player.id, key, value)}
-								/>
+								{category.requiresValidation && (
+									<ValidationCheckbox
+										checked={validated}
+										color={category.color}
+										onChange={(checked) => setValidated(player.id, key, checked)}
+									/>
+								)}
+								{validated && (
+									<CategoryScoreField
+										category={category}
+										points={entry.scores[key]}
+										onChange={(value) => updateScore(player.id, key, value)}
+									/>
+								)}
 							</PlayerScoreRow>
 						);
 					})}
