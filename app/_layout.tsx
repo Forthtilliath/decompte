@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { useCloudAutoBackup } from "@/hooks/useCloudAutoBackup";
+import { useDataIssuesAlert } from "@/hooks/useDataIssuesAlert";
 import { useStackScreenOptions } from "@/hooks/useStackScreenOptions";
 import { useThemeStore } from "@/stores/themeStore";
 
@@ -10,6 +11,7 @@ export default function RootLayout() {
 	const screenOptions = useStackScreenOptions();
 	const mode = useThemeStore((s) => s.mode);
 	useCloudAutoBackup();
+	useDataIssuesAlert();
 
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
