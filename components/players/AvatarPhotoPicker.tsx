@@ -1,12 +1,12 @@
 import { Ionicons } from "@expo/vector-icons";
-import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
-import * as ImagePicker from "expo-image-picker";
-import { useMemo, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import type * as ImagePicker from "expo-image-picker";
+import { useMemo } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { usePhotoChoice } from "@/hooks/usePhotoChoice";
 import { saveAvatarPhoto } from "@/lib/avatarPhotos";
 
 const AVATAR_SIZE = 96;
@@ -35,48 +35,13 @@ type Props = {
 export function AvatarPhotoPicker({ name, seed, avatarUri, onChange }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
-	const [isSaving, setIsSaving] = useState(false);
-
-	const keepPhoto = async (result: ImagePicker.ImagePickerResult) => {
-		const asset = result.canceled ? undefined : result.assets[0];
-		if (!asset) return;
-		setIsSaving(true);
-		try {
-			onChange(await saveAvatarPhoto(asset.uri));
-		} catch {
-			Alert.alert("Photo non enregistrée", "La photo n'a pas pu être enregistrée. Réessaie.");
-		} finally {
-			setIsSaving(false);
-		}
-	};
-
-	const takePhoto = async () => {
-		const permission = await ImagePicker.requestCameraPermissionsAsync();
-		if (!permission.granted) {
-			Alert.alert(
-				"Accès à l'appareil photo refusé",
-				"Autorise l'accès dans les réglages du téléphone pour prendre une photo.",
-			);
-			return;
-		}
-		await keepPhoto(await ImagePicker.launchCameraAsync(PICKER_OPTIONS));
-	};
-
-	// Sélecteur de photos du système : aucune permission de stockage à demander.
-	const chooseFromLibrary = async () => {
-		await keepPhoto(await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS));
-	};
-
-	// Trois boutons au plus : Android n'en affiche pas davantage dans une alerte, d'où « Retirer la
-	// photo » à part, sous l'avatar.
-	const openChoices = () => {
-		tapFeedback();
-		Alert.alert("Photo du joueur", undefined, [
-			{ text: "Prendre une photo", onPress: () => void takePhoto() },
-			{ text: "Choisir dans la galerie", onPress: () => void chooseFromLibrary() },
-			{ text: "Annuler", style: "cancel" },
-		]);
-	};
+	// « Retirer la photo » à part, sous l'avatar : l'alerte du choix n'a pas de place pour lui.
+	const { choose: openChoices, isSaving } = usePhotoChoice({
+		title: "Photo du joueur",
+		pickerOptions: PICKER_OPTIONS,
+		save: saveAvatarPhoto,
+		onSaved: onChange,
+	});
 
 	return (
 		<View style={styles.container}>
