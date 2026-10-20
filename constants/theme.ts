@@ -10,6 +10,8 @@ export type ThemeColors = {
 	gold: string;
 	danger: string;
 	success: string;
+	/** Couleur de l'onglet Stats, en plus des 4 pions. */
+	purple: string;
 };
 
 // Thème jeu de société : bleu, rouge, vert et jaune (or) sont les couleurs des pions classiques.
@@ -29,6 +31,7 @@ export const DARK_COLORS: ThemeColors = {
 	gold: "#f2b632",
 	danger: "#d63c41",
 	success: "#1b8448",
+	purple: "#9d6ce0",
 };
 
 /** Palette claire « plateau carton » : crème de boîte de jeu, même mapping sémantique. */
@@ -44,6 +47,7 @@ export const LIGHT_COLORS: ThemeColors = {
 	gold: "#9a6a00",
 	danger: "#c0352f",
 	success: "#1f7a45",
+	purple: "#7440b5",
 };
 
 export const RADIUS = {

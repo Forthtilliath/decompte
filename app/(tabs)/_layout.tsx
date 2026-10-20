@@ -17,7 +17,7 @@ function tabIcon(name: ComponentProps<typeof Ionicons>["name"]) {
 export default function TabsLayout() {
 	const colors = useColors();
 
-	// Chaque onglet actif prend la couleur d'un des 4 pions classiques : bleu, rouge, vert, jaune.
+	// Chaque onglet actif a sa couleur : les 4 pions classiques (bleu, rouge, vert, jaune), plus violet pour Stats.
 	return (
 		<Tabs
 			screenOptions={{
@@ -60,6 +60,7 @@ export default function TabsLayout() {
 					title: "Statistiques",
 					tabBarLabel: "Stats",
 					tabBarIcon: tabIcon("stats-chart"),
+					tabBarActiveTintColor: colors.purple,
 				}}
 			/>
 			<Tabs.Screen
