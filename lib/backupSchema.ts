@@ -1,13 +1,15 @@
 import { z } from "zod";
 import { relinkAvatarPhotos } from "@/lib/avatarPhotos";
-import { brickSchema, importBrick } from "@/lib/gameExport";
+import { importBrick } from "@/lib/gameExport";
+import { storedBrickSchema } from "@/lib/gameExportSchema";
 import {
 	MAX_CATEGORIES,
+	MAX_FACTOR,
 	MAX_GAME_NAME_LENGTH,
 	MAX_LABEL_LENGTH,
 	MAX_PLAYERS,
 	MAX_ROUNDS,
-	MAX_SCORE,
+	MAX_SESSION_SCORE,
 	MAX_TEAM_NAME_LENGTH,
 } from "@/lib/gameLimits";
 import type { GameDef, Session } from "@/types/game";
@@ -37,8 +39,6 @@ export type BackupData = {
 export const MAX_ENTITIES = 1000;
 export const MAX_SESSIONS = 100_000;
 const MAX_NAME_LENGTH = 100;
-/** Total d'une catégorie pour un joueur : des jetons nombreux peuvent dépasser MAX_SCORE. */
-const MAX_SESSION_SCORE = MAX_SCORE * 1000;
 
 export const idSchema = z.string().min(1).max(64);
 /** Clé de score (lib/rounds) : id de catégorie, suivi de `#<manche>` après la première. */
@@ -86,7 +86,7 @@ export const gameSchema = z
 					id: idSchema,
 					label: nameSchema(MAX_LABEL_LENGTH),
 					color: colorSchema,
-					brick: brickSchema,
+					brick: storedBrickSchema,
 					requiresValidation: z.boolean().optional(),
 				}),
 			)
@@ -104,7 +104,19 @@ export const gameSchema = z
 	// Le départage désigne une catégorie de ce jeu.
 	.refine((g) => !g.tieBreakerId || g.categories.some((c) => c.id === g.tieBreakerId), {
 		path: ["tieBreakerId"],
-	});
+	})
+	// Un multiplicateur multiplie une catégorie placée avant lui (jamais lui-même, pas de boucle).
+	.refine(
+		(g) =>
+			g.categories.every(
+				(c, index) =>
+					c.brick.kind !== "product" ||
+					g.categories
+						.slice(0, index)
+						.some((s) => s.id === (c.brick as { sourceId: string }).sourceId),
+			),
+		{ path: ["categories"] },
+	);
 
 // `avatarUri` n'est jamais chargée telle quelle (adresse web, fichier d'un autre téléphone) : elle
 // sert seulement à retrouver, par son nom, une photo encore présente dans le dossier des avatars de
@@ -141,6 +153,11 @@ export const sessionEntriesSchema = boundedRecord(
 			.array(scoreKeySchema)
 			.max(MAX_CATEGORIES * MAX_ROUNDS)
 			.optional(),
+		// Nombres saisis des catégories multiplicateur, par clé de score (lib/products).
+		factors: boundedRecord(
+			z.number().int().min(0).max(MAX_FACTOR),
+			MAX_CATEGORIES * MAX_ROUNDS,
+		).optional(),
 	}),
 	MAX_PLAYERS,
 );

@@ -115,6 +115,21 @@ describe("parseBackup", () => {
 		expect(parse(data)).toEqual(data);
 	});
 
+	it("garde un multiplicateur et ses nombres saisis", () => {
+		const game = makeGame({
+			categories: [
+				makeCategory({ id: "c1" }),
+				makeCategory({ id: "p", brick: { kind: "product", sourceId: "c1" } }),
+			],
+		});
+		const session = makeSession({
+			playerIds: ["alice"],
+			entries: { alice: { ...makeEntry("alice", { c1: 4, p: 12 }), factors: { p: 3 } } },
+		});
+		const data = validBackup({ games: [game], sessions: [session] });
+		expect(parse(data)).toEqual(data);
+	});
+
 	it("garde les règles de classement et les équipes", () => {
 		const game = makeGame({ lowestWins: true, tieBreakerId: "c1", teamPlay: true });
 		const session = makeSession({
@@ -174,6 +189,25 @@ describe("parseBackup", () => {
 			},
 		],
 		["un départage sur une catégorie inconnue", { games: [makeGame({ tieBreakerId: "x" })] }],
+		[
+			"un multiplicateur sur une catégorie placée après lui",
+			{
+				games: [
+					makeGame({
+						categories: [
+							makeCategory({ id: "p", brick: { kind: "product", sourceId: "c1" } }),
+							makeCategory({ id: "c1" }),
+						],
+					}),
+				],
+			},
+		],
+		[
+			"un nombre de multiplicateur hors bornes",
+			{
+				sessions: [makeSession({ entries: { a: { ...makeEntry("a"), factors: { c1: 1000 } } } })],
+			},
+		],
 		[
 			"un joueur dans deux équipes",
 			{

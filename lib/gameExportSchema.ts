@@ -25,8 +25,9 @@ export const GAME_EXPORT_VERSION = 1;
 const label = (max: number) => z.string().trim().min(1).max(max);
 const score = z.number().min(-MAX_SCORE).max(MAX_SCORE);
 
-/** Aussi appliqué aux jeux d'une sauvegarde complète (lib/backupSchema) : mêmes règles partout. */
-export const brickSchema = z.discriminatedUnion("kind", [
+/** Types de calcul communs au partage et à la sauvegarde complète (lib/backupSchema) : mêmes règles
+ * partout. Seul le multiplicateur diffère, qui désigne une autre catégorie (voir plus bas). */
+const sharedBrickVariants = [
 	z.object({
 		kind: z.literal("manual"),
 		allowNegative: z.boolean(),
@@ -58,9 +59,25 @@ export const brickSchema = z.discriminatedUnion("kind", [
 	z
 		.object({ kind: z.literal("boolean"), yesValue: score, noValue: score })
 		.refine((b) => b.yesValue !== b.noValue, { path: ["noValue"] }),
+] as const;
+
+/** Brique d'un jeu partagé. Le multiplicateur y désigne sa catégorie par position (à partir de 0),
+ * les id ne voyageant pas ; clé ajoutée sans changer de version : une version antérieure de l'app
+ * refuse ce jeu (type de calcul inconnu) plutôt que de le jouer faux. */
+export const brickSchema = z.discriminatedUnion("kind", [
+	...sharedBrickVariants,
+	z.object({ kind: z.literal("product"), source: z.number().int().min(0).max(MAX_CATEGORIES) }),
+]);
+
+/** Brique d'un jeu enregistré (sauvegarde complète, stores) : le multiplicateur désigne sa
+ * catégorie par id. */
+export const storedBrickSchema = z.discriminatedUnion("kind", [
+	...sharedBrickVariants,
+	z.object({ kind: z.literal("product"), sourceId: z.string().min(1).max(64) }),
 ]);
 
 export type ExportedBrick = z.infer<typeof brickSchema>;
+export type StoredBrick = z.infer<typeof storedBrickSchema>;
 
 const gameSchema = z
 	.object({
@@ -93,7 +110,12 @@ const gameSchema = z
 	.refine((g) => g.maxPlayers >= g.minPlayers, { path: ["maxPlayers"] })
 	.refine((g) => g.tieBreaker === undefined || g.tieBreaker < g.categories.length, {
 		path: ["tieBreaker"],
-	});
+	})
+	// Un multiplicateur multiplie une catégorie placée avant lui (jamais lui-même, pas de boucle).
+	.refine(
+		(g) => g.categories.every((c, index) => c.brick.kind !== "product" || c.brick.source < index),
+		{ path: ["categories"] },
+	);
 
 // `z.object` supprime les clés inconnues au lieu de les garder : rien d'inattendu n'entre en stockage.
 export const exportSchema = z.object({
