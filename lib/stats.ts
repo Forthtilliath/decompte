@@ -2,21 +2,27 @@ import { round } from "@forthtilliath/ts-kit/number/round";
 import { sumByCategory } from "@/lib/rounds";
 import type { CategoryDef, Session } from "@/types/game";
 import type { Player } from "@/types/player";
-import { type RankedEntry, rankEntries } from "./scoring";
+import { type RankedEntry, rankSession, type SessionRanking } from "./scoring";
 
 // Une partie enregistrée n'est jamais modifiée (le store remplace le tableau, pas ses éléments) :
 // son classement peut être gardé tant qu'elle existe, et partagé entre toutes les statistiques et
 // la liste de l'historique, qui sinon le retrieraient chacune à chaque rendu.
-const rankingCache = new WeakMap<Session, readonly RankedEntry[]>();
+const rankingCache = new WeakMap<Session, SessionRanking>();
 
-/** Classement d'une partie de l'historique (même calcul que l'écran de détail), calculé une fois. */
-export function getSessionRanking(session: Session): readonly RankedEntry[] {
+/** Classement complet d'une partie de l'historique (joueurs et équipes), calculé une fois. */
+export function getFullSessionRanking(session: Session): SessionRanking {
 	let ranking = rankingCache.get(session);
 	if (!ranking) {
-		ranking = rankEntries(Object.values(session.entries));
+		ranking = rankSession(session);
 		rankingCache.set(session, ranking);
 	}
 	return ranking;
+}
+
+/** Classement des joueurs d'une partie (même calcul que l'écran de détail). En équipes, chacun
+ * prend le rang de son équipe : une victoire d'équipe compte pour chacun de ses joueurs. */
+export function getSessionRanking(session: Session): readonly RankedEntry[] {
+	return getFullSessionRanking(session).players;
 }
 
 /** Date de fin d'une partie : `finishedAt` n'existe pas sur les très anciennes parties. */
@@ -58,14 +64,18 @@ export function computePlayerStats(
 
 	let wins = 0;
 	let totalSum = 0;
-	let bestTotal = Number.NEGATIVE_INFINITY;
+	// Meilleur total : le plus haut, sauf aux jeux où le plus bas gagne (le plus bas, alors). Les
+	// deux mélangés (tous jeux confondus), seuls les jeux ordinaires comptent.
+	let bestHigh: number | null = null;
+	let bestLow: number | null = null;
 	const categorySums: Record<string, number> = {};
 
 	for (const session of played) {
 		const score = getSessionRanking(session).find((r) => r.playerId === playerId);
 		if (!score) continue;
 		totalSum += score.total;
-		bestTotal = Math.max(bestTotal, score.total);
+		if (session.lowestWins) bestLow = Math.min(bestLow ?? score.total, score.total);
+		else bestHigh = Math.max(bestHigh ?? score.total, score.total);
 		if (score.rank === 1) wins++;
 
 		const scores = sumByCategory(session.entries[playerId].scores);
@@ -84,7 +94,7 @@ export function computePlayerStats(
 		wins,
 		winRate: wins / played.length,
 		averageTotal: totalSum / played.length,
-		bestTotal,
+		bestTotal: bestHigh ?? bestLow ?? 0,
 		averageByCategory,
 	};
 }
@@ -96,9 +106,11 @@ export type GlobalRecords = {
 };
 
 /**
- * Records de l'historique donné : meilleur score, plus longue série de victoires d'un même joueur
- * (une partie à laquelle il n'a pas participé ne la coupe pas), et plus petit écart entre les deux
- * premiers d'une partie. Chaque record vaut `null` si aucune partie ne permet de l'établir.
+ * Records de l'historique donné : meilleur score (hors jeux où le plus bas gagne, où un gros total
+ * n'a rien d'un exploit), plus longue série de victoires d'un même joueur (une partie à laquelle il
+ * n'a pas participé ne la coupe pas), et plus petit écart entre les deux premiers d'une partie
+ * (les deux premières équipes en équipes). Chaque record vaut `null` si aucune partie ne permet de
+ * l'établir.
  */
 export function computeGlobalRecords(sessions: Session[]): GlobalRecords {
 	let bestScore: GlobalRecords["bestScore"] = null;
@@ -111,11 +123,11 @@ export function computeGlobalRecords(sessions: Session[]): GlobalRecords {
 	const chronological = [...sessions].sort((a, b) => playedAt(a) - playedAt(b));
 
 	for (const session of chronological) {
-		const ranking = getSessionRanking(session);
+		const { players: ranking, teams } = getFullSessionRanking(session);
 		const where = { sessionId: session.id, gameDefId: session.gameDefId };
 
 		for (const score of ranking) {
-			if (!bestScore || score.total > bestScore.total) {
+			if (!session.lowestWins && (!bestScore || score.total > bestScore.total)) {
 				bestScore = { playerId: score.playerId, total: score.total, ...where };
 			}
 			const streak = score.rank === 1 ? (currentStreak.get(score.playerId) ?? 0) + 1 : 0;
@@ -125,8 +137,9 @@ export function computeGlobalRecords(sessions: Session[]): GlobalRecords {
 			}
 		}
 
-		if (ranking.length >= 2) {
-			const gap = ranking[0].total - ranking[1].total;
+		const contenders = teams ?? ranking;
+		if (contenders.length >= 2) {
+			const gap = Math.abs(contenders[0].total - contenders[1].total);
 			if (!closestGame || gap < closestGame.gap) {
 				closestGame = { gap, playedAt: playedAt(session), ...where };
 			}

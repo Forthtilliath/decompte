@@ -52,6 +52,31 @@ export type GameDef = {
 	/** Jamais de suppression définitive (même logique que Player/PlayerGroup) : un jeu archivé
 	 * disparaît de la liste active mais reste résolvable pour l'historique des parties déjà jouées. */
 	isArchived: boolean;
+	/** Jeu en équipes : au lancement, chaque joueur rejoint une équipe, et le classement se fait sur
+	 * le total de chaque équipe (somme de ses joueurs). */
+	teamPlay?: boolean;
+} & RankingRules;
+
+/**
+ * Règles de classement d'un jeu (absentes : le plus haut total gagne, égalités partagées). Elles
+ * sont recopiées dans chaque partie à son lancement : modifier le jeu ne reclasse pas l'historique.
+ */
+export type RankingRules = {
+	/** Le total le plus bas gagne (golf, Skyjo…). */
+	lowestWins?: boolean;
+	/** Catégorie qui départage deux totaux égaux : le plus de points dans cette catégorie
+	 * (toutes manches confondues) passe devant. */
+	tieBreakerId?: string;
+};
+
+/** Ce que le lancement d'une partie reprend du jeu, en plus des joueurs. */
+export type SessionSetup = RankingRules & { teams?: Team[] };
+
+/** Une équipe d'une partie en équipes : son total est la somme de ceux de ses joueurs. */
+export type Team = {
+	id: string;
+	name: string;
+	playerIds: string[];
 };
 
 /** Scores d'un joueur pour une partie, indexés par id de catégorie (et par manche, voir
@@ -72,7 +97,9 @@ export type Session = {
 	finishedAt?: number;
 	playerIds: string[];
 	entries: Record<string, SessionEntry>;
-};
+	/** Équipes d'une partie en équipes (absentes : chacun pour soi). */
+	teams?: Team[];
+} & RankingRules;
 
 export function createEmptySessionEntry(playerId: string): SessionEntry {
 	return { playerId, scores: {} };
