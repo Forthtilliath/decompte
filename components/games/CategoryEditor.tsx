@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import { BooleanBrickEditor } from "@/components/games/bricks/BooleanBrickEditor";
 import { ChoiceBrickEditor } from "@/components/games/bricks/ChoiceBrickEditor";
 import { ManualBrickEditor } from "@/components/games/bricks/ManualBrickEditor";
+import { ProductBrickEditor } from "@/components/games/bricks/ProductBrickEditor";
 import { TokenBrickEditor } from "@/components/games/bricks/TokenBrickEditor";
 import { CategoryColorSheet, categoryColorName } from "@/components/games/CategoryColorSheet";
 import { RadioGroup } from "@/components/ui/RadioGroup";
@@ -18,6 +19,8 @@ type Props = {
 	category: DraftCategory;
 	/** Couleur affichée : celle choisie, sinon celle que la position donnera à l'enregistrement. */
 	color: string;
+	/** Catégories placées au-dessus, que celle-ci peut multiplier (type « Multiplicateur »). */
+	previousCategories: DraftCategory[];
 	onChange: (patch: Partial<DraftCategory>) => void;
 	onRemove: () => void;
 };
@@ -27,10 +30,11 @@ const BRICK_OPTIONS: { value: ScoringBrick["kind"]; label: string }[] = [
 	{ value: "tokens", label: "Jetons" },
 	{ value: "choice", label: "Choix" },
 	{ value: "boolean", label: "Oui / Non" },
+	{ value: "product", label: "Multiplicateur" },
 ];
 
 /** Une catégorie du formulaire de jeu : nom, type de calcul et réglages propres à ce type. */
-export function CategoryEditor({ category, color, onChange, onRemove }: Props) {
+export function CategoryEditor({ category, color, previousCategories, onChange, onRemove }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
 	const [colorSheetOpen, setColorSheetOpen] = useState(false);
@@ -76,6 +80,9 @@ export function CategoryEditor({ category, color, onChange, onRemove }: Props) {
 			{brick.kind === "tokens" && <TokenBrickEditor brick={brick} onChange={setBrick} />}
 			{brick.kind === "choice" && <ChoiceBrickEditor brick={brick} onChange={setBrick} />}
 			{brick.kind === "boolean" && <BooleanBrickEditor brick={brick} onChange={setBrick} />}
+			{brick.kind === "product" && (
+				<ProductBrickEditor brick={brick} sources={previousCategories} onChange={setBrick} />
+			)}
 
 			<Pressable
 				style={styles.switchRow}
