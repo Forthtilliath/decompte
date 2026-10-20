@@ -87,6 +87,26 @@ describe("computePlayerStats", () => {
 		const negative = [duel("n", 1, { alice: { malus: -3 }, bob: { malus: -1 } })];
 		expect(computePlayerStats("alice", negative).bestTotal).toBe(-3);
 	});
+
+	it("prend le plus bas total comme meilleur score quand le plus bas gagne", () => {
+		const skyjo = [
+			{ ...duel("k1", 1, { alice: { murs: 40 }, bob: { murs: 50 } }), lowestWins: true },
+			{ ...duel("k2", 2, { alice: { murs: 12 }, bob: { murs: 3 } }), lowestWins: true },
+		];
+		expect(computePlayerStats("alice", skyjo)).toMatchObject({ wins: 1, bestTotal: 12 });
+	});
+
+	it("compte la victoire de l'équipe pour chacun de ses joueurs", () => {
+		const teamGame = {
+			...duel("e", 1, { alice: { murs: 1 }, bob: { murs: 9 }, carole: { murs: 5 } }),
+			teams: [
+				{ id: "t1", name: "A", playerIds: ["alice", "bob"] },
+				{ id: "t2", name: "B", playerIds: ["carole"] },
+			],
+		};
+		expect(computePlayerStats("alice", [teamGame]).wins).toBe(1);
+		expect(computePlayerStats("carole", [teamGame]).wins).toBe(0);
+	});
 });
 
 describe("computeGlobalRecords", () => {
@@ -104,6 +124,26 @@ describe("computeGlobalRecords", () => {
 			longestWinStreak: { playerId: "alice", streak: 2 },
 			closestGame: { gap: 1, sessionId: "s2", gameDefId: "azul", playedAt: 200 },
 		});
+	});
+
+	it("ignore les jeux où le plus bas gagne pour le meilleur score", () => {
+		const sessions = [
+			{ ...duel("k", 1, { alice: { murs: 99 }, bob: { murs: 98 } }), lowestWins: true },
+			duel("a", 2, { alice: { murs: 9 }, bob: { murs: 1 } }),
+		];
+		expect(computeGlobalRecords(sessions).bestScore?.total).toBe(9);
+		expect(computeGlobalRecords(sessions).closestGame?.gap).toBe(1);
+	});
+
+	it("mesure l'écart entre les deux premières équipes d'une partie en équipes", () => {
+		const teamGame = {
+			...duel("e", 1, { alice: { murs: 1 }, bob: { murs: 9 }, carole: { murs: 7 } }),
+			teams: [
+				{ id: "t1", name: "A", playerIds: ["alice", "bob"] },
+				{ id: "t2", name: "B", playerIds: ["carole"] },
+			],
+		};
+		expect(computeGlobalRecords([teamGame]).closestGame?.gap).toBe(3);
 	});
 
 	it("ne coupe pas une série sur une partie où le joueur était absent", () => {
