@@ -86,7 +86,7 @@ Assurée par [`@forthtilliath/expo-backup`](https://github.com/Forthtilliath/for
 
 La mise à jour intégrée compare la version de l'app (`version` de `package.json` et `app.json`, identiques, vérifié par un test) au tag de la release GitHub la plus haute, pre-releases comprises. Pour chaque version :
 
-1. Monter `version` dans `package.json` et `app.json`, et `android.versionCode` dans `app.json`.
+1. `npm run bump` monte `version` dans `package.json`, `package-lock.json` et `app.json`, et `android.versionCode` dans `app.json` (pre-release suivante par défaut, ou `npm run bump -- patch|minor|major|x.y.z`).
 2. Créer la release `v<version>` avec l'APK nommé `Decompte-<version>.apk`. Les notes de release s'affichent dans Réglages ▸ Mises à jour.
 
 ## Sécurité
