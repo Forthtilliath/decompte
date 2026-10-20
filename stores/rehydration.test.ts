@@ -1,3 +1,4 @@
+import { readPersisted, writePersisted } from "@forthtilliath/test-kit/persistedState";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { MigrationSteps } from "@/lib/persistedState";
 import { useDataIssuesStore } from "@/stores/dataIssuesStore";
@@ -9,7 +10,6 @@ import { SESSION_MIGRATIONS, SESSION_STORE_VERSION, useSessionStore } from "@/st
 import { THEME_STORE_VERSION, useThemeStore } from "@/stores/themeStore";
 import { makeCategory, makeEntry, makeGame, makePlayer } from "@/test/factories";
 import { memoryFiles, resetMemoryFiles } from "@/test/fileSystem";
-import { readPersisted, writePersisted } from "@/test/persistence";
 
 jest.mock("expo-file-system", () => require("@/test/fileSystem").memoryFileSystem);
 jest.mock("@forthtilliath/react-native-kit/utils/files/appFiles", () =>
@@ -45,7 +45,7 @@ describe("versions des stores", () => {
 describe("relecture des stores", () => {
 	it("recharge des jeux valides", async () => {
 		const games = [makeGame()];
-		await writePersisted("games-store", { games }, GAMES_STORE_VERSION);
+		await writePersisted(AsyncStorage, "games-store", { games }, GAMES_STORE_VERSION);
 
 		await useGamesStore.persist.rehydrate();
 
@@ -65,7 +65,7 @@ describe("relecture des stores", () => {
 				},
 			],
 		};
-		await writePersisted("games-store", { games: [legacyGame] }, 1);
+		await writePersisted(AsyncStorage, "games-store", { games: [legacyGame] }, 1);
 
 		await useGamesStore.persist.rehydrate();
 
@@ -76,13 +76,13 @@ describe("relecture des stores", () => {
 			{ kind: "tokens", tokens: [{ label: "Victoire", value: 1 }] },
 		]);
 		expect(readCopy("games-store-v1-avant-migration.json").state).toEqual({ games: [legacyGame] });
-		expect((await readPersisted("games-store")).version).toBe(GAMES_STORE_VERSION);
+		expect((await readPersisted(AsyncStorage, "games-store")).version).toBe(GAMES_STORE_VERSION);
 		expect(useDataIssuesStore.getState().issues).toEqual([]);
 	});
 
 	it("démarre sans joueurs écrits par une version plus récente, sans les perdre", async () => {
 		const players = [makePlayer({ id: "futur" })];
-		await writePersisted("players-store", { players }, PLAYERS_STORE_VERSION + 1);
+		await writePersisted(AsyncStorage, "players-store", { players }, PLAYERS_STORE_VERSION + 1);
 
 		await usePlayersStore.persist.rehydrate();
 
@@ -96,7 +96,7 @@ describe("relecture des stores", () => {
 
 	it("démarre sans jeux si l'un d'eux est abîmé, en gardant la copie brute", async () => {
 		const games = [makeGame(), makeGame({ id: "abime", minPlayers: 5, maxPlayers: 2 })];
-		await writePersisted("games-store", { games }, GAMES_STORE_VERSION);
+		await writePersisted(AsyncStorage, "games-store", { games }, GAMES_STORE_VERSION);
 
 		await useGamesStore.persist.rehydrate();
 
@@ -112,7 +112,7 @@ describe("relecture des stores", () => {
 			entries: { p1: makeEntry("p1", { c1: 4 }) },
 			startedAt: 1_000,
 		};
-		await writePersisted("session-store", legacy, SESSION_STORE_VERSION);
+		await writePersisted(AsyncStorage, "session-store", legacy, SESSION_STORE_VERSION);
 
 		await useSessionStore.persist.rehydrate();
 
@@ -121,6 +121,7 @@ describe("relecture des stores", () => {
 
 	it("ignore une partie en cours aux scores illisibles", async () => {
 		await writePersisted(
+			AsyncStorage,
 			"session-store",
 			{ gameDefId: "game1", playerIds: ["p1"], entries: { p1: { scores: "12" } }, startedAt: 0 },
 			SESSION_STORE_VERSION,
@@ -132,7 +133,12 @@ describe("relecture des stores", () => {
 	});
 
 	it("revient au thème sombre sur un mode inconnu, sans alerte", async () => {
-		await writePersisted("theme-store", { mode: "rose", backgrounds: {} }, THEME_STORE_VERSION);
+		await writePersisted(
+			AsyncStorage,
+			"theme-store",
+			{ mode: "rose", backgrounds: {} },
+			THEME_STORE_VERSION,
+		);
 
 		await useThemeStore.persist.rehydrate();
 

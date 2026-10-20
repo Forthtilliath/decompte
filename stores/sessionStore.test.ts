@@ -1,3 +1,4 @@
+import { readPersisted, writePersisted } from "@forthtilliath/test-kit/persistedState";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useHistoryStore } from "@/stores/historyStore";
 import {
@@ -5,7 +6,6 @@ import {
 	SESSION_STORE_VERSION,
 	useSessionStore,
 } from "@/stores/sessionStore";
-import { readPersisted, writePersisted } from "@/test/persistence";
 
 const EMPTY = {
 	gameDefId: null,
@@ -144,7 +144,7 @@ describe("useSessionStore", () => {
 describe("persistance de la partie en cours", () => {
 	it("écrit sous la clé et la version attendues, sans les fonctions", async () => {
 		useSessionStore.getState().startNewSession("azul", ["p1"]);
-		const persisted = await readPersisted("session-store");
+		const persisted = await readPersisted(AsyncStorage, "session-store");
 		expect(persisted.version).toBe(1);
 		expect(persisted.state).toEqual({
 			gameDefId: "azul",
@@ -158,6 +158,7 @@ describe("persistance de la partie en cours", () => {
 
 	it("reprend une partie interrompue (app fermée en cours de saisie)", async () => {
 		await writePersisted(
+			AsyncStorage,
 			"session-store",
 			{
 				gameDefId: "azul",
@@ -181,6 +182,7 @@ describe("persistance de la partie en cours", () => {
 
 	it("complète une partie enregistrée avant le suivi de l'étape (currentCategoryId absent)", async () => {
 		await writePersisted(
+			AsyncStorage,
 			"session-store",
 			{ gameDefId: "azul", playerIds: ["p1"], entries: {}, startedAt: 500 },
 			SESSION_STORE_VERSION,
