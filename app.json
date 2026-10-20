@@ -37,7 +37,16 @@
 			["expo-image-picker", { "microphonePermission": false }],
 			["@forthtilliath/expo-config-plugins/withReleaseSigning", { "propertyPrefix": "DECOMPTE" }],
 			"@forthtilliath/expo-config-plugins/withAndroidAbis",
-			"expo-image"
+			"expo-image",
+			[
+				"expo-build-properties",
+				{
+					"android": {
+						"enableMinifyInReleaseBuilds": true,
+						"enableShrinkResourcesInReleaseBuilds": true
+					}
+				}
+			]
 		]
 	}
 }
