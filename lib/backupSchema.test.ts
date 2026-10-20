@@ -102,6 +102,19 @@ describe("parseBackup", () => {
 		expect(Object.keys(restored.sessions[0].entries.alice.scores)).toHaveLength(60);
 	});
 
+	it("garde les critères à valider des jeux et ceux validés dans les parties", () => {
+		const data = validBackup({
+			games: [makeGame({ categories: [makeCategory({ requiresValidation: true })] })],
+			sessions: [
+				makeSession({
+					playerIds: ["alice"],
+					entries: { alice: { ...makeEntry("alice", { c1: 4 }), validated: ["c1", "c1#2"] } },
+				}),
+			],
+		});
+		expect(parse(data)).toEqual(data);
+	});
+
 	it.each([
 		["un texte qui n'est pas du JSON", "pas du json", /illisible/],
 		[
@@ -131,6 +144,18 @@ describe("parseBackup", () => {
 		[
 			"un score hors bornes",
 			{ sessions: [makeSession({ entries: { a: makeEntry("a", { c1: 1e12 }) } })] },
+		],
+		[
+			"un critère à valider qui n'est pas un booléen",
+			{
+				games: [makeGame({ categories: [{ ...makeCategory(), requiresValidation: 1 as never }] })],
+			},
+		],
+		[
+			"un critère validé à la clé invalide",
+			{
+				sessions: [makeSession({ entries: { a: { ...makeEntry("a"), validated: ["c1#2#3"] } } })],
+			},
 		],
 		["des joueurs au même id", { players: [makePlayer({ id: "a" }), makePlayer({ id: "a" })] }],
 		[

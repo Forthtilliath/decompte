@@ -79,6 +79,9 @@ const gameSchema = z
 					label: label(MAX_LABEL_LENGTH),
 					color: z.enum(AVATAR_PALETTE).optional(),
 					brick: brickSchema,
+					// Clé ajoutée sans changer de version : une version antérieure de l'app la
+					// supprime à l'import et garde une catégorie sans critère, toujours jouable.
+					requiresValidation: z.boolean().optional(),
 				}),
 			)
 			.min(1)
@@ -101,7 +104,12 @@ export type ImportedGame = {
 	minPlayers: number;
 	maxPlayers: number;
 	rounds: number;
-	categories: { label: string; color: string; brick: ScoringBrick }[];
+	categories: {
+		label: string;
+		color: string;
+		brick: ScoringBrick;
+		requiresValidation?: boolean;
+	}[];
 };
 
 export type ImportResult = { ok: true; game: ImportedGame } | { ok: false; error: string };
@@ -144,6 +152,7 @@ export function serializeGame(game: GameDef): string {
 				// Une couleur hors palette (possible via une sauvegarde) serait refusée à l'import.
 				...(isPaletteColor(c.color) && { color: c.color }),
 				brick: exportBrick(c.brick),
+				...(c.requiresValidation && { requiresValidation: true }),
 			})),
 		},
 	});
@@ -183,6 +192,7 @@ const FIELD_NAMES: Record<string, string> = {
 	value: "valeur",
 	yesValue: "score si Oui",
 	noValue: "score si Non",
+	requiresValidation: "critère à valider",
 };
 
 /** Chemin zod (`game.categories.1.label`) lisible : « catégories n° 2 › libellé ». */
@@ -242,6 +252,7 @@ export function parseGameExport(text: string): ImportResult {
 				label: c.label,
 				color: c.color ?? paletteColor(index),
 				brick: importBrick(c.brick),
+				...(c.requiresValidation && { requiresValidation: true }),
 			})),
 		},
 	};

@@ -169,6 +169,19 @@ describe("serializeGame / parseGameExport", () => {
 		expect(legacy.game.rounds).toBe(1);
 	});
 
+	it("transmet le critère à valider, absent des catégories sans critère", () => {
+		const game = makeGame({
+			categories: [makeCategory({ requiresValidation: true }), makeCategory({ id: "c2" })],
+		});
+		const text = serializeGame(game);
+		expect(text.match(/requiresValidation/g)).toHaveLength(1);
+
+		const result = parseGameExport(text);
+		if (!result.ok) throw new Error(result.error);
+		expect(result.game.categories[0].requiresValidation).toBe(true);
+		expect(result.game.categories[1]).not.toHaveProperty("requiresValidation");
+	});
+
 	it("nettoie les espaces des libellés", () => {
 		const result = parseGameExport(envelope({ ...validGame, name: "  Azul  " }));
 
@@ -226,6 +239,10 @@ describe("parseGameExport : rejets", () => {
 		[
 			"score non numérique",
 			{ categories: [{ label: "A", brick: { kind: "boolean", yesValue: "1", noValue: 0 } }] },
+		],
+		[
+			"critère à valider non booléen",
+			{ categories: [{ ...validGame.categories[0], requiresValidation: "oui" }] },
 		],
 		["jetons vides", { categories: [{ label: "A", brick: { kind: "tokens", tokens: [] } }] }],
 		[

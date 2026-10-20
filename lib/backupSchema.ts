@@ -40,6 +40,8 @@ const MAX_NAME_LENGTH = 100;
 const MAX_SESSION_SCORE = MAX_SCORE * 1000;
 
 export const idSchema = z.string().min(1).max(64);
+/** Clé de score (lib/rounds) : id de catégorie, suivi de `#<manche>` après la première. */
+const scoreKeySchema = z.string().regex(/^[^#]{1,64}(#\d{1,3})?$/);
 export const timestampSchema = z.number().int().nonnegative();
 const nameSchema = (max: number) => z.string().trim().min(1).max(max);
 const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
@@ -62,6 +64,7 @@ export const gameSchema = z
 					label: nameSchema(MAX_LABEL_LENGTH),
 					color: colorSchema,
 					brick: brickSchema,
+					requiresValidation: z.boolean().optional(),
 				}),
 			)
 			.min(1)
@@ -104,6 +107,11 @@ export const sessionEntriesSchema = boundedRecord(
 			z.number().min(-MAX_SESSION_SCORE).max(MAX_SESSION_SCORE),
 			MAX_CATEGORIES * MAX_ROUNDS,
 		),
+		// Clés de score dont le critère est validé (catégories à critère seulement).
+		validated: z
+			.array(scoreKeySchema)
+			.max(MAX_CATEGORIES * MAX_ROUNDS)
+			.optional(),
 	}),
 	MAX_PLAYERS,
 );
