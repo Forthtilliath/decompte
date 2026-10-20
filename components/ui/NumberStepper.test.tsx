@@ -72,6 +72,24 @@ describe("NumberStepper", () => {
 		expect(tapFeedback).toHaveBeenCalledTimes(1);
 	});
 
+	it("grise le bouton qui ne peut plus rien changer, à chaque borne", async () => {
+		await render(<Controlled label="Points" initial={9} min={8} max={10} />);
+		const plus = () => screen.getByRole("button", { name: "Augmenter Points" });
+		const minus = () => screen.getByRole("button", { name: "Diminuer Points" });
+		expect(plus()).toBeEnabled();
+		expect(minus()).toBeEnabled();
+
+		await press("Augmenter Points");
+		expect(plus()).toBeDisabled();
+		expect(plus()).toHaveStyle({ opacity: 0.4 });
+		expect(minus()).toBeEnabled();
+
+		await press("Diminuer Points");
+		await press("Diminuer Points");
+		expect(minus()).toBeDisabled();
+		expect(plus()).toBeEnabled();
+	});
+
 	it("accepte une saisie clavier, bornée", async () => {
 		const onChange = jest.fn();
 		await render(<Controlled label="Points" min={0} max={50} onChange={onChange} />);
@@ -140,6 +158,18 @@ describe("NumberStepper", () => {
 			await act(() => jest.advanceTimersByTime(3000));
 			expect(input()).toHaveDisplayValue("0");
 			await fireEvent(minus, "pressOut");
+		});
+
+		it("arrête de répéter à la borne, même sans relâchement", async () => {
+			const onChange = jest.fn();
+			await render(<Controlled label="Points" initial={8} max={10} onChange={onChange} />);
+			await fireEvent(screen.getByRole("button", { name: "Augmenter Points" }), "pressIn");
+			await act(() => jest.advanceTimersByTime(1000));
+			expect(input()).toHaveDisplayValue("10");
+
+			onChange.mockClear();
+			await act(() => jest.advanceTimersByTime(5000));
+			expect(onChange).not.toHaveBeenCalled();
 		});
 
 		it("ne s'emballe pas sur deux tapes rapides", async () => {
