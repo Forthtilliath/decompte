@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react-native";
+import { render } from "@testing-library/react-native";
 import { ManualPointsFields } from "@/components/scoring/ManualPointsFields";
 import { tapStepper } from "@/test/interactions";
 
@@ -20,7 +20,7 @@ describe("ManualPointsFields", () => {
 	});
 
 	describe("valeur par unité (ex. −4 par calamité)", () => {
-		it("en mode points, avance par pas de la valeur et descend sous zéro", async () => {
+		it("avance par pas de la valeur et descend sous zéro", async () => {
 			const onChange = jest.fn();
 			await render(
 				<ManualPointsFields points={-4} color="#f00" unitValue={-4} onChange={onChange} />,
@@ -29,50 +29,16 @@ describe("ManualPointsFields", () => {
 			expect(onChange).toHaveBeenLastCalledWith(-8);
 		});
 
-		it("en mode comptage, multiplie le nombre d'unités", async () => {
+		it("avance par pas d'une unité positive sans descendre sous zéro", async () => {
 			const onChange = jest.fn();
 			await render(
-				<ManualPointsFields
-					points={-8}
-					color="#f00"
-					unitValue={-4}
-					countUnits
-					label="Calamités"
-					onChange={onChange}
-				/>,
+				<ManualPointsFields points={4} color="#f00" unitValue={4} onChange={onChange} />,
 			);
-			expect(screen.getByLabelText("Calamités")).toHaveDisplayValue("2");
-			expect(screen.getByText("2 × -4 = -8 pts")).toBeOnTheScreen();
-			await tapStepper("Augmenter Calamités");
-			expect(onChange).toHaveBeenLastCalledWith(-12);
-		});
-
-		it("en mode comptage, ne descend pas sous zéro unité", async () => {
-			const onChange = jest.fn();
-			await render(
-				<ManualPointsFields
-					points={0}
-					color="#f00"
-					unitValue={-4}
-					countUnits
-					onChange={onChange}
-				/>,
-			);
+			await tapStepper("Augmenter");
+			expect(onChange).toHaveBeenLastCalledWith(8);
+			await tapStepper("Diminuer");
 			await tapStepper("Diminuer");
 			expect(onChange).toHaveBeenLastCalledWith(0);
-		});
-
-		it("signale un score ajusté hors multiple de l'unité", async () => {
-			await render(
-				<ManualPointsFields
-					points={-5}
-					color="#f00"
-					unitValue={-4}
-					countUnits
-					onChange={jest.fn()}
-				/>,
-			);
-			expect(screen.getByText("Ajusté en points : -5 pts")).toBeOnTheScreen();
 		});
 	});
 
