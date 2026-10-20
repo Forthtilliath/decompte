@@ -52,9 +52,31 @@ describe("GameBuilderForm", () => {
 			maxPlayers: 4,
 			rounds: 1,
 			categories: [
-				{ label: "Murs", color: "#ef4444", brick: { kind: "manual", allowNegative: false } },
+				{
+					id: expect.any(String),
+					label: "Murs",
+					color: "#ef4444",
+					brick: { kind: "manual", allowNegative: false },
+				},
 			],
+			lowestWins: false,
+			tieBreakerId: undefined,
+			teamPlay: false,
 		});
+	});
+
+	it("règle le classement : le plus bas gagne, départage, équipes", async () => {
+		const onSubmit = await renderForm();
+		await type("Nom du jeu", "Skyjo");
+		await type("Nom de la catégorie", "Manche");
+		await fireEvent(screen.getByLabelText("Le score le plus bas gagne"), "valueChange", true);
+		await fireEvent(screen.getByLabelText("Jeu en équipes"), "valueChange", true);
+		await fireEvent.press(screen.getByRole("radio", { name: "Manche" }));
+		await press("Créer le jeu");
+
+		const values = onSubmit.mock.calls[0][0];
+		expect(values).toMatchObject({ lowestWins: true, teamPlay: true });
+		expect(values.tieBreakerId).toBe(values.categories[0].id);
 	});
 
 	it("choisit la couleur d'une catégorie", async () => {
@@ -231,7 +253,8 @@ describe("GameBuilderForm", () => {
 			label: "Murs complets",
 			color: "#14b8a6",
 		});
-		expect(categories[1].id).toBeUndefined();
+		expect(categories[1].id).toEqual(expect.any(String));
+		expect(categories[1].id).not.toBe("murs-id");
 		expect(categories[1].color).toBe("#ef4444");
 	});
 });

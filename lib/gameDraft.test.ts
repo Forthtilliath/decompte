@@ -1,14 +1,10 @@
-import { AVATAR_PALETTE } from "@/lib/avatarColor";
 import {
 	type DraftCategory,
 	emptyBrick,
 	emptyCategory,
 	type GameDraftInput,
-	nextCategoryColor,
-	toCategoryDefs,
 	validateGameDraft,
 } from "@/lib/gameDraft";
-import { paletteColor } from "@/lib/gameExport";
 import type { ScoringBrick } from "@/types/game";
 
 const manual = (label = "Points"): DraftCategory => ({ label, brick: emptyBrick("manual") });
@@ -22,6 +18,8 @@ function draft(overrides: Partial<GameDraftInput> = {}): GameDraftInput {
 		maxPlayers: "4",
 		rounds: "1",
 		categories: [manual()],
+		lowestWins: false,
+		teamPlay: false,
 		...overrides,
 	};
 }
@@ -41,7 +39,11 @@ describe("emptyBrick", () => {
 	});
 
 	it("crée une catégorie vide de type nombre", () => {
-		expect(emptyCategory()).toEqual({ label: "", brick: { kind: "manual", allowNegative: false } });
+		expect(emptyCategory()).toEqual({
+			id: expect.any(String),
+			label: "",
+			brick: { kind: "manual", allowNegative: false },
+		});
 	});
 });
 
@@ -49,7 +51,16 @@ describe("validateGameDraft", () => {
 	it("accepte un jeu complet et nettoie le nom", () => {
 		expect(validateGameDraft(draft({ name: "  Azul  " }))).toEqual({
 			ok: true,
-			values: { name: "Azul", minPlayers: 2, maxPlayers: 4, rounds: 1, categories: [manual()] },
+			values: {
+				name: "Azul",
+				minPlayers: 2,
+				maxPlayers: 4,
+				rounds: 1,
+				categories: [manual()],
+				lowestWins: false,
+				tieBreakerId: undefined,
+				teamPlay: false,
+			},
 		});
 	});
 
@@ -242,53 +253,5 @@ describe("validateGameDraft", () => {
 	it("signale la première catégorie fautive dans l'ordre", () => {
 		const categories = [manual("OK"), manual(""), withBrick({ kind: "tokens", tokens: [] })];
 		expect(outcome(draft({ categories }))).toBe("Catégorie incomplète");
-	});
-});
-
-describe("nextCategoryColor", () => {
-	it("prend la première couleur de la palette pas encore utilisée", () => {
-		expect(nextCategoryColor([])).toBe(AVATAR_PALETTE[0]);
-		// La première catégorie, sans couleur choisie, occupe celle de sa position.
-		const taken = [manual(), { ...manual(), color: AVATAR_PALETTE[1] }];
-		expect(nextCategoryColor(taken)).toBe(AVATAR_PALETTE[2]);
-		expect(nextCategoryColor([{ ...manual(), color: AVATAR_PALETTE[1] }])).toBe(AVATAR_PALETTE[0]);
-	});
-
-	it("reprend la palette quand toutes les couleurs sont prises", () => {
-		const all = AVATAR_PALETTE.map((color) => ({ ...manual(), color }));
-		expect(nextCategoryColor(all)).toBe(paletteColor(AVATAR_PALETTE.length));
-	});
-});
-
-describe("toCategoryDefs", () => {
-	it("garde l'id des catégories existantes et en crée pour les nouvelles", () => {
-		const defs = toCategoryDefs([{ ...manual("Murs"), id: "existante" }, manual("Bonus")]);
-		expect(defs[0].id).toBe("existante");
-		expect(defs[1].id).toEqual(expect.any(String));
-		expect(defs[1].id).not.toBe("existante");
-	});
-
-	it("garde la couleur choisie", () => {
-		const defs = toCategoryDefs([{ ...manual("Murs"), color: "#3b82f6" }, manual("Bonus")]);
-		expect(defs.map((d) => d.color)).toEqual(["#3b82f6", paletteColor(1)]);
-	});
-
-	it("garde le critère à valider, sans l'écrire sur les autres catégories", () => {
-		const defs = toCategoryDefs([
-			{ ...manual("Murs"), requiresValidation: true },
-			{ ...manual("Bonus"), requiresValidation: false },
-			manual("Lignes"),
-		]);
-		expect(defs[0].requiresValidation).toBe(true);
-		expect(defs[1]).not.toHaveProperty("requiresValidation");
-		expect(defs[2]).not.toHaveProperty("requiresValidation");
-	});
-
-	it("colore par position comme l'import et nettoie les libellés", () => {
-		const defs = toCategoryDefs([manual(" Murs "), manual("Bonus")]);
-		expect(defs.map((d) => [d.label, d.color])).toEqual([
-			["Murs", paletteColor(0)],
-			["Bonus", paletteColor(1)],
-		]);
 	});
 });

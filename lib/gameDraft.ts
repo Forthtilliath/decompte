@@ -12,7 +12,8 @@ import {
 import { createId } from "@/lib/uuid";
 import type { CategoryDef, ScoringBrick } from "@/types/game";
 
-/** Catégorie en cours d'édition : `id` absent tant qu'elle n'a jamais été enregistrée. */
+/** Catégorie en cours d'édition. Une nouvelle catégorie reçoit son id dès sa création
+ * (`emptyCategory`) : le départage peut la désigner avant même l'enregistrement. */
 export type DraftCategory = {
 	id?: string;
 	label: string;
@@ -29,6 +30,14 @@ export type GameDraftInput = {
 	maxPlayers: string;
 	rounds: string;
 	categories: DraftCategory[];
+} & GameDraftOptions;
+
+/** Options du jeu (règles de classement, équipes), telles que le formulaire les règle. */
+export type GameDraftOptions = {
+	lowestWins: boolean;
+	/** Id d'une catégorie du formulaire, `undefined` sans départage. */
+	tieBreakerId?: string;
+	teamPlay: boolean;
 };
 
 export type GameDraftValues = {
@@ -37,7 +46,7 @@ export type GameDraftValues = {
 	maxPlayers: number;
 	rounds: number;
 	categories: DraftCategory[];
-};
+} & GameDraftOptions;
 
 export type GameDraftResult =
 	| { ok: true; values: GameDraftValues }
@@ -58,7 +67,7 @@ export function emptyBrick(kind: ScoringBrick["kind"]): ScoringBrick {
 }
 
 export function emptyCategory(): DraftCategory {
-	return { label: "", brick: emptyBrick("manual") };
+	return { id: createId(), label: "", brick: emptyBrick("manual") };
 }
 
 /** Couleur d'une nouvelle catégorie : la première de la palette pas encore prise par le jeu. */
@@ -208,9 +217,23 @@ export function validateGameDraft(input: GameDraftInput): GameDraftResult {
 		return fail("Trop de manches", `Un jeu compte ${MAX_ROUNDS} manches maximum.`);
 	}
 
+	// Départage sur une catégorie retirée entre-temps : plus de départage.
+	const tieBreakerId = input.categories.some((c) => c.id && c.id === input.tieBreakerId)
+		? input.tieBreakerId
+		: undefined;
+
 	return {
 		ok: true,
-		values: { name, minPlayers, maxPlayers, rounds, categories: input.categories },
+		values: {
+			name,
+			minPlayers,
+			maxPlayers,
+			rounds,
+			categories: input.categories,
+			lowestWins: input.lowestWins,
+			tieBreakerId,
+			teamPlay: input.teamPlay,
+		},
 	};
 }
 
