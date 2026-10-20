@@ -9,13 +9,13 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
   - **jetons** pondérés à compter (ex. jetons de victoire 1, 3, 5), additionnés automatiquement ;
   - **choix** parmi des options à score fixe (ex. palier atteint) ;
   - **oui / non**, chaque réponse avec son propre score.
-- **Saisie guidée** : une catégorie à la fois, avec le total de chaque joueur affiché en continu.
+- **Saisie guidée** : une catégorie à la fois, avec le total de chaque joueur affiché en continu ; on passe à la suivante par un balayage ou par le bouton du bas, et l'écran reste allumé pendant toute la saisie.
 - **Jeux en plusieurs manches** (ex. Pixies, 3 manches) : toutes les catégories se saisissent à chaque manche, puis les manches s'additionnent ; les résultats détaillent les points de chaque manche.
 - **Ordre de jeu** : les joueurs jouent dans l'ordre où on les coche (numéro affiché sur leur avatar), modifiable à tout moment pendant la saisie.
 - **Partie en cours sauvegardée** : on la reprend à l'étape où on l'avait laissée, ou on l'abandonne.
-- **Classement final** avec médailles, et ex æquo gérés.
-- **Joueurs et groupes** : avatar en photo, prise sur le moment ou choisie dans la galerie (miniature gardée dans l'app, sans ses métadonnées), ou initiales colorées ; groupes d'habitués.
-- **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs.
+- **Classement final** avec médailles, et ex æquo gérés. Avant l'enregistrement, les catégories laissées vides pour un joueur sont signalées, avec un lien pour les compléter.
+- **Joueurs et groupes** : avatar en photo, prise sur le moment ou choisie dans la galerie (miniature gardée dans l'app, sans ses métadonnées), ou initiales colorées ; groupes d'habitués, cochés d'un geste au lancement d'une partie. Les joueurs les plus fréquents sont proposés en premier, après les favoris.
+- **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs. La fiche d'un jeu montre ses 5 dernières parties, l'historique filtré sur ce jeu montre les autres. La recherche ignore les accents.
 - **Graphiques d'une partie** (résultats et historique) : répartition des points de chaque joueur, comparaison des joueurs catégorie par catégorie.
 - **Statistiques**, tous jeux confondus ou pour un jeu : records (meilleur score, plus longue série de victoires, partie la plus serrée), taux de victoire, jeux les plus joués, et pour chaque joueur ses points moyens et leur répartition par catégorie, en graphique ou en tableau, avec comparaison entre deux joueurs.
 - **Partage de jeux** : un jeu s'envoie en texte à un autre joueur, qui le colle dans Décompte, couleurs des catégories comprises. Le texte est entièrement vérifié avant d'être ajouté.
@@ -23,7 +23,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - **Mises à jour en un geste** : l'app annonce une nouvelle version publiée sur GitHub, la télécharge et lance son installation. L'historique des versions et de leurs nouveautés est dans Réglages.
 - **Réglages** : apparence, sauvegarde, mises à jour, soutien au projet (don, partage, signalement de bug), à propos, effacement des données.
 - Thème clair ou sombre, avec une couleur de fond au choix pour chacun (bleu nuit, tapis vert, acajou, ardoise ; carton, blanc, sauge, rose poudré).
-- Rien n'est supprimé définitivement : jeux, joueurs et groupes s'archivent, pour que l'historique reste lisible.
+- Rien n'est supprimé définitivement : jeux, joueurs et groupes s'archivent, pour que l'historique reste lisible. Archiver un jeu ou supprimer une partie se fait sans confirmation, mais s'annule pendant quelques secondes ; effacer toutes les données demande de taper « EFFACER ».
 
 ## Stack
 
