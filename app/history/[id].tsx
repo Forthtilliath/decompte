@@ -1,6 +1,7 @@
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text } from "react-native";
+import { SessionExtrasEditor } from "@/components/history/SessionExtrasEditor";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
 import { TeamRankingCard } from "@/components/scoring/TeamRankingCard";
 import { GameCharts } from "@/components/stats/GameCharts";
@@ -29,6 +30,7 @@ export default function SessionDetailScreen() {
 	const session = useHistoryStore((s) => s.sessions.find((sess) => sess.id === id));
 	const removeSession = useHistoryStore((s) => s.removeSession);
 	const restoreSession = useHistoryStore((s) => s.restoreSession);
+	const updateSessionExtras = useHistoryStore((s) => s.updateSessionExtras);
 	const offerUndo = useUndoStore((s) => s.offerUndo);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === session?.gameDefId));
 	const players = usePlayersStore((s) => s.players);
@@ -143,6 +145,11 @@ export default function SessionDetailScreen() {
 						)}
 					</>
 				)}
+				<SessionExtrasEditor
+					key={session.id}
+					extras={{ notes: session.notes, photoUri: session.photoUri }}
+					onChange={(extras) => updateSessionExtras(session.id, extras)}
+				/>
 			</ScrollView>
 			{game && !game.isArchived && (
 				<Button
