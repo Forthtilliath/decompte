@@ -47,6 +47,12 @@ function linkCloud(disconnect: () => Promise<void>) {
 	return spy;
 }
 
+/** Tape le mot de confirmation (en minuscules : la casse ne compte pas) puis efface. */
+async function confirmClear() {
+	await fireEvent.changeText(screen.getByLabelText("Tape EFFACER pour confirmer"), " effacer ");
+	await fireEvent.press(screen.getByRole("button", { name: "Effacer toutes les données" }));
+}
+
 describe("réglages", () => {
 	it("liste les sections et la version installée", async () => {
 		await renderApp("/reglages");
@@ -98,15 +104,10 @@ describe("réglages", () => {
 		expect(openURL).toHaveBeenLastCalledWith(LINKS.issues);
 	});
 
-	it("efface toutes les données après confirmation", async () => {
+	it("efface toutes les données une fois EFFACER tapé", async () => {
 		await renderApp("/reglages/zone-dangereuse");
-		await fireEvent.press(screen.getByRole("button", { name: "Effacer toutes les données" }));
+		await confirmClear();
 
-		expect(alert).toHaveBeenCalledWith(
-			"Effacer toutes les données ?",
-			expect.any(String),
-			expect.any(Array),
-		);
 		expect(useGamesStore.getState().games).toEqual([]);
 		expect(usePlayersStore.getState().players).toEqual([]);
 		expect(useGroupsStore.getState().groups).toEqual([]);
@@ -122,7 +123,7 @@ describe("réglages", () => {
 		});
 		await renderApp("/reglages/zone-dangereuse");
 		expect(screen.getByText(/sa copie restera telle quelle/)).toBeOnTheScreen();
-		await fireEvent.press(screen.getByRole("button", { name: "Effacer toutes les données" }));
+		await confirmClear();
 
 		expect(disconnect).toHaveBeenCalledTimes(1);
 		expect(useGamesStore.getState().games).toEqual([]);
@@ -131,17 +132,20 @@ describe("réglages", () => {
 	it("n'efface rien si Google Drive ne se déconnecte pas", async () => {
 		linkCloud(() => Promise.reject(new Error("hors ligne")));
 		await renderApp("/reglages/zone-dangereuse");
-		await fireEvent.press(screen.getByRole("button", { name: "Effacer toutes les données" }));
+		await confirmClear();
 
 		expect(alert).toHaveBeenLastCalledWith("Rien n'a été effacé", expect.any(String));
 		expect(useGamesStore.getState().games).toHaveLength(1);
 		expect(useHistoryStore.getState().sessions).toHaveLength(1);
 	});
 
-	it("ne touche à rien si l'effacement est annulé", async () => {
-		choose("Annuler");
+	it("ne laisse rien effacer sans le mot de confirmation exact", async () => {
 		await renderApp("/reglages/zone-dangereuse");
-		await fireEvent.press(screen.getByRole("button", { name: "Effacer toutes les données" }));
+		const clear = screen.getByRole("button", { name: "Effacer toutes les données" });
+		expect(clear).toBeDisabled();
+		await fireEvent.changeText(screen.getByLabelText("Tape EFFACER pour confirmer"), "EFFACE");
+		expect(clear).toBeDisabled();
+		await fireEvent.press(clear);
 
 		expect(useGamesStore.getState().games).toHaveLength(1);
 		expect(useHistoryStore.getState().sessions).toHaveLength(1);
