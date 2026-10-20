@@ -63,6 +63,9 @@ export function emptyBrick(kind: ScoringBrick["kind"]): ScoringBrick {
 			return { kind: "choice", options: [] };
 		case "boolean":
 			return { kind: "boolean", yesValue: 1, noValue: 0 };
+		case "product":
+			// Catégorie multipliée à choisir dans le formulaire.
+			return { kind: "product", sourceId: "" };
 	}
 }
 
@@ -84,8 +87,12 @@ function fail(title: string, message: string): GameDraftResult {
 	return { ok: false, title, message };
 }
 
-/** Première anomalie d'une catégorie, ou `null` si elle est valide. */
-function checkCategory({ label, brick }: DraftCategory): GameDraftResult | null {
+/** Première anomalie d'une catégorie, ou `null` si elle est valide. `before` : les catégories
+ * placées avant elle, seules qu'un multiplicateur peut multiplier. */
+function checkCategory(
+	{ label, brick }: DraftCategory,
+	before: DraftCategory[],
+): GameDraftResult | null {
 	if (isBlank(label)) return fail("Catégorie incomplète", "Donne un nom à chaque catégorie.");
 	if (isTooLong(label)) {
 		return fail(
@@ -179,6 +186,16 @@ function checkCategory({ label, brick }: DraftCategory): GameDraftResult | null 
 				return fail("Scores identiques", "Les scores « Oui » et « Non » doivent être différents.");
 			}
 			return null;
+
+		case "product":
+			// Placée avant : saisie avant le multiplicateur, et jamais de boucle entre deux catégories.
+			if (!before.some((c) => c.id && c.id === brick.sourceId)) {
+				return fail(
+					"Catégorie multipliée manquante",
+					"Choisis, pour chaque multiplicateur, une catégorie placée au-dessus de lui.",
+				);
+			}
+			return null;
 	}
 }
 
@@ -199,8 +216,8 @@ export function validateGameDraft(input: GameDraftInput): GameDraftResult {
 	if (input.categories.length > MAX_CATEGORIES) {
 		return fail("Trop de catégories", `Un jeu compte ${MAX_CATEGORIES} catégories maximum.`);
 	}
-	for (const category of input.categories) {
-		const error = checkCategory(category);
+	for (const [index, category] of input.categories.entries()) {
+		const error = checkCategory(category, input.categories.slice(0, index));
 		if (error) return error;
 	}
 

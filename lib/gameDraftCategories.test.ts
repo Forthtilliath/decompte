@@ -48,6 +48,32 @@ describe("validateGameDraft : options du jeu", () => {
 	});
 });
 
+describe("validateGameDraft : multiplicateur", () => {
+	const product = (sourceId: string, id = "x"): DraftCategory => ({
+		id,
+		label: "Bonus",
+		brick: { kind: "product", sourceId },
+	});
+	const outcome = (categories: DraftCategory[]) => {
+		const result = validateGameDraft(draft({ categories }));
+		return result.ok ? "ok" : result.title;
+	};
+
+	it("accepte une catégorie placée au-dessus", () => {
+		expect(outcome([manual("Sets", "sets"), product("sets")])).toBe("ok");
+	});
+
+	it("refuse sans catégorie choisie, placée en dessous ou elle-même", () => {
+		expect(outcome([manual("Sets", "sets"), product("")])).toBe("Catégorie multipliée manquante");
+		expect(outcome([product("sets"), manual("Sets", "sets")])).toBe(
+			"Catégorie multipliée manquante",
+		);
+		expect(outcome([manual("Sets", "sets"), product("x", "x")])).toBe(
+			"Catégorie multipliée manquante",
+		);
+	});
+});
+
 describe("nextCategoryColor", () => {
 	it("prend la première couleur de la palette pas encore utilisée", () => {
 		expect(nextCategoryColor([])).toBe(AVATAR_PALETTE[0]);

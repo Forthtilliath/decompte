@@ -135,6 +135,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 					key={index}
 					category={category}
 					color={category.color ?? paletteColor(index)}
+					previousCategories={categories.slice(0, index)}
 					onChange={(patch) => updateCategory(index, patch)}
 					onRemove={() => removeCategory(index)}
 				/>
