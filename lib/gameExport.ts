@@ -125,6 +125,13 @@ function describePath(path: PropertyKey[]): string {
 	return parts.join(" › ").replace(/ › n° /g, " n° ");
 }
 
+/** Lit un modèle prêt à l'emploi (constants/gameTemplates) comme un jeu partagé. */
+export function parseGameTemplate(game: Record<string, unknown>): ImportResult {
+	return parseGameExport(
+		JSON.stringify({ format: GAME_EXPORT_FORMAT, version: GAME_EXPORT_VERSION, game }),
+	);
+}
+
 /**
  * Lit un jeu partagé. Tout le texte est rejeté à la première anomalie : rien n'est importé à
  * moitié. Le message d'erreur est affichable tel quel.
