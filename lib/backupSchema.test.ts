@@ -115,6 +115,22 @@ describe("parseBackup", () => {
 		expect(parse(data)).toEqual(data);
 	});
 
+	it("garde les règles de classement et les équipes", () => {
+		const game = makeGame({ lowestWins: true, tieBreakerId: "c1", teamPlay: true });
+		const session = makeSession({
+			playerIds: ["alice", "bob"],
+			entries: { alice: makeEntry("alice"), bob: makeEntry("bob") },
+			lowestWins: true,
+			tieBreakerId: "c1",
+			teams: [
+				{ id: "t1", name: "Équipe 1", playerIds: ["alice"] },
+				{ id: "t2", name: "Équipe 2", playerIds: ["bob"] },
+			],
+		});
+		const data = validBackup({ games: [game], sessions: [session] });
+		expect(parse(data)).toEqual(data);
+	});
+
 	it.each([
 		["un texte qui n'est pas du JSON", "pas du json", /illisible/],
 		[
@@ -156,6 +172,24 @@ describe("parseBackup", () => {
 			{
 				sessions: [makeSession({ entries: { a: { ...makeEntry("a"), validated: ["c1#2#3"] } } })],
 			},
+		],
+		["un départage sur une catégorie inconnue", { games: [makeGame({ tieBreakerId: "x" })] }],
+		[
+			"un joueur dans deux équipes",
+			{
+				sessions: [
+					makeSession({
+						teams: [
+							{ id: "t1", name: "A", playerIds: ["p1"] },
+							{ id: "t2", name: "B", playerIds: ["p1", "p2"] },
+						],
+					}),
+				],
+			},
+		],
+		[
+			"une équipe avec un joueur absent de la partie",
+			{ sessions: [makeSession({ teams: [{ id: "t1", name: "A", playerIds: ["intrus"] }] })] },
 		],
 		["des joueurs au même id", { players: [makePlayer({ id: "a" }), makePlayer({ id: "a" })] }],
 		[

@@ -9,3 +9,4 @@ export const MAX_ITEMS = 30;
 export const MAX_SCORE = 10_000;
 export const MAX_PLAYERS = 50;
 export const MAX_ROUNDS = 20;
+export const MAX_TEAM_NAME_LENGTH = 30;
