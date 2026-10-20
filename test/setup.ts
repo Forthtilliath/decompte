@@ -37,6 +37,9 @@ jest.mock("expo-haptics", () => ({
 	NotificationFeedbackType: { Success: "success", Warning: "warning", Error: "error" },
 }));
 
+// Pas d'écran à garder allumé sous Jest.
+jest.mock("expo-keep-awake", () => ({ useKeepAwake: jest.fn() }));
+
 // Ni appareil photo ni système de fichiers sous Jest : le choix d'une photo est annulé par défaut
 // (un test qui en veut une la fournit avec `mockResolvedValueOnce`), la miniature enregistrée prend
 // le nom de la photo d'origine, et les suppressions ne font qu'être comptées.
