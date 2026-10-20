@@ -87,7 +87,8 @@ Assurée par [`@forthtilliath/expo-backup`](https://github.com/Forthtilliath/for
 La mise à jour intégrée compare la version de l'app (`version` de `package.json` et `app.json`, identiques, vérifié par un test) au tag de la release GitHub la plus haute, pre-releases comprises. Pour chaque version :
 
 1. `npm run bump` monte `version` dans `package.json`, `package-lock.json` et `app.json`, et `android.versionCode` dans `app.json` (pre-release suivante par défaut, ou `npm run bump -- patch|minor|major|x.y.z`).
-2. Créer la release `v<version>` avec l'APK nommé `Decompte-<version>.apk`. Les notes de release s'affichent dans Réglages ▸ Mises à jour.
+2. Installer l'APK release sur un téléphone et faire le tour de l'app (partie, Stats, photo, Drive, sauvegarde, mise à jour) : R8 réduit le code Java en release, et une classe retirée à tort ne plante qu'à l'exécution. Une règle `-keep` s'ajoute dans `extraProguardRules` d'`expo-build-properties` (`app.json`).
+3. Créer la release `v<version>` avec l'APK nommé `Decompte-<version>.apk`. Les notes de release s'affichent dans Réglages ▸ Mises à jour.
 
 ## Sécurité
 
