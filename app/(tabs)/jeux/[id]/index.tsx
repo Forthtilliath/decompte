@@ -1,9 +1,8 @@
-import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
-import { SelectablePlayerCard } from "@/components/players/SelectablePlayerCard";
+import { PlayerSelection } from "@/components/players/PlayerSelection";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
@@ -12,13 +11,16 @@ import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { indexById } from "@/lib/byId";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
-import { toggleSelection } from "@/lib/players";
 import { getRoundCount } from "@/lib/rounds";
 import { getFirstStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
-import { selectSortedPlayers, usePlayersStore } from "@/stores/playersStore";
+import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
+import { useUndoStore } from "@/stores/undoStore";
+
+/** Parties récentes affichées sur la fiche ; les autres sont dans l'onglet Historique. */
+const RECENT_SESSIONS = 5;
 
 export default function GameDetailScreen() {
 	const { id } = useLocalSearchParams<{ id: string }>();
@@ -27,6 +29,7 @@ export default function GameDetailScreen() {
 	const router = useRouter();
 	const game = useGamesStore((s) => s.games.find((g) => g.id === id));
 	const toggleArchived = useGamesStore((s) => s.toggleArchived);
+	const offerUndo = useUndoStore((s) => s.offerUndo);
 	const players = usePlayersStore((s) => s.players);
 	const playersById = useMemo(() => indexById(players), [players]);
 	// `.filter()` retourne un nouveau tableau à chaque rendu : le sélectionner directement
@@ -45,13 +48,8 @@ export default function GameDetailScreen() {
 
 	if (!game) return null;
 
-	const activePlayers = selectSortedPlayers(players.filter((p) => !p.isArchived));
 	const isThisGameOngoing = hasOngoingSession && sessionGameDefId === game.id;
 	const otherGameOngoing = hasOngoingSession && sessionGameDefId !== game.id;
-
-	const toggleSelected = (playerId: string) => {
-		setSelectedIds((current) => toggleSelection(current, playerId, game.maxPlayers));
-	};
 
 	const canStart = selectedIds.length >= game.minPlayers;
 	const roundCount = getRoundCount(game);
@@ -73,11 +71,12 @@ export default function GameDetailScreen() {
 		Share.share({ title: game.name, message: text });
 	};
 
-	const confirmArchive = () => {
-		confirmDestructive("Archiver ce jeu ?", () => toggleArchived(game.id), {
-			message: "Il disparaîtra de la liste, mais son historique reste consultable.",
-			confirmLabel: "Archiver",
-		});
+	// Archivage immédiat plutôt qu'une confirmation : la barre « Annuler » le rattrape, et c'est le
+	// seul moyen de faire revenir un jeu archivé (il disparaît de la liste).
+	const archive = () => {
+		toggleArchived(game.id);
+		offerUndo(`« ${game.name} » archivé`, () => toggleArchived(game.id));
+		router.dismissTo("/jeux");
 	};
 
 	return (
@@ -115,34 +114,11 @@ export default function GameDetailScreen() {
 					</>
 				) : (
 					<>
-						<Text style={styles.sectionTitle}>
-							Joueurs ({selectedIds.length}/{game.maxPlayers})
-						</Text>
-						<View style={styles.grid}>
-							{activePlayers.map((player) => (
-								<SelectablePlayerCard
-									key={player.id}
-									playerId={player.id}
-									name={player.name}
-									avatarUri={player.avatarUri}
-									isFavorite={player.isFavorite}
-									selected={selectedIds.includes(player.id)}
-									order={selectedIds.indexOf(player.id) + 1}
-									onPress={() => toggleSelected(player.id)}
-								/>
-							))}
-						</View>
-						{selectedIds.length > 1 && (
-							<Text style={styles.hint}>
-								Les joueurs jouent dans l'ordre où tu les coches. Tu pourras le changer pendant la
-								partie.
-							</Text>
-						)}
-						{activePlayers.length === 0 && (
-							<Text style={styles.hint}>
-								Aucun joueur disponible. Crée d'abord des joueurs dans l'onglet Joueurs.
-							</Text>
-						)}
+						<PlayerSelection
+							maxPlayers={game.maxPlayers}
+							selectedIds={selectedIds}
+							onChange={setSelectedIds}
+						/>
 						<Button
 							label="Lancer une partie"
 							variant="success"
@@ -155,7 +131,7 @@ export default function GameDetailScreen() {
 				{sessions.length > 0 && (
 					<>
 						<Text style={styles.sectionTitle}>Historique</Text>
-						{sessions.map((session) => (
+						{sessions.slice(0, RECENT_SESSIONS).map((session) => (
 							<SessionSummaryCard
 								key={session.id}
 								session={session}
@@ -165,6 +141,15 @@ export default function GameDetailScreen() {
 								onPress={(sessionId) => router.push(`/history/${sessionId}`)}
 							/>
 						))}
+						{sessions.length > RECENT_SESSIONS && (
+							<Button
+								label={`Voir les ${sessions.length} parties`}
+								variant="ghost"
+								onPress={() =>
+									router.navigate({ pathname: "/historique", params: { jeu: game.id } })
+								}
+							/>
+						)}
 					</>
 				)}
 
@@ -175,12 +160,7 @@ export default function GameDetailScreen() {
 					disabled={isThisGameOngoing}
 				/>
 				<Button label="Partager" variant="secondary" onPress={shareGame} />
-				<Button
-					label="Archiver"
-					variant="ghost"
-					onPress={confirmArchive}
-					disabled={isThisGameOngoing}
-				/>
+				<Button label="Archiver" variant="ghost" onPress={archive} disabled={isThisGameOngoing} />
 			</ScrollView>
 		</ScreenContainer>
 	);
@@ -225,11 +205,6 @@ function useStyles(colors: ThemeColors) {
 					textTransform: "uppercase",
 					letterSpacing: 0.5,
 					marginTop: SPACING.sm,
-				},
-				grid: {
-					flexDirection: "row",
-					flexWrap: "wrap",
-					gap: SPACING.sm,
 				},
 				hint: {
 					color: colors.textMuted,
