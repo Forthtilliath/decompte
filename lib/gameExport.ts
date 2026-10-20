@@ -1,116 +1,23 @@
-import { z } from "zod";
 import { AVATAR_PALETTE } from "@/lib/avatarColor";
 import {
-	MAX_CATEGORIES,
-	MAX_GAME_NAME_LENGTH,
-	MAX_ITEMS,
-	MAX_LABEL_LENGTH,
-	MAX_PLAYERS,
-	MAX_ROUNDS,
-	MAX_SCORE,
-} from "@/lib/gameLimits";
+	type ExportedBrick,
+	exportSchema,
+	GAME_EXPORT_FORMAT,
+	GAME_EXPORT_VERSION,
+} from "@/lib/gameExportSchema";
 import { createId } from "@/lib/uuid";
 import type { GameDef, ScoringBrick } from "@/types/game";
 
-/**
- * Format d'échange d'un jeu entre joueurs (partage par message, plus tard via la plateforme).
- * Seule la définition du jeu voyage : ni id, ni date, ni état d'archivage. Tout ça est recréé
- * localement à l'import, pour ne jamais faire confiance à un texte venu d'ailleurs. La couleur
- * des catégories voyage, mais seulement si elle fait partie de la palette (lisible sous du texte
- * blanc) ; absente, elle suit la position. Champ optionnel : les versions qui ne le connaissent
- * pas l'ignorent, d'où pas de changement de version du format.
- */
-export const GAME_EXPORT_FORMAT = "decompte-game";
-// À incrémenter à tout changement incompatible du format (et garder la lecture de l'ancien).
-export const GAME_EXPORT_VERSION = 1;
+export { brickSchema, GAME_EXPORT_FORMAT, GAME_EXPORT_VERSION } from "@/lib/gameExportSchema";
 
 /** Au-delà, on refuse avant même de lire le JSON : un vrai jeu pèse quelques Ko. */
 export const MAX_EXPORT_LENGTH = 50_000;
 
-const label = (max: number) => z.string().trim().min(1).max(max);
-const score = z.number().min(-MAX_SCORE).max(MAX_SCORE);
-
-/** Aussi appliqué aux jeux d'une sauvegarde complète (lib/backupSchema) : mêmes règles partout. */
-export const brickSchema = z.discriminatedUnion("kind", [
-	z.object({
-		kind: z.literal("manual"),
-		allowNegative: z.boolean(),
-		max: z.number().int().min(0).max(MAX_SCORE).optional(),
-		// Clé ajoutée sans changer de version : une version antérieure de l'app la supprime à
-		// l'import et garde une catégorie « Nombre » ordinaire, toujours jouable.
-		unitValue: score
-			.int()
-			.refine((v) => v !== 0)
-			.optional(),
-	}),
-	z.object({
-		kind: z.literal("tokens"),
-		tokens: z
-			.array(z.object({ label: label(MAX_LABEL_LENGTH), value: score }))
-			.min(1)
-			.max(MAX_ITEMS),
-	}),
-	z.object({
-		kind: z.literal("choice"),
-		options: z
-			.array(z.object({ label: label(MAX_LABEL_LENGTH), value: score }))
-			.min(2)
-			.max(MAX_ITEMS)
-			// Mêmes règles que le formulaire (lib/gameDraft) : seul le score d'un joueur est
-			// enregistré, deux réponses au même score seraient indiscernables.
-			.refine((options) => new Set(options.map((o) => o.value)).size === options.length),
-	}),
-	z
-		.object({ kind: z.literal("boolean"), yesValue: score, noValue: score })
-		.refine((b) => b.yesValue !== b.noValue, { path: ["noValue"] }),
-]);
-
-const gameSchema = z
-	.object({
-		name: label(MAX_GAME_NAME_LENGTH),
-		minPlayers: z.number().int().min(1).max(MAX_PLAYERS),
-		maxPlayers: z.number().int().min(1).max(MAX_PLAYERS),
-		// Clé ajoutée sans changer de version, comme `unitValue` : une version antérieure de l'app
-		// la supprime à l'import et garde un jeu en une seule manche.
-		rounds: z.number().int().min(1).max(MAX_ROUNDS).optional(),
-		categories: z
-			.array(
-				z.object({
-					label: label(MAX_LABEL_LENGTH),
-					color: z.enum(AVATAR_PALETTE).optional(),
-					brick: brickSchema,
-					// Clé ajoutée sans changer de version : une version antérieure de l'app la
-					// supprime à l'import et garde une catégorie sans critère, toujours jouable.
-					requiresValidation: z.boolean().optional(),
-				}),
-			)
-			.min(1)
-			.max(MAX_CATEGORIES),
-	})
-	.refine((g) => g.maxPlayers >= g.minPlayers, { path: ["maxPlayers"] });
-
-// `z.object` supprime les clés inconnues au lieu de les garder : rien d'inattendu n'entre en stockage.
-const exportSchema = z.object({
-	format: z.literal(GAME_EXPORT_FORMAT),
-	version: z.literal(GAME_EXPORT_VERSION),
-	game: gameSchema,
-});
-
-type ExportedBrick = z.infer<typeof brickSchema>;
-
-/** Données prêtes pour `gamesStore.addGame` (qui attribue les id des catégories). */
-export type ImportedGame = {
-	name: string;
-	minPlayers: number;
-	maxPlayers: number;
-	rounds: number;
-	categories: {
-		label: string;
-		color: string;
-		brick: ScoringBrick;
-		requiresValidation?: boolean;
-	}[];
-};
+/** Données prêtes pour `gamesStore.addGame`. */
+export type ImportedGame = Pick<
+	GameDef,
+	"name" | "minPlayers" | "maxPlayers" | "categories" | "lowestWins" | "tieBreakerId" | "teamPlay"
+> & { rounds: number };
 
 export type ImportResult = { ok: true; game: ImportedGame } | { ok: false; error: string };
 
@@ -139,6 +46,7 @@ function exportBrick(brick: ScoringBrick): ExportedBrick {
 }
 
 export function serializeGame(game: GameDef): string {
+	const tieBreaker = game.categories.findIndex((c) => c.id === game.tieBreakerId);
 	return JSON.stringify({
 		format: GAME_EXPORT_FORMAT,
 		version: GAME_EXPORT_VERSION,
@@ -154,6 +62,9 @@ export function serializeGame(game: GameDef): string {
 				brick: exportBrick(c.brick),
 				...(c.requiresValidation && { requiresValidation: true }),
 			})),
+			...(game.lowestWins && { lowestWins: true }),
+			...(game.teamPlay && { teamPlay: true }),
+			...(tieBreaker >= 0 && { tieBreaker }),
 		},
 	});
 }
@@ -193,6 +104,9 @@ const FIELD_NAMES: Record<string, string> = {
 	yesValue: "score si Oui",
 	noValue: "score si Non",
 	requiresValidation: "critère à valider",
+	lowestWins: "le plus bas gagne",
+	teamPlay: "jeu en équipes",
+	tieBreaker: "départage",
 };
 
 /** Chemin zod (`game.categories.1.label`) lisible : « catégories n° 2 › libellé ». */
@@ -241,6 +155,14 @@ export function parseGameExport(text: string): ImportResult {
 	}
 
 	const { game } = parsed.data;
+	// Id créés ici plutôt qu'à l'ajout : le départage, donné par position, les désigne déjà.
+	const categories = game.categories.map((c, index) => ({
+		id: createId(),
+		label: c.label,
+		color: c.color ?? paletteColor(index),
+		brick: importBrick(c.brick),
+		...(c.requiresValidation && { requiresValidation: true }),
+	}));
 	return {
 		ok: true,
 		game: {
@@ -248,12 +170,10 @@ export function parseGameExport(text: string): ImportResult {
 			minPlayers: game.minPlayers,
 			maxPlayers: game.maxPlayers,
 			rounds: game.rounds ?? 1,
-			categories: game.categories.map((c, index) => ({
-				label: c.label,
-				color: c.color ?? paletteColor(index),
-				brick: importBrick(c.brick),
-				...(c.requiresValidation && { requiresValidation: true }),
-			})),
+			categories,
+			...(game.lowestWins && { lowestWins: true }),
+			...(game.teamPlay && { teamPlay: true }),
+			...(game.tieBreaker !== undefined && { tieBreakerId: categories[game.tieBreaker].id }),
 		},
 	};
 }

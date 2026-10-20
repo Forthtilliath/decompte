@@ -8,6 +8,7 @@ import {
 	MAX_PLAYERS,
 	MAX_ROUNDS,
 	MAX_SCORE,
+	MAX_TEAM_NAME_LENGTH,
 } from "@/lib/gameLimits";
 import type { GameDef, Session } from "@/types/game";
 import type { Player, PlayerGroup } from "@/types/player";
@@ -46,6 +47,28 @@ export const timestampSchema = z.number().int().nonnegative();
 const nameSchema = (max: number) => z.string().trim().min(1).max(max);
 const colorSchema = z.string().regex(/^#[0-9a-fA-F]{6}$/);
 
+/** Règles de classement (RankingRules), d'un jeu comme d'une partie. */
+const rankingRulesShape = {
+	lowestWins: z.boolean().optional(),
+	tieBreakerId: idSchema.optional(),
+};
+
+/** Équipes d'une partie : id uniques, et aucun joueur dans deux équipes. */
+export const teamsSchema = z
+	.array(
+		z.object({
+			id: idSchema,
+			name: z.string().trim().min(1).max(MAX_TEAM_NAME_LENGTH),
+			playerIds: z.array(idSchema).min(1).max(MAX_PLAYERS),
+		}),
+	)
+	.max(MAX_PLAYERS)
+	.refine((teams) => new Set(teams.map((t) => t.id)).size === teams.length)
+	.refine((teams) => {
+		const players = teams.flatMap((t) => t.playerIds);
+		return new Set(players).size === players.length;
+	});
+
 /** Objet indexé par id, au nombre d'entrées borné (`z.record` seul n'en limite pas le nombre). */
 function boundedRecord<T extends z.ZodType>(value: T, maxEntries: number) {
 	return z
@@ -74,8 +97,14 @@ export const gameSchema = z
 		rounds: z.number().int().min(1).max(MAX_ROUNDS).optional(),
 		createdAt: timestampSchema,
 		isArchived: z.boolean(),
+		...rankingRulesShape,
+		teamPlay: z.boolean().optional(),
 	})
-	.refine((g) => g.maxPlayers >= g.minPlayers, { path: ["maxPlayers"] });
+	.refine((g) => g.maxPlayers >= g.minPlayers, { path: ["maxPlayers"] })
+	// Le départage désigne une catégorie de ce jeu.
+	.refine((g) => !g.tieBreakerId || g.categories.some((c) => c.id === g.tieBreakerId), {
+		path: ["tieBreakerId"],
+	});
 
 // `avatarUri` n'est jamais chargée telle quelle (adresse web, fichier d'un autre téléphone) : elle
 // sert seulement à retrouver, par son nom, une photo encore présente dans le dossier des avatars de
@@ -116,14 +145,24 @@ export const sessionEntriesSchema = boundedRecord(
 	MAX_PLAYERS,
 );
 
-export const sessionSchema = z.object({
-	id: idSchema,
-	gameDefId: idSchema,
-	createdAt: timestampSchema,
-	finishedAt: timestampSchema.optional(),
-	playerIds: z.array(idSchema).max(MAX_PLAYERS),
-	entries: sessionEntriesSchema,
-});
+export const sessionSchema = z
+	.object({
+		id: idSchema,
+		gameDefId: idSchema,
+		createdAt: timestampSchema,
+		finishedAt: timestampSchema.optional(),
+		playerIds: z.array(idSchema).max(MAX_PLAYERS),
+		entries: sessionEntriesSchema,
+		...rankingRulesShape,
+		teams: teamsSchema.optional(),
+	})
+	// Une équipe ne compte que des joueurs de la partie.
+	.refine(
+		(s) => (s.teams ?? []).every((t) => t.playerIds.every((id) => s.playerIds.includes(id))),
+		{
+			path: ["teams"],
+		},
+	);
 
 function uniqueIds(items: { id: string }[]): boolean {
 	return new Set(items.map((item) => item.id)).size === items.length;
