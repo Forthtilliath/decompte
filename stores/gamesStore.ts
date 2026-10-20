@@ -11,19 +11,33 @@ type State = {
 	games: GameDef[];
 };
 
-type NewCategoryInput = Omit<CategoryDef, "id">;
+type NewCategoryInput = Omit<CategoryDef, "id"> & { id?: string };
+
+/** Options d'un jeu (règles de classement, équipes) : `false`/absent = désactivée. */
+type GameOptions = Pick<GameDef, "lowestWins" | "tieBreakerId" | "teamPlay">;
+
+/** Seules les options actives sont écrites : un jeu sans option garde la forme d'avant leur ajout. */
+function gameOptions({ lowestWins, tieBreakerId, teamPlay }: GameOptions): GameOptions {
+	return {
+		...(lowestWins && { lowestWins: true }),
+		...(tieBreakerId && { tieBreakerId }),
+		...(teamPlay && { teamPlay: true }),
+	};
+}
 
 type Actions = {
-	addGame: (input: {
-		name: string;
-		categories: NewCategoryInput[];
-		minPlayers: number;
-		maxPlayers: number;
-		rounds?: number;
-	}) => GameDef;
+	addGame: (
+		input: GameOptions & {
+			name: string;
+			categories: NewCategoryInput[];
+			minPlayers: number;
+			maxPlayers: number;
+			rounds?: number;
+		},
+	) => GameDef;
 	updateGame: (
 		id: string,
-		patch: {
+		patch: GameOptions & {
 			name: string;
 			categories: CategoryDef[];
 			minPlayers: number;
@@ -72,17 +86,20 @@ export const useGamesStore = create<State & Actions>()(
 		(set, get) => ({
 			games: [],
 
-			addGame: ({ name, categories, minPlayers, maxPlayers, rounds = 1 }) => {
+			addGame: (input) => {
+				const { name, categories, minPlayers, maxPlayers, rounds = 1 } = input;
 				const game: GameDef = {
 					id: createId(),
 					name: name.trim(),
-					// Chaque catégorie reçoit ici son id définitif et immuable (voir CategoryDef).
-					categories: categories.map((c) => ({ ...c, id: createId() })),
+					// Chaque catégorie garde ici son id définitif et immuable (voir CategoryDef), reçu
+					// du formulaire ou de l'import (le départage y fait déjà référence), créé sinon.
+					categories: categories.map((c) => ({ ...c, id: c.id ?? createId() })),
 					minPlayers,
 					maxPlayers,
 					rounds,
 					createdAt: Date.now(),
 					isArchived: false,
+					...gameOptions(input),
 				};
 				set({ games: [...get().games, game] });
 				return game;
@@ -90,18 +107,20 @@ export const useGamesStore = create<State & Actions>()(
 
 			updateGame: (id, patch) => {
 				set({
-					games: get().games.map((g) =>
-						g.id === id
-							? {
-									...g,
-									name: patch.name.trim(),
-									categories: patch.categories,
-									minPlayers: patch.minPlayers,
-									maxPlayers: patch.maxPlayers,
-									rounds: patch.rounds,
-								}
-							: g,
-					),
+					games: get().games.map((g) => {
+						if (g.id !== id) return g;
+						// Options retirées puis remises seulement si elles sont actives.
+						const { lowestWins: _l, tieBreakerId: _t, teamPlay: _p, ...rest } = g;
+						return {
+							...rest,
+							name: patch.name.trim(),
+							categories: patch.categories,
+							minPlayers: patch.minPlayers,
+							maxPlayers: patch.maxPlayers,
+							rounds: patch.rounds,
+							...gameOptions(patch),
+						};
+					}),
 				});
 			},
 

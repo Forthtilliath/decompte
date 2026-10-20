@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CategoryEditor } from "@/components/games/CategoryEditor";
+import { GameRulesEditor } from "@/components/games/GameRulesEditor";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
@@ -9,20 +10,25 @@ import { useColors } from "@/hooks/useColors";
 import {
 	type DraftCategory,
 	emptyCategory,
+	type GameDraftOptions,
 	type GameDraftValues,
 	nextCategoryColor,
 	validateGameDraft,
 } from "@/lib/gameDraft";
 import { paletteColor } from "@/lib/gameExport";
-import type { CategoryDef } from "@/types/game";
+import type { GameDef } from "@/types/game";
 
-export type GameBuilderValues = {
-	name: string;
-	categories: CategoryDef[];
-	minPlayers: number;
-	maxPlayers: number;
-	rounds?: number;
-};
+export type GameBuilderValues = Pick<
+	GameDef,
+	| "name"
+	| "categories"
+	| "minPlayers"
+	| "maxPlayers"
+	| "rounds"
+	| "lowestWins"
+	| "tieBreakerId"
+	| "teamPlay"
+>;
 
 type Props = {
 	initial?: GameBuilderValues;
@@ -49,6 +55,12 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 		})) ?? [{ ...emptyCategory(), color: nextCategoryColor([]) }],
 	);
 
+	const [options, setOptions] = useState<GameDraftOptions>({
+		lowestWins: initial?.lowestWins ?? false,
+		tieBreakerId: initial?.tieBreakerId,
+		teamPlay: initial?.teamPlay ?? false,
+	});
+
 	const updateCategory = (index: number, patch: Partial<DraftCategory>) => {
 		setCategories((current) => current.map((c, i) => (i === index ? { ...c, ...patch } : c)));
 	};
@@ -65,7 +77,14 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	};
 
 	const handleSubmit = () => {
-		const result = validateGameDraft({ name, minPlayers, maxPlayers, rounds, categories });
+		const result = validateGameDraft({
+			name,
+			minPlayers,
+			maxPlayers,
+			rounds,
+			categories,
+			...options,
+		});
 		if (!result.ok) {
 			Alert.alert(result.title, result.message);
 			return;
@@ -121,6 +140,13 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 				/>
 			))}
 			<Button label="Ajouter une catégorie" variant="ghost" onPress={addCategory} />
+
+			<Text style={styles.sectionTitle}>Règles</Text>
+			<GameRulesEditor
+				options={options}
+				categories={categories}
+				onChange={(patch) => setOptions((current) => ({ ...current, ...patch }))}
+			/>
 
 			<Button label={submitLabel} onPress={handleSubmit} style={styles.submit} />
 		</ScrollView>
