@@ -72,7 +72,7 @@ describe("CategoryScoreField", () => {
 		await render(
 			<CategoryScoreField category={makeCategory()} points={undefined} onChange={jest.fn()} />,
 		);
-		expect(screen.getByRole("button", { name: "Augmenter" })).toBeOnTheScreen();
+		expect(screen.getByRole("button", { name: "Augmenter Points" })).toBeOnTheScreen();
 		expect(screen.getByDisplayValue("0")).toBeOnTheScreen();
 	});
 
