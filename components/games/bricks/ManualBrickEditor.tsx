@@ -78,8 +78,7 @@ export function ManualBrickEditor({ brick, onChange }: Props) {
 						onChange={(unitValue) => onChange({ ...brick, unitValue })}
 					/>
 					<Text style={styles.hint}>
-						Pendant la partie : saisir le nombre d'unités (3 → 3 × la valeur), ou les points
-						directement, par pas de cette valeur.
+						Pendant la partie, les boutons − et + avancent de cette valeur (ex. 0, -4, -8…).
 					</Text>
 				</>
 			)}

@@ -5,7 +5,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PlayerOrderSheet } from "@/components/players/PlayerOrderSheet";
 import { PlayerScoreRow } from "@/components/players/PlayerScoreRow";
 import { CategoryScoreField } from "@/components/scoring/CategoryScoreField";
-import { type UnitMode, UnitModeToggle } from "@/components/scoring/UnitModeToggle";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
@@ -33,7 +32,6 @@ export default function PlayScoreScreen() {
 	const movePlayer = useSessionStore((s) => s.movePlayer);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 	const allPlayers = usePlayersStore((s) => s.players);
-	const [unitMode, setUnitMode] = useState<UnitMode>("units");
 	const [orderOpen, setOrderOpen] = useState(false);
 
 	useEffect(() => {
@@ -56,7 +54,6 @@ export default function PlayScoreScreen() {
 	const key = scoreKey(category.id, round);
 	const roundCount = getRoundCount(game);
 	const categoryCount = game.categories.length;
-	const unitValue = category.brick.kind === "manual" ? category.brick.unitValue : undefined;
 	const isLast = index === steps.length - 1;
 	const gamePlayers = playerIds
 		.map((id) => allPlayers.find((p) => p.id === id))
@@ -150,9 +147,6 @@ export default function PlayScoreScreen() {
 			)}
 
 			<ScrollView contentContainerStyle={styles.list}>
-				{unitValue !== undefined && (
-					<UnitModeToggle unitValue={unitValue} value={unitMode} onChange={setUnitMode} />
-				)}
 				{gamePlayers.map((player) => {
 					const entry = entries[player.id];
 					if (!entry) return null;
@@ -161,7 +155,6 @@ export default function PlayScoreScreen() {
 							<CategoryScoreField
 								category={category}
 								points={entry.scores[key]}
-								countUnits={unitMode === "units"}
 								onChange={(value) => updateScore(player.id, key, value)}
 							/>
 						</PlayerScoreRow>
