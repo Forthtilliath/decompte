@@ -16,17 +16,46 @@ const releasesSchema = z
 			draft: z.boolean(),
 			body: z.string().max(100_000).nullable(),
 			assets: z
-				.array(z.object({ name: z.string().max(255), browser_download_url: z.string().max(2048) }))
+				.array(
+					z.object({
+						name: z.string().max(255),
+						browser_download_url: z.string().max(2048),
+						// Calculée par GitHub au dépôt du fichier, absente des très anciens assets.
+						digest: z.string().max(100).nullable().optional(),
+					}),
+				)
 				.max(50),
 		}),
 	)
 	.max(100);
 
+// Un APK attaché à une release de ce dépôt, rien d'autre : ni autre dépôt de github.com, ni
+// segment `..`, ni paramètre (`[\w.-]` exclut `/`, `?`, `#`, `%` et `@`).
+const RELEASE_APK_URL = new RegExp(
+	`^https://github\\.com/${RELEASES_REPO.owner}/${RELEASES_REPO.repo}/releases/download/(?!\\.\\.?/)[\\w.-]+/[\\w.-]+\\.apk$`,
+);
+const SHA256_DIGEST = /^sha256:([0-9a-f]{64})$/;
+
+export function isReleaseApkUrl(url: string): boolean {
+	return RELEASE_APK_URL.test(url);
+}
+
+/** Empreinte SHA-256 annoncée par GitHub pour chaque APK proposé, par adresse de téléchargement. */
+const apkSha256ByUrl = new Map<string, string>();
+
+/**
+ * Empreinte que doit avoir l'APK téléchargé depuis `apkUrl` (voir installApk), connue seulement
+ * pour une adresse renvoyée par `fetchLatestRelease`.
+ */
+export function expectedApkSha256(apkUrl: string): string | undefined {
+	return apkSha256ByUrl.get(apkUrl);
+}
+
 /**
  * Dernière version publiée avec un APK, pre-releases comprises : `fetchLatestRelease` de
  * `@forthtilliath/expo-release-updates` interroge `/releases/latest`, que GitHub réserve aux
- * versions stables, et ne verrait jamais les alphas. Seul un APK servi par github.com est retenu,
- * comme l'exige ensuite `downloadAndInstallApk`.
+ * versions stables, et ne verrait jamais les alphas. Seul un APK de ce dépôt dont GitHub fournit
+ * l'empreinte SHA-256 est retenu : l'installation vérifie le fichier téléchargé avec.
  */
 export async function fetchLatestRelease(): Promise<LatestRelease | null> {
 	const controller = new AbortController();
@@ -44,18 +73,24 @@ export async function fetchLatestRelease(): Promise<LatestRelease | null> {
 	}
 
 	const releases = releasesSchema.parse(json);
-	let latest: LatestRelease | null = null;
+	let latest: (LatestRelease & { sha256: string }) | null = null;
 	for (const release of releases) {
 		if (release.draft) continue;
-		const apk = release.assets.find(
-			(asset) =>
-				asset.name.endsWith(".apk") && asset.browser_download_url.startsWith("https://github.com/"),
-		);
-		if (!apk) continue;
+		const apk = release.assets
+			.filter((asset) => asset.name.endsWith(".apk") && isReleaseApkUrl(asset.browser_download_url))
+			.map((asset) => ({ url: asset.browser_download_url, sha256: sha256Of(asset.digest) }))
+			.find((asset) => asset.sha256 !== null);
+		if (!apk?.sha256) continue;
 		const version = release.tag_name.replace(/^v/, "");
 		if (!latest || compareVersions(version, latest.version) > 0) {
-			latest = { version, notes: release.body ?? "", apkUrl: apk.browser_download_url };
+			latest = { version, notes: release.body ?? "", apkUrl: apk.url, sha256: apk.sha256 };
 		}
 	}
-	return latest;
+	if (!latest) return null;
+	apkSha256ByUrl.set(latest.apkUrl, latest.sha256);
+	return { version: latest.version, notes: latest.notes, apkUrl: latest.apkUrl };
+}
+
+function sha256Of(digest: string | null | undefined): string | null {
+	return SHA256_DIGEST.exec(digest ?? "")?.[1] ?? null;
 }
