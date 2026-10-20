@@ -1,11 +1,13 @@
 import { readPersisted, writePersisted } from "@forthtilliath/test-kit/persistedState";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import {
 	migrateSessionStoreData,
 	SESSION_STORE_VERSION,
 	useSessionStore,
 } from "@/stores/sessionStore";
+import { makeCategory, makeGame } from "@/test/factories";
 
 const EMPTY = {
 	gameDefId: null,
@@ -98,6 +100,38 @@ describe("useSessionStore", () => {
 		expect(session).not.toHaveProperty("lowestWins");
 		expect(session).not.toHaveProperty("tieBreakerId");
 		expect(session).not.toHaveProperty("teams");
+	});
+
+	it("recalcule un multiplicateur quand la catégorie multipliée change, et l'oublie au décochage", () => {
+		useGamesStore.setState({
+			games: [
+				makeGame({
+					id: "sushi",
+					categories: [
+						makeCategory({ id: "sets" }),
+						makeCategory({
+							id: "bonus",
+							requiresValidation: true,
+							brick: { kind: "product", sourceId: "sets" },
+						}),
+					],
+				}),
+			],
+		});
+		const store = useSessionStore.getState();
+		store.startNewSession("sushi", ["p1"]);
+		store.setValidated("p1", "bonus", true);
+		store.updateFactor("p1", "bonus", 3);
+		expect(useSessionStore.getState().entries.p1.scores).toEqual({ bonus: 0 });
+		store.updateScore("p1", "sets", 5);
+		expect(useSessionStore.getState().entries.p1.scores).toEqual({ sets: 5, bonus: 15 });
+
+		store.setValidated("p1", "bonus", false);
+		store.updateScore("p1", "sets", 6);
+		expect(useSessionStore.getState().entries.p1).toMatchObject({
+			scores: { sets: 6 },
+			factors: {},
+		});
 	});
 
 	it("ne duplique pas un critère validé deux fois", () => {
