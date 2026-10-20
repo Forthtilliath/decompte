@@ -65,6 +65,7 @@
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"test:coverage": "jest --coverage",
+		"bump": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/bump-version.ts",
 		"check": "npm run lint && npm run typecheck && npm test && npm run doctor"
 	},
 	"overrides": {
