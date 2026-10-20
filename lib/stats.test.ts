@@ -6,6 +6,7 @@ import {
 	computePlayerStats,
 	formatAverage,
 	formatRate,
+	getSessionRanking,
 } from "@/lib/stats";
 import { makeCategory, makeEntry, makePlayer, makeSession } from "@/test/factories";
 import type { Session } from "@/types/game";
@@ -37,6 +38,28 @@ const history = [
 	duel("s2", 200, { alice: { murs: 20, malus: -4 }, bob: { murs: 15 } }),
 	duel("s1", 100, { alice: { murs: 30 }, bob: { murs: 5, malus: -2 } }),
 ];
+
+describe("getSessionRanking", () => {
+	it("classe les joueurs d'une partie et ne recalcule pas le classement d'une même partie", () => {
+		const ranking = getSessionRanking(history[0]);
+
+		expect(ranking.map((r) => [r.playerId, r.rank, r.total])).toEqual([
+			["bob", 1, 12],
+			["alice", 2, 10],
+		]);
+		expect(getSessionRanking(history[0])).toBe(ranking);
+	});
+
+	it("calcule à part le classement d'une autre partie, même de mêmes joueurs", () => {
+		const copy = {
+			...history[0],
+			entries: { ...history[0].entries, alice: makeEntry("alice", { murs: 50 }) },
+		};
+
+		expect(getSessionRanking(copy)[0].playerId).toBe("alice");
+		expect(getSessionRanking(history[0])[0].playerId).toBe("bob");
+	});
+});
 
 describe("computePlayerStats", () => {
 	it("renvoie des stats vides pour un joueur sans partie", () => {
