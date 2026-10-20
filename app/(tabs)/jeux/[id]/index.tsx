@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
+import { GameQrSheet } from "@/components/games/GameQrSheet";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
 import { PlayerSelection } from "@/components/players/PlayerSelection";
 import { TeamSetup } from "@/components/players/TeamSetup";
@@ -49,6 +50,7 @@ export default function GameDetailScreen() {
 	const [selectedIds, setSelectedIds] = useState<string[]>([]);
 	const [teamCount, setTeamCount] = useState(MIN_TEAMS);
 	const [assignment, setAssignment] = useState<TeamAssignment>({});
+	const [qrText, setQrText] = useState<string | null>(null);
 
 	if (!game) return null;
 
@@ -73,16 +75,27 @@ export default function GameDetailScreen() {
 		router.push(getFirstStepHref(game));
 	};
 
-	const shareGame = () => {
+	/** Texte du jeu partagé, ou `null` (avec une alerte) s'il serait refusé à l'import. */
+	const shareableText = () => {
 		const text = serializeGame(game);
 		// Un jeu créé avant les bornes d'import (libellé très long…) serait refusé chez le
 		// destinataire : mieux vaut le dire ici que lui envoyer un texte inutilisable.
 		const check = parseGameExport(text);
 		if (!check.ok) {
 			Alert.alert("Partage impossible", `${check.error} Modifie le jeu puis réessaie.`);
-			return;
+			return null;
 		}
-		Share.share({ title: game.name, message: text });
+		return text;
+	};
+
+	const shareGame = () => {
+		const text = shareableText();
+		if (text) Share.share({ title: game.name, message: text });
+	};
+
+	const showQrCode = () => {
+		const text = shareableText();
+		if (text) setQrText(text);
 	};
 
 	// Archivage immédiat plutôt qu'une confirmation : la barre « Annuler » le rattrape, et c'est le
@@ -187,8 +200,10 @@ export default function GameDetailScreen() {
 					disabled={isThisGameOngoing}
 				/>
 				<Button label="Partager" variant="secondary" onPress={shareGame} />
+				<Button label="Afficher le QR code" variant="secondary" onPress={showQrCode} />
 				<Button label="Archiver" variant="ghost" onPress={archive} disabled={isThisGameOngoing} />
 			</ScrollView>
+			<GameQrSheet visible={qrText !== null} onClose={() => setQrText(null)} text={qrText ?? ""} />
 		</ScreenContainer>
 	);
 }
