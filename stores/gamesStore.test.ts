@@ -1,7 +1,7 @@
+import { readPersisted, writePersisted } from "@forthtilliath/test-kit/persistedState";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { GAMES_STORE_VERSION, migrateGamesStoreData, useGamesStore } from "@/stores/gamesStore";
 import { makeCategory, makeGame } from "@/test/factories";
-import { readPersisted, writePersisted } from "@/test/persistence";
 
 const manual = { kind: "manual", allowNegative: false } as const;
 
@@ -87,14 +87,14 @@ describe("persistance des jeux", () => {
 			.getState()
 			.addGame({ name: "Azul", categories: [], minPlayers: 2, maxPlayers: 4 });
 
-		const persisted = await readPersisted("games-store");
+		const persisted = await readPersisted(AsyncStorage, "games-store");
 		expect(persisted.version).toBe(2);
 		expect(persisted.state).toEqual({ games: useGamesStore.getState().games });
 	});
 
 	it("recharge les jeux enregistrés par la version courante", async () => {
 		const games = [makeGame({ id: "sauvegarde" })];
-		await writePersisted("games-store", { games }, GAMES_STORE_VERSION);
+		await writePersisted(AsyncStorage, "games-store", { games }, GAMES_STORE_VERSION);
 
 		await useGamesStore.persist.rehydrate();
 

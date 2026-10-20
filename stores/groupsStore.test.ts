@@ -1,3 +1,4 @@
+import { readPersisted, writePersisted } from "@forthtilliath/test-kit/persistedState";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
 	GROUPS_STORE_VERSION,
@@ -6,7 +7,6 @@ import {
 	useGroupsStore,
 } from "@/stores/groupsStore";
 import { makeGroup } from "@/test/factories";
-import { readPersisted, writePersisted } from "@/test/persistence";
 
 beforeEach(async () => {
 	useGroupsStore.setState({ groups: [] });
@@ -90,14 +90,14 @@ describe("selectSortedGroups", () => {
 describe("persistance des groupes", () => {
 	it("écrit sous la clé et la version attendues", async () => {
 		useGroupsStore.getState().addGroup({ name: "Jeudi", playerIds: [] });
-		const persisted = await readPersisted("groups-store");
+		const persisted = await readPersisted(AsyncStorage, "groups-store");
 		expect(persisted.version).toBe(1);
 		expect(persisted.state).toEqual({ groups: useGroupsStore.getState().groups });
 	});
 
 	it("recharge les groupes enregistrés", async () => {
 		const groups = [makeGroup({ id: "sauvegarde" })];
-		await writePersisted("groups-store", { groups }, GROUPS_STORE_VERSION);
+		await writePersisted(AsyncStorage, "groups-store", { groups }, GROUPS_STORE_VERSION);
 		await useGroupsStore.persist.rehydrate();
 		expect(useGroupsStore.getState().groups).toEqual(groups);
 	});

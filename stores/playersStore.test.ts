@@ -1,4 +1,5 @@
 import { pruneAppDirectory } from "@forthtilliath/react-native-kit/utils/files/appFiles";
+import { readPersisted, writePersisted } from "@forthtilliath/test-kit/persistedState";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
 	migratePlayersStoreData,
@@ -7,7 +8,6 @@ import {
 	usePlayersStore,
 } from "@/stores/playersStore";
 import { makePlayer } from "@/test/factories";
-import { readPersisted, writePersisted } from "@/test/persistence";
 
 beforeEach(async () => {
 	usePlayersStore.setState({ players: [] });
@@ -99,14 +99,14 @@ describe("selectSortedPlayers", () => {
 describe("persistance des joueurs", () => {
 	it("écrit sous la clé et la version attendues", async () => {
 		usePlayersStore.getState().addPlayer({ name: "Alice" });
-		const persisted = await readPersisted("players-store");
+		const persisted = await readPersisted(AsyncStorage, "players-store");
 		expect(persisted.version).toBe(1);
 		expect(persisted.state).toEqual({ players: usePlayersStore.getState().players });
 	});
 
 	it("recharge les joueurs enregistrés", async () => {
 		const players = [makePlayer({ id: "sauvegarde" })];
-		await writePersisted("players-store", { players }, PLAYERS_STORE_VERSION);
+		await writePersisted(AsyncStorage, "players-store", { players }, PLAYERS_STORE_VERSION);
 		await usePlayersStore.persist.rehydrate();
 		expect(usePlayersStore.getState().players).toEqual(players);
 	});
@@ -116,7 +116,7 @@ describe("persistance des joueurs", () => {
 			makePlayer({ id: "a", avatarUri: "file:///documents/avatars/a.jpg" }),
 			makePlayer({ id: "b" }),
 		];
-		await writePersisted("players-store", { players }, PLAYERS_STORE_VERSION);
+		await writePersisted(AsyncStorage, "players-store", { players }, PLAYERS_STORE_VERSION);
 		await usePlayersStore.persist.rehydrate();
 		expect(pruneAppDirectory).toHaveBeenCalledWith("avatars", ["file:///documents/avatars/a.jpg"]);
 	});

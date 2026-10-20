@@ -1,6 +1,6 @@
+import { readPersisted, writePersisted } from "@forthtilliath/test-kit/persistedState";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { migrateThemeStoreData, THEME_STORE_VERSION, useThemeStore } from "@/stores/themeStore";
-import { readPersisted, writePersisted } from "@/test/persistence";
 
 beforeEach(async () => {
 	useThemeStore.setState({ mode: "dark", backgrounds: {} });
@@ -15,7 +15,7 @@ describe("useThemeStore", () => {
 
 	it("persiste le mode choisi", async () => {
 		useThemeStore.getState().setMode("light");
-		expect(await readPersisted("theme-store")).toEqual({
+		expect(await readPersisted(AsyncStorage, "theme-store")).toEqual({
 			state: { mode: "light", backgrounds: {} },
 			version: THEME_STORE_VERSION,
 		});
@@ -31,6 +31,7 @@ describe("useThemeStore", () => {
 
 	it("recharge le mode et les fonds enregistrés", async () => {
 		await writePersisted(
+			AsyncStorage,
 			"theme-store",
 			{ mode: "light", backgrounds: { light: "blanc" } },
 			THEME_STORE_VERSION,
