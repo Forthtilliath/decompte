@@ -1,13 +1,15 @@
-import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { FlatList, type ListRenderItemInfo, StyleSheet, Text, View } from "react-native";
+import { FlatList, type ListRenderItemInfo, Pressable, StyleSheet, Text, View } from "react-native";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
-import { SPACING } from "@/constants/theme";
+import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { indexById } from "@/lib/byId";
+import { matchesSearch, normalizeForSearch } from "@/lib/search";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
@@ -20,21 +22,24 @@ export default function HistoryScreen() {
 	const sessions = useHistoryStore((s) => s.sessions);
 	const games = useGamesStore((s) => s.games);
 	const players = usePlayersStore((s) => s.players);
+	// `jeu` : ouvert depuis la fiche d'un jeu (« Voir les N parties »), limité à ses parties.
+	const { jeu } = useLocalSearchParams<{ jeu?: string }>();
 	const [query, setQuery] = useState("");
 	const gamesById = useMemo(() => indexById(games), [games]);
 	const playersById = useMemo(() => indexById(players), [players]);
+	const filterGame = jeu ? gamesById.get(jeu) : undefined;
 
 	// Recherche par nom de jeu ou de joueur ayant participé à la partie.
-	const needle = query.trim().toLowerCase();
+	const needle = normalizeForSearch(query);
 	const filteredSessions = useMemo(() => {
-		if (needle.length === 0) return sessions;
-		return sessions.filter((session) => {
-			if (gamesById.get(session.gameDefId)?.name.toLowerCase().includes(needle)) return true;
-			return session.playerIds.some((id) =>
-				playersById.get(id)?.name.toLowerCase().includes(needle),
-			);
+		const ofGame = filterGame ? sessions.filter((s) => s.gameDefId === filterGame.id) : sessions;
+		if (needle.length === 0) return ofGame;
+		return ofGame.filter((session) => {
+			if (matchesSearch(gamesById.get(session.gameDefId)?.name, needle)) return true;
+			return session.playerIds.some((id) => matchesSearch(playersById.get(id)?.name, needle));
 		});
-	}, [sessions, gamesById, playersById, needle]);
+	}, [sessions, filterGame, gamesById, playersById, needle]);
+	const isFiltered = needle.length > 0 || filterGame !== undefined;
 
 	const openSession = useCallback(
 		(sessionId: string) => router.push(`/history/${sessionId}`),
@@ -63,6 +68,17 @@ export default function HistoryScreen() {
 					autoCapitalize="none"
 				/>
 			)}
+			{filterGame && (
+				<Pressable
+					style={styles.filterChip}
+					onPress={() => router.setParams({ jeu: undefined })}
+					accessibilityRole="button"
+					accessibilityLabel={`Retirer le filtre ${filterGame.name}`}
+				>
+					<Text style={styles.filterLabel}>{filterGame.name}</Text>
+					<Ionicons name="close" size={16} color={colors.primaryText} />
+				</Pressable>
+			)}
 			<FlatList
 				data={filteredSessions}
 				keyExtractor={(s) => s.id}
@@ -70,7 +86,7 @@ export default function HistoryScreen() {
 				ItemSeparatorComponent={Separator}
 				ListEmptyComponent={
 					<Text style={styles.empty}>
-						{needle.length > 0
+						{isFiltered
 							? "Aucune partie ne correspond à cette recherche."
 							: "Aucune partie enregistrée pour l'instant."}
 					</Text>
@@ -100,6 +116,22 @@ function useStyles(colors: ThemeColors) {
 			StyleSheet.create({
 				search: {
 					marginBottom: SPACING.md,
+				},
+				filterChip: {
+					flexDirection: "row",
+					alignItems: "center",
+					alignSelf: "flex-start",
+					gap: SPACING.xs,
+					paddingVertical: 6,
+					paddingHorizontal: SPACING.md,
+					marginBottom: SPACING.md,
+					borderRadius: RADIUS.full,
+					backgroundColor: colors.primary,
+				},
+				filterLabel: {
+					color: colors.primaryText,
+					fontSize: 13,
+					fontWeight: "600",
 				},
 				list: {
 					paddingBottom: SPACING.md,
