@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
+import { indexById } from "@/lib/byId";
 import { makeEntry, makeGame, makePlayer, makeSession } from "@/test/factories";
 
 const players = [makePlayer({ id: "p1", name: "Alice" }), makePlayer({ id: "p2", name: "Bob" })];
@@ -14,7 +15,7 @@ describe("SessionSummaryCard", () => {
 			<SessionSummaryCard
 				session={session}
 				game={makeGame({ name: "Azul" })}
-				players={players}
+				playersById={indexById(players)}
 				onPress={jest.fn()}
 			/>,
 		);
@@ -31,7 +32,7 @@ describe("SessionSummaryCard", () => {
 			<SessionSummaryCard
 				session={session}
 				game={makeGame()}
-				players={[players[0]]}
+				playersById={indexById([players[0]])}
 				onPress={jest.fn()}
 			/>,
 		);
@@ -45,7 +46,7 @@ describe("SessionSummaryCard", () => {
 			<SessionSummaryCard
 				session={session}
 				game={undefined}
-				players={players}
+				playersById={indexById(players)}
 				onPress={jest.fn()}
 			/>,
 		);
@@ -55,7 +56,7 @@ describe("SessionSummaryCard", () => {
 			<SessionSummaryCard
 				session={session}
 				game={makeGame({ name: "Azul" })}
-				players={players}
+				playersById={indexById(players)}
 				onPress={jest.fn()}
 				showGameName={false}
 			/>,
@@ -69,13 +70,13 @@ describe("SessionSummaryCard", () => {
 			<SessionSummaryCard
 				session={session}
 				game={makeGame()}
-				players={players}
+				playersById={indexById(players)}
 				onPress={onPress}
 			/>,
 		);
 		await fireEvent.press(
 			screen.getByRole("button", { name: "Voir le détail de la partie du 19 octobre 2026" }),
 		);
-		expect(onPress).toHaveBeenCalled();
+		expect(onPress).toHaveBeenCalledWith(session.id);
 	});
 });

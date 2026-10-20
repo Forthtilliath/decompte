@@ -14,6 +14,7 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { indexById } from "@/lib/byId";
 import { plural } from "@/lib/plural";
 import {
 	computeGlobalRecords,
@@ -59,6 +60,7 @@ export default function StatsScreen() {
 		() => players.filter((p) => filteredSessions.some((s) => s.playerIds.includes(p.id))),
 		[players, filteredSessions],
 	);
+	const playersById = useMemo(() => indexById(playersWithSessions), [playersWithSessions]);
 	const selectedPlayer = playersWithSessions.find((p) => p.id === selectedId);
 	const comparePlayer = playersWithSessions.find(
 		(p) => p.id === compareId && p.id !== selectedPlayer?.id,
@@ -123,7 +125,7 @@ export default function StatsScreen() {
 					<View style={styles.list}>
 						<SectionTitle>Taux de victoire</SectionTitle>
 						{leaderboard.map((entry, index) => {
-							const player = playersWithSessions.find((p) => p.id === entry.playerId);
+							const player = playersById.get(entry.playerId);
 							if (!player) return null;
 							return (
 								<RankingRow

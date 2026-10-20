@@ -10,6 +10,7 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
+import { indexById } from "@/lib/byId";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
 import { toggleSelection } from "@/lib/players";
 import { getRoundCount } from "@/lib/rounds";
@@ -27,6 +28,7 @@ export default function GameDetailScreen() {
 	const game = useGamesStore((s) => s.games.find((g) => g.id === id));
 	const toggleArchived = useGamesStore((s) => s.toggleArchived);
 	const players = usePlayersStore((s) => s.players);
+	const playersById = useMemo(() => indexById(players), [players]);
 	// `.filter()` retourne un nouveau tableau à chaque rendu : le sélectionner directement
 	// casserait la stabilité de référence attendue par Zustand et provoquerait une boucle de rendu
 	// infinie. On sélectionne le tableau brut (stable) et on filtre nous-mêmes, mémorisé.
@@ -158,9 +160,9 @@ export default function GameDetailScreen() {
 								key={session.id}
 								session={session}
 								game={game}
-								players={players}
+								playersById={playersById}
 								showGameName={false}
-								onPress={() => router.push(`/history/${session.id}`)}
+								onPress={(sessionId) => router.push(`/history/${sessionId}`)}
 							/>
 						))}
 					</>

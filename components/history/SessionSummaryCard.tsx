@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import { RANK_MEDALS } from "@/constants/ranking";
@@ -7,35 +7,38 @@ import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { formatDate } from "@/lib/date";
 import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
-import { rankEntries } from "@/lib/scoring";
+import { getSessionRanking } from "@/lib/stats";
 import type { GameDef, Session } from "@/types/game";
 import type { Player } from "@/types/player";
 
 type Props = {
 	session: Session;
 	game: GameDef | undefined;
-	players: Player[];
-	onPress: () => void;
+	/** Tous les joueurs par id (`indexById`) : une lecture par joueur plutôt qu'une recherche. */
+	playersById: ReadonlyMap<string, Player>;
+	/** Reçoit l'id de la partie : un seul callback stable pour toute la liste, sans casser `memo`. */
+	onPress: (sessionId: string) => void;
 	/** Masqué sur la fiche d'un jeu, où le nom du jeu est déjà en titre. */
 	showGameName?: boolean;
 };
 
-/** Résumé d'une partie terminée : jeu, date, et joueurs dans l'ordre du classement. */
-export function SessionSummaryCard({
+/** Résumé d'une partie terminée : jeu, date, et joueurs dans l'ordre du classement. Mémoïsé : la
+ * liste de l'historique ne redessine que les cartes dont la partie, le jeu ou les joueurs changent. */
+export const SessionSummaryCard = memo(function SessionSummaryCard({
 	session,
 	game,
-	players,
+	playersById,
 	onPress,
 	showGameName = true,
 }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
-	const ranking = useMemo(() => rankEntries(Object.values(session.entries)), [session.entries]);
+	const ranking = getSessionRanking(session);
 
 	return (
 		<Pressable
 			style={({ pressed }) => [styles.card, pressed && styles.pressed]}
-			onPress={onPress}
+			onPress={() => onPress(session.id)}
 			accessibilityRole="button"
 			accessibilityLabel={`Voir le détail de la partie du ${formatDate(session.createdAt)}`}
 		>
@@ -51,7 +54,7 @@ export function SessionSummaryCard({
 			<View style={styles.playersRow}>
 				{ranking.map((score) => {
 					// Un joueur supprimé depuis reste affiché (anonymisé) : le retirer fausserait le classement.
-					const player = players.find((p) => p.id === score.playerId);
+					const player = playersById.get(score.playerId);
 					return (
 						<View key={score.playerId} style={styles.player}>
 							<PlayerAvatar
@@ -72,7 +75,7 @@ export function SessionSummaryCard({
 			</View>
 		</Pressable>
 	);
-}
+});
 
 function useStyles(colors: ThemeColors) {
 	return useMemo(
