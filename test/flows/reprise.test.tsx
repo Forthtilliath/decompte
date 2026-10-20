@@ -1,9 +1,10 @@
-import { fireEvent, screen } from "expo-router/testing-library";
+import { act, fireEvent, screen } from "expo-router/testing-library";
 import { Alert, type AlertButton } from "react-native";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
+import { UNDO_DELAY_MS, useUndoStore } from "@/stores/undoStore";
 import { makeCategory, makeEntry, makeGame, makePlayer, makeSession } from "@/test/factories";
 import { renderApp } from "@/test/renderApp";
 
@@ -41,6 +42,7 @@ beforeEach(() => {
 	});
 	useHistoryStore.setState({ sessions: [] });
 	useSessionStore.getState().resetSession();
+	useUndoStore.getState().dismiss();
 });
 
 const press = (name: string) => fireEvent.press(screen.getByRole("button", { name }));
@@ -179,14 +181,53 @@ describe("historique", () => {
 		expect(app.getPathname()).toBe("/history/s1");
 	});
 
-	it("supprime une partie après confirmation et revient à l'historique", async () => {
+	it("supprime une partie sans confirmation et revient à l'historique", async () => {
 		const app = await renderApp("/historique");
 		await press("Voir le détail de la partie du 19 octobre 2026");
 		await press("Supprimer cette partie");
 
+		expect(alert).not.toHaveBeenCalled();
 		expect(useHistoryStore.getState().sessions).toEqual([]);
 		expect(app.getPathname()).toBe("/historique");
 		expect(await screen.findByText("Aucune partie enregistrée pour l'instant.")).toBeOnTheScreen();
+
+		// La barre « Annuler » disparaît d'elle-même : la suppression est alors définitive.
+		expect(screen.getByText("Partie supprimée")).toBeOnTheScreen();
+		await act(() => jest.advanceTimersByTimeAsync(UNDO_DELAY_MS));
+		expect(screen.queryByText("Partie supprimée")).not.toBeOnTheScreen();
+	});
+
+	it("annule la suppression d'une partie, remise à sa place", async () => {
+		const other = makeSession({ id: "s0", gameDefId: "azul", createdAt: PLAYED_AT - 1 });
+		useHistoryStore.setState({ sessions: [...useHistoryStore.getState().sessions, other] });
+		await renderApp("/history/s1");
+		await press("Supprimer cette partie");
+		expect(useHistoryStore.getState().sessions.map((s) => s.id)).toEqual(["s0"]);
+
+		await press("Annuler");
+		expect(useHistoryStore.getState().sessions.map((s) => s.id)).toEqual(["s1", "s0"]);
+		expect(screen.queryByText("Partie supprimée")).not.toBeOnTheScreen();
+	});
+
+	it("n'affiche sur la fiche du jeu que les 5 dernières parties, le reste dans l'historique", async () => {
+		const sessions = Array.from({ length: 7 }, (_, i) =>
+			makeSession({ id: `s${i}`, gameDefId: "azul", playerIds: ["alice"], entries: {} }),
+		);
+		useGamesStore.setState({
+			games: [...useGamesStore.getState().games, makeGame({ id: "skyjo", name: "Skyjo" })],
+		});
+		useHistoryStore.setState({
+			sessions: [...sessions, makeSession({ id: "autre", gameDefId: "skyjo" })],
+		});
+		const app = await renderApp("/jeux/azul");
+		expect(screen.getAllByRole("button", { name: /^Voir le détail de la partie/ })).toHaveLength(5);
+
+		await press("Voir les 7 parties");
+		expect(app.getPathname()).toBe("/historique");
+		expect(await screen.findAllByRole("button", { name: /^Voir le détail/ })).toHaveLength(7);
+
+		await press("Retirer le filtre Azul");
+		expect(screen.getAllByRole("button", { name: /^Voir le détail/ })).toHaveLength(8);
 	});
 });
 
@@ -210,9 +251,16 @@ describe("modification d'un jeu", () => {
 		expect(screen.getByRole("button", { name: "Archiver" })).toBeDisabled();
 	});
 
-	it("archive un jeu après confirmation", async () => {
-		await renderApp("/jeux/azul");
+	it("archive un jeu tout de suite, et l'archivage s'annule", async () => {
+		const app = await renderApp("/jeux/azul");
 		await press("Archiver");
+		expect(alert).not.toHaveBeenCalled();
 		expect(useGamesStore.getState().games[0].isArchived).toBe(true);
+		expect(app.getPathname()).toBe("/jeux");
+		expect(screen.queryByRole("button", { name: /^Azul/ })).not.toBeOnTheScreen();
+
+		await press("Annuler");
+		expect(useGamesStore.getState().games[0].isArchived).toBe(false);
+		expect(await screen.findByRole("button", { name: /^Azul/ })).toBeOnTheScreen();
 	});
 });
