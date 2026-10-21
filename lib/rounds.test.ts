@@ -1,4 +1,5 @@
 import {
+	cumulateRounds,
 	describeRounds,
 	getLastScoredRound,
 	getRoundCount,
@@ -98,5 +99,11 @@ describe("sumByRound", () => {
 
 	it("donne une seule manche pour une partie vide", () => {
 		expect(sumByRound({}, 1)).toEqual([0]);
+	});
+});
+
+describe("cumulateRounds", () => {
+	it("donne le total atteint à la fin de chaque manche", () => {
+		expect(cumulateRounds([5, -2, 0, 4])).toEqual([5, 3, 3, 7]);
 	});
 });

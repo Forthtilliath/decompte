@@ -79,3 +79,9 @@ export function sumByRound(scores: Record<string, number>, roundCount: number): 
 	}
 	return totals;
 }
+
+/** Total cumulé à la fin de chaque manche (index 0 = après la manche 1). */
+export function cumulateRounds(rounds: number[]): number[] {
+	let total = 0;
+	return rounds.map((points) => (total += points));
+}
