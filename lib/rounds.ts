@@ -1,4 +1,4 @@
-import type { GameDef } from "@/types/game";
+import type { GameDef, SessionEntry } from "@/types/game";
 
 /**
  * Un jeu en plusieurs manches (ex. Pixies, 3 manches) rejoue toutes ses catégories à chaque
@@ -9,9 +9,41 @@ import type { GameDef } from "@/types/game";
  */
 const ROUND_SEPARATOR = "#";
 
-/** Nombre de manches d'un jeu : 1 pour un jeu créé avant l'ajout des manches. */
+/** Nombre de manches d'un jeu : 1 pour un jeu créé avant l'ajout des manches. Un jeu en manches
+ * ouvertes n'en a pas de fixé : celles d'une partie sont suivies par stores/sessionStore. */
 export function getRoundCount(game: GameDef): number {
 	return game.rounds ?? 1;
+}
+
+/** Manches d'une partie en cours : celles commencées en manches ouvertes (`roundCount` du store de
+ * partie), sinon celles du jeu. */
+export function getSessionRoundCount(game: GameDef, roundCount: number | null): number {
+	return roundCount ?? getRoundCount(game);
+}
+
+/** Ce que la liste et la fiche d'un jeu disent de ses manches, `null` pour une seule manche. */
+export function describeRounds(game: GameDef): string | null {
+	if (game.openRounds) {
+		const { scoreLimit } = game.openRounds;
+		return scoreLimit === undefined ? "manches libres" : `jusqu'à ${scoreLimit} points`;
+	}
+	const roundCount = getRoundCount(game);
+	return roundCount > 1 ? `${roundCount} manches` : null;
+}
+
+/** Dernière manche où au moins un joueur a un score saisi : 1 si aucune. */
+export function getLastScoredRound(entries: SessionEntry[]): number {
+	const rounds = entries.flatMap((e) => Object.keys(e.scores).map((k) => parseScoreKey(k).round));
+	return Math.max(1, ...rounds);
+}
+
+/** Joueurs ou équipes dont le total atteint le seuil de fin de partie (aucun sans seuil). */
+export function getScoreLimitReachers<T extends { total: number }>(
+	contenders: T[],
+	scoreLimit: number | undefined,
+): T[] {
+	if (scoreLimit === undefined) return [];
+	return contenders.filter((c) => c.total >= scoreLimit);
 }
 
 /** Clé du score d'une catégorie pour une manche (numérotée à partir de 1). */

@@ -51,6 +51,8 @@ export type GameDef = {
 	/** Nombre de manches : toutes les catégories se saisissent une fois par manche (voir
 	 * lib/rounds). Absent d'un jeu créé avant l'ajout des manches : 1. */
 	rounds?: number;
+	/** Manches enchaînées sans nombre fixé, à la place de `rounds` (voir OpenRounds). */
+	openRounds?: OpenRounds;
 	createdAt: number;
 	/** Jamais de suppression définitive (même logique que Player/PlayerGroup) : un jeu archivé
 	 * disparaît de la liste active mais reste résolvable pour l'historique des parties déjà jouées. */
@@ -72,8 +74,19 @@ export type RankingRules = {
 	tieBreakerId?: string;
 };
 
+/**
+ * Partie en manches enchaînées sans nombre fixé (Odin, Skyjo…) : à la fin de chaque manche, un
+ * récapitulatif propose la suivante ou la fin de la partie. Recopiée dans chaque partie à son
+ * lancement, comme les règles de classement.
+ */
+export type OpenRounds = {
+	/** La partie s'arrête à la fin de la manche où un joueur (ou une équipe) atteint ce total.
+	 * Absent : on arrête quand on veut. */
+	scoreLimit?: number;
+};
+
 /** Ce que le lancement d'une partie reprend du jeu, en plus des joueurs. */
-export type SessionSetup = RankingRules & { teams?: Team[] };
+export type SessionSetup = RankingRules & { teams?: Team[]; openRounds?: OpenRounds };
 
 /** Une équipe d'une partie en équipes : son total est la somme de ceux de ses joueurs. */
 export type Team = {
@@ -105,6 +118,8 @@ export type Session = {
 	entries: Record<string, SessionEntry>;
 	/** Équipes d'une partie en équipes (absentes : chacun pour soi). */
 	teams?: Team[];
+	/** Partie en manches ouvertes : leur nombre se lit dans les clés de score (lib/rounds). */
+	openRounds?: OpenRounds;
 	/** Notes libres sur la partie, ajoutées depuis l'historique. */
 	notes?: string;
 	/** Photo de la table, dans le dossier privé de l'app (lib/sessionPhotos). */
