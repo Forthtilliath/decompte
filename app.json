@@ -2,13 +2,13 @@
 	"expo": {
 		"name": "Décompte",
 		"slug": "decompte",
-		"version": "1.0.0-alpha.9",
+		"version": "1.0.0-alpha.10",
 		"scheme": "decompte",
 		"orientation": "portrait",
 		"icon": "./assets/images/icon.png",
 		"userInterfaceStyle": "automatic",
 		"android": {
-			"versionCode": 9,
+			"versionCode": 10,
 			"adaptiveIcon": {
 				"backgroundColor": "#0f172a",
 				"foregroundImage": "./assets/images/android-icon-foreground.png",
