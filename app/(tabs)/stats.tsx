@@ -1,3 +1,4 @@
+import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -16,7 +17,6 @@ import { SectionTitle } from "@/components/ui/SectionTitle";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { indexById } from "@/lib/byId";
 import { plural } from "@/lib/plural";
 import {
 	computeGlobalRecords,

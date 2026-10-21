@@ -1,3 +1,4 @@
+import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text } from "react-native";
@@ -10,7 +11,6 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { indexById } from "@/lib/byId";
 import { formatDate } from "@/lib/date";
 import { getRoundCount } from "@/lib/rounds";
 import { getFirstStepHref, getReplayPlan, getSessionSetup } from "@/lib/sessionFlow";
