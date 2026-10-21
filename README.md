@@ -14,9 +14,10 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
   Une catégorie peut exiger un **critère à valider** : chaque joueur a une case à cocher, et ses points ne comptent qu'une fois le critère validé.
 - **Règles de classement** par jeu : le plus haut ou **le plus bas total gagne** (golf, Skyjo…), et une catégorie qui **départage les égalités**.
 - **Jeux en équipes** : au lancement, chaque joueur rejoint une équipe ; le classement se fait sur le total de chaque équipe.
-- **Modèles prêts à l'emploi** (7 Wonders, Les Aventuriers du Rail, Kingdomino, Time's Up!, Golf), ajoutés en un geste puis modifiables.
+- **Modèles prêts à l'emploi** (7 Wonders, Les Aventuriers du Rail, Kingdomino, Time's Up!, Golf, Odin, Skyjo, 6 qui prend !), ajoutés en un geste puis modifiables.
 - **Saisie guidée** : une catégorie à la fois, avec le total de chaque joueur affiché en continu ; on passe à la suivante par un balayage ou par le bouton du bas, et l'écran reste allumé pendant toute la saisie.
 - **Jeux en plusieurs manches** (ex. Pixies, 3 manches) : toutes les catégories se saisissent à chaque manche, puis les manches s'additionnent ; les résultats détaillent les points de chaque manche.
+- **Manches sans nombre fixé** : jusqu'à un seuil de points (ex. Odin, fin à 15 points) ou libres. À la fin de chaque manche, un récapitulatif montre les totaux cumulés et l'écart au seuil, puis propose la manche suivante ou la fin de la partie ; le seuil atteint termine la partie.
 - **Ordre de jeu** : les joueurs jouent dans l'ordre où on les coche (numéro affiché sur leur avatar), modifiable à tout moment pendant la saisie.
 - **Partie en cours sauvegardée** : on la reprend à l'étape où on l'avait laissée, ou on l'abandonne.
 - **Classement final** avec médailles, et ex æquo gérés. Avant l'enregistrement, les catégories laissées vides pour un joueur sont signalées, avec un lien pour les compléter.
