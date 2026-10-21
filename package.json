@@ -1,6 +1,6 @@
 {
 	"name": "decompte",
-	"version": "1.0.0-alpha.11",
+	"version": "1.0.0-alpha.12",
 	"main": "index.ts",
 	"dependencies": {
 		"@expo/vector-icons": "^15.0.2",
