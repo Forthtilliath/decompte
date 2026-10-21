@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { relinkAvatarPhotos } from "@/lib/avatarPhotos";
 import { importBrick } from "@/lib/gameExport";
-import { storedBrickSchema } from "@/lib/gameExportSchema";
+import { openRoundsSchema, storedBrickSchema } from "@/lib/gameExportSchema";
 import {
 	MAX_CATEGORIES,
 	MAX_FACTOR,
@@ -10,6 +10,7 @@ import {
 	MAX_NOTES_LENGTH,
 	MAX_PLAYERS,
 	MAX_ROUNDS,
+	MAX_SCORE_KEYS,
 	MAX_SESSION_SCORE,
 	MAX_TEAM_NAME_LENGTH,
 } from "@/lib/gameLimits";
@@ -97,6 +98,7 @@ export const gameSchema = z
 		minPlayers: z.number().int().min(1).max(MAX_PLAYERS),
 		maxPlayers: z.number().int().min(1).max(MAX_PLAYERS),
 		rounds: z.number().int().min(1).max(MAX_ROUNDS).optional(),
+		openRounds: openRoundsSchema.optional(),
 		createdAt: timestampSchema,
 		isArchived: z.boolean(),
 		...rankingRulesShape,
@@ -148,18 +150,12 @@ export const sessionEntriesSchema = boundedRecord(
 		// Une clé par catégorie et par manche (lib/rounds : `scoreKey`).
 		scores: boundedRecord(
 			z.number().min(-MAX_SESSION_SCORE).max(MAX_SESSION_SCORE),
-			MAX_CATEGORIES * MAX_ROUNDS,
+			MAX_SCORE_KEYS,
 		),
 		// Clés de score dont le critère est validé (catégories à critère seulement).
-		validated: z
-			.array(scoreKeySchema)
-			.max(MAX_CATEGORIES * MAX_ROUNDS)
-			.optional(),
+		validated: z.array(scoreKeySchema).max(MAX_SCORE_KEYS).optional(),
 		// Nombres saisis des catégories multiplicateur, par clé de score (lib/products).
-		factors: boundedRecord(
-			z.number().int().min(0).max(MAX_FACTOR),
-			MAX_CATEGORIES * MAX_ROUNDS,
-		).optional(),
+		factors: boundedRecord(z.number().int().min(0).max(MAX_FACTOR), MAX_SCORE_KEYS).optional(),
 	}),
 	MAX_PLAYERS,
 );
@@ -174,6 +170,7 @@ export const sessionSchema = z
 		entries: sessionEntriesSchema,
 		...rankingRulesShape,
 		teams: teamsSchema.optional(),
+		openRounds: openRoundsSchema.optional(),
 		notes: z.string().max(MAX_NOTES_LENGTH).optional(),
 		// Comme `avatarUri` : jamais chargée telle quelle, voir parseBackup.
 		photoUri: z.string().max(1024).optional(),

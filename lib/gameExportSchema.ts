@@ -76,6 +76,11 @@ export const storedBrickSchema = z.discriminatedUnion("kind", [
 	z.object({ kind: z.literal("product"), sourceId: z.string().min(1).max(64) }),
 ]);
 
+/** Manches ouvertes (OpenRounds), d'un jeu partagé, sauvegardé ou d'une partie. */
+export const openRoundsSchema = z.object({
+	scoreLimit: z.number().int().min(1).max(MAX_SCORE).optional(),
+});
+
 export type ExportedBrick = z.infer<typeof brickSchema>;
 export type StoredBrick = z.infer<typeof storedBrickSchema>;
 
@@ -87,6 +92,9 @@ const gameSchema = z
 		// Clé ajoutée sans changer de version, comme `unitValue` : une version antérieure de l'app
 		// la supprime à l'import et garde un jeu en une seule manche.
 		rounds: z.number().int().min(1).max(MAX_ROUNDS).optional(),
+		// Clé ajoutée sans changer de version : une version antérieure de l'app la supprime à
+		// l'import et garde un jeu en une manche (ou en `rounds`), toujours jouable.
+		openRounds: openRoundsSchema.optional(),
 		categories: z
 			.array(
 				z.object({

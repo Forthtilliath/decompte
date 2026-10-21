@@ -102,6 +102,23 @@ describe("parseBackup", () => {
 		expect(Object.keys(restored.sessions[0].entries.alice.scores)).toHaveLength(60);
 	});
 
+	it("garde les manches ouvertes d'un jeu et d'une partie, jusqu'à 50 manches", () => {
+		const scores = Object.fromEntries(
+			Array.from({ length: 50 }, (_, i) => [i === 0 ? "c1" : `c1#${i + 1}`, 1]),
+		);
+		const data = validBackup({
+			games: [makeGame({ openRounds: { scoreLimit: 15 } }), makeGame({ id: "g2", openRounds: {} })],
+			sessions: [
+				makeSession({
+					openRounds: { scoreLimit: 15 },
+					playerIds: ["alice"],
+					entries: { alice: makeEntry("alice", scores) },
+				}),
+			],
+		});
+		expect(parse(data)).toEqual(data);
+	});
+
 	it("garde les critères à valider des jeux et ceux validés dans les parties", () => {
 		const data = validBackup({
 			games: [makeGame({ categories: [makeCategory({ requiresValidation: true })] })],
@@ -189,6 +206,15 @@ describe("parseBackup", () => {
 			},
 		],
 		["des notes trop longues", { sessions: [makeSession({ notes: "x".repeat(1001) })] }],
+		["un seuil de fin de partie nul", { games: [makeGame({ openRounds: { scoreLimit: 0 } })] }],
+		[
+			"un seuil de fin de partie non entier",
+			{ sessions: [makeSession({ openRounds: { scoreLimit: 12.5 } })] },
+		],
+		[
+			"des manches ouvertes qui ne sont pas un objet",
+			{ games: [makeGame({ openRounds: true as never })] },
+		],
 		["un départage sur une catégorie inconnue", { games: [makeGame({ tieBreakerId: "x" })] }],
 		[
 			"un multiplicateur sur une catégorie placée après lui",

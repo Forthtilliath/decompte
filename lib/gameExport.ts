@@ -17,7 +17,14 @@ export const MAX_EXPORT_LENGTH = 50_000;
 /** Données prêtes pour `gamesStore.addGame`. */
 export type ImportedGame = Pick<
 	GameDef,
-	"name" | "minPlayers" | "maxPlayers" | "categories" | "lowestWins" | "tieBreakerId" | "teamPlay"
+	| "name"
+	| "minPlayers"
+	| "maxPlayers"
+	| "categories"
+	| "lowestWins"
+	| "tieBreakerId"
+	| "teamPlay"
+	| "openRounds"
 > & { rounds: number };
 
 export type ImportResult = { ok: true; game: ImportedGame } | { ok: false; error: string };
@@ -60,6 +67,7 @@ export function serializeGame(game: GameDef): string {
 			minPlayers: game.minPlayers,
 			maxPlayers: game.maxPlayers,
 			...(game.rounds !== undefined && game.rounds > 1 && { rounds: game.rounds }),
+			...(game.openRounds && { openRounds: game.openRounds }),
 			categories: game.categories.map((c) => ({
 				label: c.label,
 				// Une couleur hors palette (possible via une sauvegarde) serait refusée à l'import.
@@ -96,6 +104,8 @@ const FIELD_NAMES: Record<string, string> = {
 	minPlayers: "joueurs min.",
 	maxPlayers: "joueurs max.",
 	rounds: "manches",
+	openRounds: "manches ouvertes",
+	scoreLimit: "seuil de fin de partie",
 	categories: "catégories",
 	label: "libellé",
 	brick: "mode de calcul",
@@ -187,6 +197,7 @@ export function parseGameExport(text: string): ImportResult {
 			minPlayers: game.minPlayers,
 			maxPlayers: game.maxPlayers,
 			rounds: game.rounds ?? 1,
+			...(game.openRounds && { openRounds: game.openRounds }),
 			categories,
 			...(game.lowestWins && { lowestWins: true }),
 			...(game.teamPlay && { teamPlay: true }),
