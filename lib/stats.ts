@@ -1,5 +1,5 @@
 import { round } from "@forthtilliath/ts-kit/number/round";
-import { sumByCategory } from "@/lib/rounds";
+import { getLastScoredRound, sumByCategory, sumByRound } from "@/lib/rounds";
 import type { CategoryDef, Session } from "@/types/game";
 import type { Player } from "@/types/player";
 import { type RankedEntry, rankSession, type SessionRanking } from "./scoring";
@@ -97,6 +97,30 @@ export function computePlayerStats(
 		bestTotal: bestHigh ?? bestLow ?? 0,
 		averageByCategory,
 	};
+}
+
+/**
+ * Points moyens d'un joueur à chaque manche (index 0 = manche 1), pour un jeu en plusieurs
+ * manches. Chaque manche fait sa moyenne sur les seules parties qui l'ont jouée : en manches
+ * ouvertes, les parties n'en ont pas toutes autant. `roundCount` : les manches fixées du jeu.
+ */
+export function computePlayerRoundAverages(
+	playerId: string,
+	sessions: Session[],
+	roundCount: number,
+): number[] {
+	const sums: number[] = [];
+	const counts: number[] = [];
+	for (const session of sessions) {
+		const entry = session.entries[playerId];
+		if (!session.playerIds.includes(playerId) || !entry) continue;
+		const sessionRounds = Math.max(roundCount, getLastScoredRound(Object.values(session.entries)));
+		sumByRound(entry.scores, sessionRounds).forEach((points, index) => {
+			sums[index] = (sums[index] ?? 0) + points;
+			counts[index] = (counts[index] ?? 0) + 1;
+		});
+	}
+	return sums.map((sum, index) => sum / counts[index]);
 }
 
 export type GlobalRecords = {
