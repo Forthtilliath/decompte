@@ -74,6 +74,13 @@ describe("useGamesStore", () => {
 		expect(useGamesStore.getState().games[0].isArchived).toBe(false);
 	});
 
+	it("supprime un jeu sans toucher aux autres", () => {
+		const other = makeGame({ id: "autre" });
+		useGamesStore.setState({ games: [makeGame({ id: "g" }), other] });
+		useGamesStore.getState().removeGame("g");
+		expect(useGamesStore.getState().games).toEqual([other]);
+	});
+
 	it("remplace toute la liste", () => {
 		const games = [makeGame({ id: "a" }), makeGame({ id: "b" })];
 		useGamesStore.getState().replaceAll(games);
