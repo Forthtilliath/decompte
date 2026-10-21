@@ -12,8 +12,8 @@ import { SwipeView } from "@/components/ui/SwipeView";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { getRoundCount } from "@/lib/rounds";
-import { getScoringSteps, getStepHref } from "@/lib/sessionFlow";
+import { getSessionRoundCount } from "@/lib/rounds";
+import { getRoundEndHref, getScoringSteps, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -29,6 +29,8 @@ export default function PlayScoreScreen() {
 	const gameDefId = useSessionStore((s) => s.gameDefId);
 	const playerIds = useSessionStore((s) => s.playerIds);
 	const entries = useSessionStore((s) => s.entries);
+	const sessionRoundCount = useSessionStore((s) => s.roundCount);
+	const isOpenRounds = useSessionStore((s) => s.openRounds !== null);
 	const setCurrentCategory = useSessionStore((s) => s.setCurrentCategory);
 	const movePlayer = useSessionStore((s) => s.movePlayer);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
@@ -48,24 +50,29 @@ export default function PlayScoreScreen() {
 
 	if (!game || playerIds.length === 0) return null;
 
-	const steps = getScoringSteps(game);
+	const roundCount = getSessionRoundCount(game, sessionRoundCount);
+	const steps = getScoringSteps(game, roundCount);
 	const index = steps.findIndex((s) => s.categoryId === categoryId && s.round === round);
 	if (index === -1) return null;
 
 	const category = game.categories.find((c) => c.id === categoryId);
 	if (!category) return null;
-	const roundCount = getRoundCount(game);
 	const categoryCount = game.categories.length;
+	// Manches ouvertes : chaque manche se clôt par son récapitulatif, qui décide de la suite.
+	const isRoundEnd = isOpenRounds && index % categoryCount === categoryCount - 1;
 	const isLast = index === steps.length - 1;
-	const nextCategory = isLast
-		? undefined
-		: game.categories.find((c) => c.id === steps[index + 1].categoryId);
+	const nextCategory =
+		isLast || isRoundEnd
+			? undefined
+			: game.categories.find((c) => c.id === steps[index + 1].categoryId);
 	const gamePlayers = playerIds
 		.map((id) => allPlayers.find((p) => p.id === id))
 		.filter((p): p is NonNullable<typeof p> => p != null);
 
 	const goNext = () => {
-		if (isLast) {
+		if (isRoundEnd) {
+			router.push(getRoundEndHref(round));
+		} else if (isLast) {
 			router.push("/jeux/play/results");
 		} else {
 			router.push(getStepHref(steps[index + 1]));
@@ -114,10 +121,12 @@ export default function PlayScoreScreen() {
 								onPress={goNext}
 								hitSlop={12}
 								accessibilityRole="button"
-								accessibilityLabel={isLast ? "Voir les résultats" : "Étape suivante"}
+								accessibilityLabel={
+									isRoundEnd ? "Fin de la manche" : isLast ? "Voir les résultats" : "Étape suivante"
+								}
 							>
 								<Ionicons
-									name={isLast ? "trophy" : "arrow-forward"}
+									name={isRoundEnd ? "flag" : isLast ? "trophy" : "arrow-forward"}
 									size={24}
 									color={colors.text}
 								/>
@@ -132,11 +141,20 @@ export default function PlayScoreScreen() {
 				onSwipeLeft={goNext}
 				onSwipeRight={index > 0 ? goPrevious : undefined}
 			>
-				<StepProgressBar progress={(index + 1) / steps.length} color={category.color} />
-				{roundCount > 1 ? (
+				<StepProgressBar
+					// Manches ouvertes : la progression de la manche, la partie n'ayant pas de fin fixée.
+					progress={
+						isOpenRounds
+							? ((index % categoryCount) + 1) / categoryCount
+							: (index + 1) / steps.length
+					}
+					color={category.color}
+				/>
+				{isOpenRounds || roundCount > 1 ? (
 					<Text style={styles.progress}>
 						<Text style={styles.round}>
-							Manche {round} / {roundCount}
+							{/* Manches ouvertes : leur nombre n'est pas connu d'avance. */}
+							{isOpenRounds ? `Manche ${round}` : `Manche ${round} / ${roundCount}`}
 						</Text>
 						{"  ·  "}Étape {(index % categoryCount) + 1} / {categoryCount}
 					</Text>
@@ -164,7 +182,13 @@ export default function PlayScoreScreen() {
 				</ScrollView>
 				{/* En plus de l'icône d'en-tête : à portée de pouce, et annonce la catégorie suivante. */}
 				<Button
-					label={nextCategory ? `Suivant : ${nextCategory.label}` : "Voir le classement"}
+					label={
+						nextCategory
+							? `Suivant : ${nextCategory.label}`
+							: isRoundEnd
+								? `Fin de la manche ${round}`
+								: "Voir le classement"
+					}
 					variant={nextCategory ? "primary" : "success"}
 					onPress={goNext}
 					style={styles.nextButton}

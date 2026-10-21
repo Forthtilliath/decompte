@@ -20,6 +20,7 @@ export default function JeuxLayout() {
 				name="play/[categoryId]"
 				options={{ title: "Score", animation: "slide_from_right" }}
 			/>
+			<Stack.Screen name="play/round-end" options={{ title: "Fin de manche" }} />
 			<Stack.Screen name="play/results" options={{ title: "Résultats" }} />
 		</Stack>
 	);

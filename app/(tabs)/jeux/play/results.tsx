@@ -15,7 +15,7 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { getRoundCount } from "@/lib/rounds";
+import { getSessionRoundCount } from "@/lib/rounds";
 import { rankSession } from "@/lib/scoring";
 import { getFirstStepHref, getMissingSteps, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
@@ -42,6 +42,8 @@ export default function ResultsScreen() {
 	const lowestWins = useSessionStore((s) => s.lowestWins);
 	const tieBreakerId = useSessionStore((s) => s.tieBreakerId);
 	const teams = useSessionStore((s) => s.teams);
+	const sessionRoundCount = useSessionStore((s) => s.roundCount);
+	const roundCount = game ? getSessionRoundCount(game, sessionRoundCount) : 1;
 	const { players: ranking, teams: teamRanking } = useMemo(
 		() =>
 			rankSession({
@@ -55,8 +57,8 @@ export default function ResultsScreen() {
 	);
 	const playersById = useMemo(() => indexById(allPlayers), [allPlayers]);
 	const missingSteps = useMemo(
-		() => (game ? getMissingSteps(game, playerIds, entries) : []),
-		[game, playerIds, entries],
+		() => (game ? getMissingSteps(game, playerIds, entries, roundCount) : []),
+		[game, playerIds, entries, roundCount],
 	);
 
 	if (!game || playerIds.length === 0) return null;
@@ -92,7 +94,7 @@ export default function ResultsScreen() {
 					steps={missingSteps}
 					categories={game.categories}
 					players={playersById}
-					roundCount={getRoundCount(game)}
+					roundCount={roundCount}
 					onOpen={(step) => router.dismissTo(getStepHref(step))}
 				/>
 				{teamRanking?.map((team, index) => (
@@ -116,7 +118,7 @@ export default function ResultsScreen() {
 								ranked={ranked}
 								entry={entry}
 								categories={game.categories}
-								roundCount={getRoundCount(game)}
+								roundCount={roundCount}
 							/>
 						</Reveal>
 					);
