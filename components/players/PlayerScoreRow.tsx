@@ -3,7 +3,7 @@ import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import type { Player } from "@/types/player";
 
@@ -26,7 +26,9 @@ export function PlayerScoreRow({ player, total, children }: Props) {
 				</Text>
 				{total !== undefined && (
 					<View style={styles.badge} accessibilityLabel={`Total : ${total} points`}>
-						<Text style={styles.badgeText}>Total {total}</Text>
+						<Text style={styles.badgeText} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+							Total {total}
+						</Text>
 					</View>
 				)}
 			</View>

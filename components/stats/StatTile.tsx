@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
 type Props = {
@@ -16,8 +16,12 @@ export function StatTile({ label, value }: Props) {
 
 	return (
 		<View style={styles.tile} accessible accessibilityLabel={`${label} : ${value}`}>
-			<Text style={styles.value}>{value}</Text>
-			<Text style={styles.label}>{label}</Text>
+			<Text style={styles.value} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+				{value}
+			</Text>
+			<Text style={styles.label} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+				{label}
+			</Text>
 		</View>
 	);
 }
