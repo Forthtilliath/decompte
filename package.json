@@ -48,6 +48,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "2.5.15",
 		"@forthtilliath/expo-config-plugins": "^0.1.0",
+		"@forthtilliath/expo-test-kit": "^0.4.1",
 		"@forthtilliath/test-kit": "^0.4.0",
 		"@react-native/jest-preset": "0.88.0",
 		"@testing-library/react-native": "^14.1.0",
