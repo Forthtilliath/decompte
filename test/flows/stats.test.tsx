@@ -116,5 +116,53 @@ describe("graphiques d'une partie", () => {
 		expect(screen.getByText("Comparaison par catégorie")).toBeOnTheScreen();
 		expect(screen.getByLabelText("Alice : 30")).toBeOnTheScreen();
 		expect(screen.getByLabelText("Bob : -2")).toBeOnTheScreen();
+		// Une seule manche : rien à suivre manche par manche.
+		expect(screen.queryByText("Évolution du score")).not.toBeOnTheScreen();
+	});
+
+	/** Une partie de Pixies en 2 manches : Alice 4 puis 7, Bob 9 puis -3. */
+	function playPixies() {
+		useGamesStore.setState({
+			games: [makeGame({ id: "pixies", name: "Pixies", rounds: 2 })],
+		});
+		useHistoryStore.setState({
+			sessions: [
+				makeSession({
+					id: "p1",
+					gameDefId: "pixies",
+					playerIds: ["alice", "bob"],
+					entries: {
+						alice: makeEntry("alice", { c1: 4, "c1#2": 7 }),
+						bob: makeEntry("bob", { c1: 9, "c1#2": -3 }),
+					},
+				}),
+			],
+		});
+	}
+
+	it("suivent aussi chaque manche d'un jeu en plusieurs manches", async () => {
+		playPixies();
+		await renderApp("/history/p1");
+
+		await press("Voir les graphiques");
+
+		expect(await screen.findByText("Évolution du score")).toBeOnTheScreen();
+		expect(screen.getByLabelText("Alice : 11 au final")).toBeOnTheScreen();
+		expect(screen.getByLabelText("Bob : 6 au final")).toBeOnTheScreen();
+		expect(screen.getByText("Manche 2")).toBeOnTheScreen();
+		expect(screen.getByLabelText("Alice : 7")).toBeOnTheScreen();
+		expect(screen.getByLabelText("Bob : -3")).toBeOnTheScreen();
+	});
+
+	it("donnent les points moyens par manche dans les statistiques du jeu", async () => {
+		playPixies();
+		await renderApp("/stats");
+
+		await press("Filtres · Tous les jeux");
+		await fireEvent.press(await screen.findByRole("radio", { name: "Pixies" }));
+		await fireEvent.press(screen.getByRole("radio", { name: "Bob" }));
+
+		expect(await screen.findByText("Points moyens par manche")).toBeOnTheScreen();
+		expect(screen.getByLabelText("Manche 2 : -3")).toBeOnTheScreen();
 	});
 });
