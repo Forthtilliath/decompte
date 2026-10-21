@@ -1,4 +1,5 @@
 import { AVATAR_PALETTE } from "@/lib/avatarColor";
+import { type RoundsDraft, validateRoundsDraft } from "@/lib/gameDraftRounds";
 import { paletteColor } from "@/lib/gameExport";
 import {
 	MAX_CATEGORIES,
@@ -6,11 +7,10 @@ import {
 	MAX_ITEMS,
 	MAX_LABEL_LENGTH,
 	MAX_PLAYERS,
-	MAX_ROUNDS,
 	MAX_SCORE,
 } from "@/lib/gameLimits";
 import { createId } from "@/lib/uuid";
-import type { CategoryDef, ScoringBrick } from "@/types/game";
+import type { CategoryDef, OpenRounds, ScoringBrick } from "@/types/game";
 
 /** Catégorie en cours d'édition. Une nouvelle catégorie reçoit son id dès sa création
  * (`emptyCategory`) : le départage peut la désigner avant même l'enregistrement. */
@@ -23,14 +23,14 @@ export type DraftCategory = {
 	requiresValidation?: boolean;
 };
 
-/** Saisie brute du formulaire de jeu (bornes de joueurs et manches encore en texte). */
+/** Saisie brute du formulaire de jeu (bornes de joueurs, manches et seuil encore en texte). */
 export type GameDraftInput = {
 	name: string;
 	minPlayers: string;
 	maxPlayers: string;
-	rounds: string;
 	categories: DraftCategory[];
-} & GameDraftOptions;
+} & RoundsDraft &
+	GameDraftOptions;
 
 /** Options du jeu (règles de classement, équipes), telles que le formulaire les règle. */
 export type GameDraftOptions = {
@@ -45,6 +45,8 @@ export type GameDraftValues = {
 	minPlayers: number;
 	maxPlayers: number;
 	rounds: number;
+	/** Absent pour un nombre fixe de manches. */
+	openRounds?: OpenRounds;
 	categories: DraftCategory[];
 } & GameDraftOptions;
 
@@ -228,11 +230,9 @@ export function validateGameDraft(input: GameDraftInput): GameDraftResult {
 		return fail("Trop de joueurs", `Un jeu se joue à ${MAX_PLAYERS} joueurs maximum.`);
 	}
 
-	// Champ vide ou nul : une seule manche.
-	const rounds = Math.max(1, Number.parseInt(input.rounds, 10) || 1);
-	if (rounds > MAX_ROUNDS) {
-		return fail("Trop de manches", `Un jeu compte ${MAX_ROUNDS} manches maximum.`);
-	}
+	const roundsResult = validateRoundsDraft(input);
+	if (!roundsResult.ok) return roundsResult;
+	const { rounds, openRounds } = roundsResult;
 
 	// Départage sur une catégorie retirée entre-temps : plus de départage.
 	const tieBreakerId = input.categories.some((c) => c.id && c.id === input.tieBreakerId)
@@ -246,6 +246,7 @@ export function validateGameDraft(input: GameDraftInput): GameDraftResult {
 			minPlayers,
 			maxPlayers,
 			rounds,
+			...(openRounds && { openRounds }),
 			categories: input.categories,
 			lowestWins: input.lowestWins,
 			tieBreakerId,
