@@ -1,14 +1,17 @@
 import { plural } from "@/lib/plural";
 
-describe("plural", () => {
-	// Hermes (Android) n'a pas Intl.PluralRules : l'appel ne doit pas en dépendre.
+const { PluralRules } = Intl;
+
+// Hermes (Android) n'a pas Intl.PluralRules : même résultat avec et sans.
+describe.each([
+	["avec Intl.PluralRules", PluralRules],
+	["sans Intl.PluralRules (Hermes)", undefined],
+])("plural %s", (_, rules) => {
 	beforeEach(() => {
-		jest.spyOn(Intl, "PluralRules").mockImplementation(() => {
-			throw new TypeError("Intl.PluralRules is not a constructor");
-		});
+		Object.defineProperty(Intl, "PluralRules", { value: rules, configurable: true });
 	});
-	afterEach(() => {
-		jest.restoreAllMocks();
+	afterAll(() => {
+		Object.defineProperty(Intl, "PluralRules", { value: PluralRules, configurable: true });
 	});
 
 	it("garde le singulier pour 0 et 1", () => {
