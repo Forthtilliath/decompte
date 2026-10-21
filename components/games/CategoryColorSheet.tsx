@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { selectFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
+import { readableTextOn } from "@forthtilliath/ts-kit/color/contrastRatio";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { BottomSheet } from "@/components/ui/BottomSheet";
@@ -7,7 +8,6 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { AVATAR_PALETTE } from "@/lib/avatarColor";
-import { readableTextOn } from "@/lib/contrast";
 
 /** Noms lus par le lecteur d'écran, dans l'ordre de AVATAR_PALETTE. */
 const COLOR_NAMES: Record<(typeof AVATAR_PALETTE)[number], string> = {

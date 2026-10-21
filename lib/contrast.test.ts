@@ -1,12 +1,11 @@
-import { PAGE_BACKGROUNDS, resolveThemeColors } from "@/constants/backgrounds";
-import { AVATAR_PALETTE } from "@/lib/avatarColor";
 import {
-	chipColors,
 	contrastRatio,
 	readableTextOn,
-	readableTint,
 	TEXT_CONTRAST,
-} from "@/lib/contrast";
+} from "@forthtilliath/ts-kit/color/contrastRatio";
+import { PAGE_BACKGROUNDS, resolveThemeColors } from "@/constants/backgrounds";
+import { AVATAR_PALETTE } from "@/lib/avatarColor";
+import { chipColors, readableTint } from "@/lib/contrast";
 
 const THEMES = (["dark", "light"] as const).flatMap((mode) =>
 	PAGE_BACKGROUNDS[mode].map((background) => ({
@@ -15,20 +14,7 @@ const THEMES = (["dark", "light"] as const).flatMap((mode) =>
 	})),
 );
 
-describe("contrastRatio", () => {
-	it("vaut 21 entre le noir et le blanc, 1 entre deux couleurs identiques", () => {
-		expect(contrastRatio("#000000", "#ffffff")).toBeCloseTo(21);
-		expect(contrastRatio("#ffffff", "#000000")).toBeCloseTo(21);
-		expect(contrastRatio("#3b82f6", "#3b82f6")).toBe(1);
-	});
-});
-
 describe("readableTextOn", () => {
-	it("choisit le blanc sur un fond foncé, le noir sur un fond clair", () => {
-		expect(readableTextOn("#16283d")).toBe("#ffffff");
-		expect(readableTextOn("#84cc16")).toBe("#000000");
-	});
-
 	it.each(AVATAR_PALETTE)("reste lisible sur %s", (color) => {
 		expect(contrastRatio(readableTextOn(color), color)).toBeGreaterThanOrEqual(TEXT_CONTRAST);
 	});

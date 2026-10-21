@@ -1,11 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
+import { readableTextOn } from "@forthtilliath/ts-kit/color/contrastRatio";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { getAvatarColor } from "@/lib/avatarColor";
-import { readableTextOn } from "@/lib/contrast";
 import { plural } from "@/lib/plural";
 import { getRoundCount } from "@/lib/rounds";
 import type { GameDef } from "@/types/game";

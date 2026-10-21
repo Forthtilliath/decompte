@@ -1,10 +1,10 @@
+import { readableTextOn } from "@forthtilliath/ts-kit/color/contrastRatio";
 import { Image } from "expo-image";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { getAvatarColor } from "@/lib/avatarColor";
-import { readableTextOn } from "@/lib/contrast";
 
 type Props = {
 	name: string;
