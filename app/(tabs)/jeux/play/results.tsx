@@ -1,13 +1,15 @@
 import { Ionicons } from "@expo/vector-icons";
+import { successFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { useKeepAwake } from "expo-keep-awake";
 import { router, Stack } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { MissingScoresNotice } from "@/components/scoring/MissingScoresNotice";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
 import { TeamRankingCard } from "@/components/scoring/TeamRankingCard";
 import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
+import { Reveal } from "@/components/ui/Reveal";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
@@ -32,6 +34,10 @@ export default function ResultsScreen() {
 	const [chartsVisible, setChartsVisible] = useState(false);
 	// Le téléphone posé sur la table pendant qu'on commente le classement ne doit pas se verrouiller.
 	useKeepAwake();
+	// Une vibration à l'arrivée du vainqueur, en même temps que sa carte (la première révélée).
+	useEffect(() => {
+		successFeedback();
+	}, []);
 
 	const lowestWins = useSessionStore((s) => s.lowestWins);
 	const tieBreakerId = useSessionStore((s) => s.tieBreakerId);
@@ -89,22 +95,30 @@ export default function ResultsScreen() {
 					roundCount={getRoundCount(game)}
 					onOpen={(step) => router.dismissTo(getStepHref(step))}
 				/>
-				{teamRanking?.map((team) => (
-					<TeamRankingCard key={team.teamId} team={team} playersById={playersById} />
+				{teamRanking?.map((team, index) => (
+					<Reveal key={team.teamId} index={index} emphasis={team.rank === 1}>
+						<TeamRankingCard team={team} playersById={playersById} />
+					</Reveal>
 				))}
-				{ranking.map((ranked) => {
+				{ranking.map((ranked, index) => {
 					const player = allPlayers.find((p) => p.id === ranked.playerId);
 					const entry = entries[ranked.playerId];
 					if (!entry) return null;
 					return (
-						<RankedPlayerCard
+						<Reveal
 							key={ranked.playerId}
-							player={player}
-							ranked={ranked}
-							entry={entry}
-							categories={game.categories}
-							roundCount={getRoundCount(game)}
-						/>
+							index={(teamRanking?.length ?? 0) + index}
+							// En équipes, c'est l'équipe gagnante qu'on met en avant.
+							emphasis={!teamRanking && ranked.rank === 1}
+						>
+							<RankedPlayerCard
+								player={player}
+								ranked={ranked}
+								entry={entry}
+								categories={game.categories}
+								roundCount={getRoundCount(game)}
+							/>
+						</Reveal>
 					);
 				})}
 				<Button

@@ -15,7 +15,11 @@ export default function JeuxLayout() {
 			<Stack.Screen name="scanner" options={{ title: "Scanner un QR code" }} />
 			<Stack.Screen name="[id]/index" options={{ title: "Jeu" }} />
 			<Stack.Screen name="[id]/edit" options={{ title: "Modifier le jeu" }} />
-			<Stack.Screen name="play/[categoryId]" options={{ title: "Score" }} />
+			{/* Glissé horizontal : l'étape suivante arrive du côté où l'on balaie pour l'atteindre. */}
+			<Stack.Screen
+				name="play/[categoryId]"
+				options={{ title: "Score", animation: "slide_from_right" }}
+			/>
 			<Stack.Screen name="play/results" options={{ title: "Résultats" }} />
 		</Stack>
 	);

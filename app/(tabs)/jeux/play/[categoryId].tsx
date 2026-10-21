@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PlayerOrderSheet } from "@/components/players/PlayerOrderSheet";
 import { PlayerCategoryEntry } from "@/components/scoring/PlayerCategoryEntry";
+import { StepProgressBar } from "@/components/scoring/StepProgressBar";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { SwipeView } from "@/components/ui/SwipeView";
@@ -131,17 +132,7 @@ export default function PlayScoreScreen() {
 				onSwipeLeft={goNext}
 				onSwipeRight={index > 0 ? goPrevious : undefined}
 			>
-				<View style={[styles.progressBar, { backgroundColor: colors.surfaceAlt }]}>
-					<View
-						style={[
-							styles.progressFill,
-							{
-								backgroundColor: category.color,
-								width: `${((index + 1) / steps.length) * 100}%`,
-							},
-						]}
-					/>
-				</View>
+				<StepProgressBar progress={(index + 1) / steps.length} color={category.color} />
 				{roundCount > 1 ? (
 					<Text style={styles.progress}>
 						<Text style={styles.round}>
@@ -208,12 +199,6 @@ function useStyles(colors: ThemeColors) {
 					flexDirection: "row",
 					alignItems: "center",
 					gap: SPACING.lg,
-				},
-				progressBar: {
-					height: 4,
-				},
-				progressFill: {
-					height: "100%",
 				},
 				progress: {
 					color: colors.textMuted,
