@@ -3,6 +3,7 @@ import {
 	computeGlobalRecords,
 	computePlayerGameStats,
 	computePlayerLeaderboard,
+	computePlayerRoundAverages,
 	computePlayerStats,
 	formatAverage,
 	formatRate,
@@ -106,6 +107,31 @@ describe("computePlayerStats", () => {
 		};
 		expect(computePlayerStats("alice", [teamGame]).wins).toBe(1);
 		expect(computePlayerStats("carole", [teamGame]).wins).toBe(0);
+	});
+});
+
+describe("computePlayerRoundAverages", () => {
+	it("fait la moyenne de chaque manche, toutes catégories confondues", () => {
+		const games = [
+			duel("r1", 1, { alice: { murs: 4, malus: -1, "murs#2": 6 }, bob: { murs: 1 } }),
+			duel("r2", 2, { alice: { murs: 2, "murs#2": 0 }, bob: { murs: 1 } }),
+		];
+		expect(computePlayerRoundAverages("alice", games, 2)).toEqual([2.5, 3]);
+	});
+
+	it("compte une manche sans points comme 0 tant que la partie l'a jouée", () => {
+		const game = duel("r", 1, { alice: { murs: 4 }, bob: { "murs#3": 2 } });
+		expect(computePlayerRoundAverages("alice", [game], 1)).toEqual([4, 0, 0]);
+	});
+
+	it("ne moyenne une manche que sur les parties qui l'ont atteinte", () => {
+		const games = [
+			duel("o1", 1, { alice: { murs: 2, "murs#2": 8 }, bob: { murs: 1 } }),
+			duel("o2", 2, { alice: { murs: 4 }, bob: { murs: 1 } }),
+			duel("o3", 3, { alice: { murs: 9 }, bob: { murs: 0 } }),
+		];
+		expect(computePlayerRoundAverages("alice", games, 1)).toEqual([5, 8]);
+		expect(computePlayerRoundAverages("carole", games, 1)).toEqual([]);
 	});
 });
 
