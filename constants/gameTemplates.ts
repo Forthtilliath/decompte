@@ -89,4 +89,40 @@ export const GAME_TEMPLATES: GameTemplate[] = [
 			categories: [manual("Points", true)],
 		},
 	},
+	{
+		id: "odin",
+		summary: "Manches jusqu'à 15 points, le plus bas gagne",
+		game: {
+			name: "Odin",
+			minPlayers: 2,
+			maxPlayers: 6,
+			openRounds: { scoreLimit: 15 },
+			lowestWins: true,
+			categories: [manual("Cartes en main")],
+		},
+	},
+	{
+		id: "skyjo",
+		summary: "Manches jusqu'à 100 points, le plus bas gagne",
+		game: {
+			name: "Skyjo",
+			minPlayers: 2,
+			maxPlayers: 8,
+			openRounds: { scoreLimit: 100 },
+			lowestWins: true,
+			categories: [manual("Points", true)],
+		},
+	},
+	{
+		id: "6-qui-prend",
+		summary: "Manches jusqu'à 66 têtes, le plus bas gagne",
+		game: {
+			name: "6 qui prend !",
+			minPlayers: 2,
+			maxPlayers: 10,
+			openRounds: { scoreLimit: 66 },
+			lowestWins: true,
+			categories: [manual("Têtes de bœuf")],
+		},
+	},
 ];
