@@ -1,4 +1,4 @@
-import { fetchLatestRelease } from "@/lib/appUpdate";
+import { fetchLatestRelease, fetchSortedReleaseHistory } from "@/lib/appUpdate";
 
 type AssetFixture = { name: string; browser_download_url: string; digest?: string | null };
 
@@ -74,5 +74,26 @@ describe("fetchLatestRelease", () => {
 	it("échoue sur une réponse d'erreur", async () => {
 		mockGithub({}, false);
 		await expect(fetchLatestRelease()).rejects.toThrow("500");
+	});
+});
+
+describe("fetchSortedReleaseHistory", () => {
+	it("demande toutes les releases et les classe de la plus récente à la plus ancienne", async () => {
+		const fetchSpy = mockGithub([
+			release({ tag_name: "v1.0.0-alpha.9" }),
+			release({ tag_name: "v1.0.0-alpha.12" }),
+			release({ tag_name: "v1.0.0-alpha.10" }),
+			release({ tag_name: "v1.0.0" }),
+			release({ tag_name: "v1.0.0-alpha.2" }),
+		]);
+		const history = await fetchSortedReleaseHistory();
+		expect(history.map((entry) => entry.version)).toEqual([
+			"1.0.0",
+			"1.0.0-alpha.12",
+			"1.0.0-alpha.10",
+			"1.0.0-alpha.9",
+			"1.0.0-alpha.2",
+		]);
+		expect(String(fetchSpy.mock.calls[0]?.[0])).toContain("per_page=100");
 	});
 });
