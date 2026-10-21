@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { NumberStepper } from "@/components/ui/NumberStepper";
+import { type KeyboardChain, NumberStepper } from "@/components/ui/NumberStepper";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
@@ -17,6 +17,7 @@ type Props = {
 	color: string;
 	label: string;
 	onChange: (factor: number) => void;
+	chain?: KeyboardChain;
 };
 
 /** Catégorie « Multiplicateur » : un nombre à saisir, multiplié par une autre catégorie. */
@@ -28,6 +29,7 @@ export function ProductScoreField({
 	color,
 	label,
 	onChange,
+	chain,
 }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
@@ -41,6 +43,7 @@ export function ProductScoreField({
 				max={MAX_FACTOR}
 				accentColor={color}
 				label={label}
+				chain={chain}
 			/>
 			<Text style={styles.detail}>
 				× {sourcePoints} ({sourceLabel}) = {points ?? 0} points
