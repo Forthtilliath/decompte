@@ -2,6 +2,7 @@ import { PlayerScoreRow } from "@/components/players/PlayerScoreRow";
 import { CategoryScoreField } from "@/components/scoring/CategoryScoreField";
 import { ProductScoreField } from "@/components/scoring/ProductScoreField";
 import { ValidationCheckbox } from "@/components/scoring/ValidationCheckbox";
+import type { KeyboardChain } from "@/components/ui/NumberStepper";
 import { scoreKey } from "@/lib/rounds";
 import { computeEntryTotal } from "@/lib/scoring";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -15,10 +16,12 @@ type Props = {
 	/** Toutes les catégories du jeu : un multiplicateur y retrouve celle qu'il multiplie. */
 	categories: CategoryDef[];
 	round: number;
+	/** Passage au joueur suivant par la touche Entrée. */
+	chain?: KeyboardChain;
 };
 
 /** Saisie d'un joueur pour une étape : case du critère éventuel, puis le champ de la catégorie. */
-export function PlayerCategoryEntry({ player, entry, category, categories, round }: Props) {
+export function PlayerCategoryEntry({ player, entry, category, categories, round, chain }: Props) {
 	const updateScore = useSessionStore((s) => s.updateScore);
 	const updateFactor = useSessionStore((s) => s.updateFactor);
 	const setValidated = useSessionStore((s) => s.setValidated);
@@ -38,6 +41,7 @@ export function PlayerCategoryEntry({ player, entry, category, categories, round
 					category={category}
 					points={entry.scores[key]}
 					onChange={(value) => updateScore(player.id, key, value)}
+					chain={chain}
 				/>
 			);
 		}
@@ -51,6 +55,7 @@ export function PlayerCategoryEntry({ player, entry, category, categories, round
 				color={category.color}
 				label={category.label}
 				onChange={(factor) => updateFactor(player.id, key, factor)}
+				chain={chain}
 			/>
 		);
 	};

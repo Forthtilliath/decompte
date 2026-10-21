@@ -1,5 +1,5 @@
 import { StyleSheet, View } from "react-native";
-import { NumberStepper } from "@/components/ui/NumberStepper";
+import { type KeyboardChain, NumberStepper } from "@/components/ui/NumberStepper";
 
 type Props = {
 	points: number;
@@ -11,6 +11,7 @@ type Props = {
 	unitValue?: number;
 	/** Ce qui est compté (ex. "Calamités"), pour les libellés d'accessibilité. */
 	label?: string;
+	chain?: KeyboardChain;
 };
 
 export function ManualPointsFields({
@@ -21,6 +22,7 @@ export function ManualPointsFields({
 	max,
 	unitValue,
 	label,
+	chain,
 }: Props) {
 	// Une unité négative (malus) n'a de sens que si le score peut descendre sous zéro.
 	const negative = allowNegative || (unitValue !== undefined && unitValue < 0);
@@ -34,6 +36,7 @@ export function ManualPointsFields({
 				step={unitValue === undefined ? 1 : Math.abs(unitValue)}
 				accentColor={color}
 				label={label}
+				chain={chain}
 			/>
 		</View>
 	);

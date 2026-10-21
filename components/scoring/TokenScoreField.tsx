@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ManualPointsFields } from "@/components/scoring/ManualPointsFields";
 import { TokenCounterSheet } from "@/components/scoring/TokenCounterSheet";
+import type { KeyboardChain } from "@/components/ui/NumberStepper";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { readableTint } from "@/lib/contrast";
@@ -13,11 +14,12 @@ type Props = {
 	label: string;
 	tokens: TokenDenomination[];
 	onChange: (value: number) => void;
+	chain?: KeyboardChain;
 };
 
 /** Catégorie "compteur de jetons" : total ajustable à la main (comme une catégorie "manuel"), avec
  * en plus un lien vers la calculette de jetons pour ne pas avoir à faire l'addition soi-même. */
-export function TokenScoreField({ points, color, label, tokens, onChange }: Props) {
+export function TokenScoreField({ points, color, label, tokens, onChange, chain }: Props) {
 	const colors = useColors();
 	const [visible, setVisible] = useState(false);
 	// Des jetons de défaite (valeur négative) peuvent faire passer le total sous zéro.
@@ -30,6 +32,7 @@ export function TokenScoreField({ points, color, label, tokens, onChange }: Prop
 				color={color}
 				allowNegative={allowNegative}
 				onChange={onChange}
+				chain={chain}
 			/>
 			<Pressable
 				onPress={() => setVisible(true)}

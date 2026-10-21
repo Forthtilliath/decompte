@@ -3,6 +3,7 @@ import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/hapti
 import { readableTextOn } from "@forthtilliath/ts-kit/color/contrastRatio";
 import { clamp } from "@forthtilliath/ts-kit/number/clamp";
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { TextInputInstance } from "react-native";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, TIGHT_FONT_SCALE } from "@/constants/theme";
@@ -21,11 +22,31 @@ type Props = {
 	/** Décrit ce que compte le stepper (ex. "Roues"), repris dans les libellés d'accessibilité des
 	 * boutons +/- pour un lecteur d'écran ("Diminuer Roues" plutôt que juste "Diminuer"). */
 	label?: string;
+	/** Enchaîne ce champ avec le suivant au clavier (touche Entrée). */
+	chain?: KeyboardChain;
+};
+
+/**
+ * Enchaînement de champs à la touche Entrée : `inputRef` fait connaître le champ à celui qui le
+ * pilote, `onSubmit` passe à la suite. Le clavier reste ouvert, pour enchaîner sans le recharger.
+ */
+export type KeyboardChain = {
+	inputRef: (input: TextInputInstance | null) => void;
+	onSubmit: () => void;
 };
 
 // Garde son propre stepper plutôt que le QuantityStepper de la lib, qui n'a ni `step`, ni retour
 // haptique, ni bornes optionnelles (noté dans A-FAIRE.md de forthtilliath-packages).
-export function NumberStepper({ value, onChange, min, max, step = 1, accentColor, label }: Props) {
+export function NumberStepper({
+	value,
+	onChange,
+	min,
+	max,
+	step = 1,
+	accentColor,
+	label,
+	chain,
+}: Props) {
 	const bound = (n: number) => clamp(n, min ?? -Infinity, max ?? Infinity);
 
 	// Suit la valeur courante pendant une répétition, indépendamment des re-renders déclenchés par
@@ -94,6 +115,10 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 			</Pressable>
 
 			<TextInput
+				ref={chain?.inputRef}
+				returnKeyType={chain ? "next" : undefined}
+				submitBehavior={chain ? "submit" : undefined}
+				onSubmitEditing={chain?.onSubmit}
 				style={styles.value}
 				keyboardType={allowsNegative ? "numeric" : "number-pad"}
 				value={text}

@@ -2,6 +2,7 @@ import { BooleanScoreField } from "@/components/scoring/BooleanScoreField";
 import { ChoiceScoreField } from "@/components/scoring/ChoiceScoreField";
 import { ManualPointsFields } from "@/components/scoring/ManualPointsFields";
 import { TokenScoreField } from "@/components/scoring/TokenScoreField";
+import type { KeyboardChain } from "@/components/ui/NumberStepper";
 import type { CategoryDef } from "@/types/game";
 
 type Props = {
@@ -9,10 +10,12 @@ type Props = {
 	/** `undefined` tant que rien n'a été saisi pour ce joueur dans cette catégorie. */
 	points: number | undefined;
 	onChange: (points: number) => void;
+	/** Ignoré par les catégories sans champ texte (choix, oui/non). */
+	chain?: KeyboardChain;
 };
 
 /** Saisie d'un joueur pour une catégorie, avec le champ propre à son type de calcul. */
-export function CategoryScoreField({ category, points, onChange }: Props) {
+export function CategoryScoreField({ category, points, onChange, chain }: Props) {
 	const { brick } = category;
 
 	switch (brick.kind) {
@@ -26,6 +29,7 @@ export function CategoryScoreField({ category, points, onChange }: Props) {
 					unitValue={brick.unitValue}
 					label={category.label}
 					onChange={onChange}
+					chain={chain}
 				/>
 			);
 		case "tokens":
@@ -36,6 +40,7 @@ export function CategoryScoreField({ category, points, onChange }: Props) {
 					label={category.label}
 					tokens={brick.tokens}
 					onChange={onChange}
+					chain={chain}
 				/>
 			);
 		// Pas de `?? 0` pour les choix : un score absent ne doit pré-cocher aucune option, même
