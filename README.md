@@ -8,7 +8,13 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
   - **points saisis** à la main, négatifs et plafond en option ;
   - **jetons** pondérés à compter (ex. jetons de victoire 1, 3, 5), additionnés automatiquement ;
   - **choix** parmi des options à score fixe (ex. palier atteint) ;
-  - **oui / non**, chaque réponse avec son propre score.
+  - **oui / non**, chaque réponse avec son propre score ;
+  - **multiplicateur** : un nombre saisi multiplié par les points d'une autre catégorie (ex. sets × valeur des sets).
+
+  Une catégorie peut exiger un **critère à valider** : chaque joueur a une case à cocher, et ses points ne comptent qu'une fois le critère validé.
+- **Règles de classement** par jeu : le plus haut ou **le plus bas total gagne** (golf, Skyjo…), et une catégorie qui **départage les égalités**.
+- **Jeux en équipes** : au lancement, chaque joueur rejoint une équipe ; le classement se fait sur le total de chaque équipe.
+- **Modèles prêts à l'emploi** (7 Wonders, Les Aventuriers du Rail, Kingdomino, Time's Up!, Golf), ajoutés en un geste puis modifiables.
 - **Saisie guidée** : une catégorie à la fois, avec le total de chaque joueur affiché en continu ; on passe à la suivante par un balayage ou par le bouton du bas, et l'écran reste allumé pendant toute la saisie.
 - **Jeux en plusieurs manches** (ex. Pixies, 3 manches) : toutes les catégories se saisissent à chaque manche, puis les manches s'additionnent ; les résultats détaillent les points de chaque manche.
 - **Ordre de jeu** : les joueurs jouent dans l'ordre où on les coche (numéro affiché sur leur avatar), modifiable à tout moment pendant la saisie.
@@ -18,7 +24,10 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs. La fiche d'un jeu montre ses 5 dernières parties, l'historique filtré sur ce jeu montre les autres. La recherche ignore les accents.
 - **Graphiques d'une partie** (résultats et historique) : répartition des points de chaque joueur, comparaison des joueurs catégorie par catégorie.
 - **Statistiques**, tous jeux confondus ou pour un jeu : records (meilleur score, plus longue série de victoires, partie la plus serrée), taux de victoire, jeux les plus joués, et pour chaque joueur ses points moyens et leur répartition par catégorie, en graphique ou en tableau, avec comparaison entre deux joueurs.
-- **Partage de jeux** : un jeu s'envoie en texte à un autre joueur, qui le colle dans Décompte, couleurs des catégories comprises. Le texte est entièrement vérifié avant d'être ajouté.
+- **Notes et photo de la table** attachées à chaque partie de l'historique (photo gardée dans l'app, sans ses métadonnées).
+- **Export CSV** de l'historique affiché (recherche et filtre compris), pour un tableur.
+- **Partage de jeux** : un jeu s'envoie en texte à un autre joueur, qui le colle dans Décompte, ou s'affiche en **QR code** que l'autre téléphone scanne. Couleurs et règles comprises ; le texte est entièrement vérifié avant d'être ajouté.
+- **Widget Android** : partie en cours à reprendre, ou vainqueur de la dernière partie.
 - **Sauvegarde** : envoi automatique sur Google Drive après chaque changement (dossier privé de l'app, chiffrement en option), ou export et restauration d'un fichier, avec annulation de la dernière restauration. Chaque sauvegarde est entièrement vérifiée avant d'être appliquée.
 - **Mises à jour en un geste** : l'app annonce une nouvelle version publiée sur GitHub, la télécharge et lance son installation. L'historique des versions et de leurs nouveautés est dans Réglages.
 - **Réglages** : apparence, sauvegarde, mises à jour, soutien au projet (don, partage, signalement de bug), à propos, effacement des données.
@@ -70,6 +79,7 @@ Après une montée de version (`npx expo install --fix`), `npm run check` doit p
 | `components/` | Composants : `ui/` génériques, `scoring/` saisie des scores, `games/`, `players/`, `groups/`, `history/` |
 | `stores/` | États Zustand persistés : jeux, joueurs, groupes, partie en cours, historique, thème |
 | `lib/` | Logique pure : calcul des scores, déroulé d'une partie, validation et import des jeux |
+| `widget/` | Widget d'écran d'accueil Android (affichage et tâche de fond, enregistrée dans `index.ts`) |
 | `test/` | Outils de test (fabriques de données, rendu de l'app entière) et parcours de bout en bout |
 
 ## Sauvegarde Google Drive : configuration
@@ -95,6 +105,8 @@ La mise à jour intégrée compare la version de l'app (`version` de `package.js
 Les APK publiés sont signés avec une clé propre à l'app, jamais avec la clé de debug publique de React Native. Une mise à jour ne peut donc venir que de ce projet : Android refuse d'installer par-dessus l'app un APK signé avec une autre clé. La mise à jour intégrée ne télécharge que depuis github.com, en HTTPS, et Android demande toujours confirmation avant l'installation.
 
 La sauvegarde automatique d'Android est désactivée (`allowBackup: false`) : seule la sauvegarde de l'app, vérifiée et éventuellement chiffrée, copie les données hors du téléphone.
+
+L'appareil photo (avatars, photo de la table, lecture d'un QR code) est demandé au premier usage, sans micro (`RECORD_AUDIO` bloquée). Les photos restent dans le dossier privé de l'app et ne partent dans aucune sauvegarde. Un QR code scanné passe par le même import vérifié qu'un texte collé. L'export CSV neutralise les formules qu'un nom ou une note pourrait cacher (`=`, `+`, `-`, `@` en tête de cellule).
 
 ## Licence
 
