@@ -14,12 +14,12 @@ const BOM = String.fromCharCode(0xfeff);
 const HEADER = ["Date", "Jeu", "Joueur", "Équipe", "Rang", "Total", "Détail", "Notes"];
 
 /**
- * Texte saisi par l'utilisateur (nom, libellé, notes) : un tableur exécuterait comme formule une
- * cellule qui commence par = + - @ (injection de formule, ex. `=HYPERLINK(…)` dans un nom de
- * joueur). Une apostrophe en tête la fait lire comme du texte.
+ * Texte saisi par l'utilisateur (nom, libellé, notes) : `escapeCsvField` préfixe d'une apostrophe
+ * une cellule qui commence par = + - @, qu'un tableur exécuterait comme formule (injection de
+ * formule, ex. `=HYPERLINK(…)` dans un nom de joueur).
  */
 function textCell(value: string): string {
-	return escapeCsvField(/^[=+\-@\t\r]/.test(value) ? `'${value}` : value, DELIMITER);
+	return escapeCsvField(value, DELIMITER);
 }
 
 function numberCell(value: number): string {
