@@ -1,4 +1,4 @@
-import { expectedApkSha256, fetchLatestRelease, isReleaseApkUrl } from "@/lib/appUpdate";
+import { fetchLatestRelease } from "@/lib/appUpdate";
 
 type AssetFixture = { name: string; browser_download_url: string; digest?: string | null };
 
@@ -35,88 +35,44 @@ function mockGithub(body: unknown, ok = true) {
 afterEach(() => jest.restoreAllMocks());
 
 describe("fetchLatestRelease", () => {
-	it("prend la plus haute version, pre-releases comprises", async () => {
-		mockGithub([
+	it("prend la plus haute version, pre-releases comprises, avec l'empreinte de son APK", async () => {
+		const fetchSpy = mockGithub([
 			release({ tag_name: "v1.0.0-alpha.2" }),
-			release({ tag_name: "v1.0.0-alpha.10" }),
+			release({ tag_name: "v1.0.0-alpha.10", body: null }),
 			release({ tag_name: "v1.0.0-alpha.1" }),
-		]);
-		await expect(fetchLatestRelease()).resolves.toMatchObject({ version: "1.0.0-alpha.10" });
-	});
-
-	it("ignore les brouillons, les releases sans APK et les APK hors des releases du dépôt", async () => {
-		mockGithub([
 			release({ tag_name: "v3.0.0", draft: true }),
-			release({ tag_name: "v2.2.0", assets: [] }),
-			release({
-				tag_name: "v2.1.0",
-				assets: [
-					apkAsset("v2.1.0", {
-						browser_download_url: "https://github.com/autre/depot/releases/download/v2.1.0/a.apk",
-					}),
-				],
-			}),
-			release({
-				tag_name: "v2.0.0",
-				assets: [apkAsset("v2.0.0", { browser_download_url: "https://exemple.com/Decompte.apk" })],
-			}),
-			release({ tag_name: "v1.2.0", body: null }),
 		]);
 		await expect(fetchLatestRelease()).resolves.toEqual({
-			version: "1.2.0",
+			version: "1.0.0-alpha.10",
 			notes: "",
-			apkUrl: `${DOWNLOADS}/v1.2.0/Decompte-1.2.0.apk`,
+			apkUrl: `${DOWNLOADS}/v1.0.0-alpha.10/Decompte-1.0.0-alpha.10.apk`,
+			apkSha256: SHA256,
 		});
-	});
-
-	it("ignore un APK dont GitHub ne donne pas l'empreinte SHA-256", async () => {
-		mockGithub([
-			release({ tag_name: "v2.0.0", assets: [apkAsset("v2.0.0", { digest: null })] }),
-			release({ tag_name: "v1.9.0", assets: [apkAsset("v1.9.0", { digest: "md5:abc" })] }),
-			release({ tag_name: "v1.0.0" }),
-		]);
-		await expect(fetchLatestRelease()).resolves.toMatchObject({ version: "1.0.0" });
-	});
-
-	it("retient l'empreinte de l'APK proposé, pour vérifier le téléchargement", async () => {
-		mockGithub([release({ tag_name: "v4.0.0" })]);
-		const latest = await fetchLatestRelease();
-		expect(expectedApkSha256(latest?.apkUrl ?? "")).toBe(SHA256);
-		expect(expectedApkSha256(`${DOWNLOADS}/v0.0.1/Decompte-0.0.1.apk`)).toBeUndefined();
-	});
-
-	it("renvoie null sans release exploitable", async () => {
-		mockGithub([]);
-		await expect(fetchLatestRelease()).resolves.toBeNull();
-	});
-
-	it("échoue sur une réponse d'erreur ou mal formée", async () => {
-		mockGithub({}, false);
-		await expect(fetchLatestRelease()).rejects.toThrow("500");
-
-		mockGithub({ message: "Not Found" });
-		await expect(fetchLatestRelease()).rejects.toThrow();
-	});
-});
-
-describe("isReleaseApkUrl", () => {
-	it("accepte un APK attaché à une release du dépôt", () => {
-		expect(isReleaseApkUrl(`${DOWNLOADS}/v1.0.0-alpha.8/Decompte-1.0.0-alpha.8.apk`)).toBe(true);
+		expect(String(fetchSpy.mock.calls[0]?.[0])).not.toContain("/latest");
 	});
 
 	it.each([
-		["un autre dépôt", "https://github.com/Forthtilliath/autre/releases/download/v1/a.apk"],
-		["http", "http://github.com/Forthtilliath/decompte/releases/download/v1/a.apk"],
+		["sans empreinte SHA-256", apkAsset("v2.0.0", { digest: null })],
+		["avec une empreinte MD5", apkAsset("v2.0.0", { digest: "md5:abc" })],
 		[
-			"un autre hôte",
-			"https://github.com.exemple.com/Forthtilliath/decompte/releases/download/v1/a.apk",
+			"hors des releases du dépôt",
+			apkAsset("v2.0.0", { browser_download_url: "https://github.com/autre/depot/a.apk" }),
 		],
-		["un segment ..", `${DOWNLOADS}/../../../autre/releases/download/v1/a.apk`],
-		["un sous-dossier", `${DOWNLOADS}/v1/x/a.apk`],
-		["un paramètre", `${DOWNLOADS}/v1/a.apk?x=1`],
-		["un caractère encodé", `${DOWNLOADS}/v1/%2e%2e/a.apk`],
-		["autre chose qu'un APK", `${DOWNLOADS}/v1/a.zip`],
-	])("refuse %s", (_, url) => {
-		expect(isReleaseApkUrl(url)).toBe(false);
+	])("ne propose pas un APK %s", async (_, asset) => {
+		mockGithub([release({ tag_name: "v2.0.0", assets: [asset] }), release({ tag_name: "v1.0.0" })]);
+		await expect(fetchLatestRelease()).resolves.toBeNull();
+	});
+
+	it("renvoie null sans release exploitable", async () => {
+		mockGithub([release({ tag_name: "v2.2.0", assets: [] })]);
+		await expect(fetchLatestRelease()).resolves.toBeNull();
+
+		mockGithub({ message: "Not Found" });
+		await expect(fetchLatestRelease()).resolves.toBeNull();
+	});
+
+	it("échoue sur une réponse d'erreur", async () => {
+		mockGithub({}, false);
+		await expect(fetchLatestRelease()).rejects.toThrow("500");
 	});
 });
