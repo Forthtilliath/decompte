@@ -1,8 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import { selectFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
+import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SelectablePlayerCard } from "@/components/players/SelectablePlayerCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
@@ -25,6 +27,7 @@ type Props = {
 
 /** Choix des joueurs d'une partie : groupes en un geste, puis grille des joueurs un par un. */
 export function PlayerSelection({ maxPlayers, selectedIds, onChange }: Props) {
+	const router = useRouter();
 	const colors = useColors();
 	const styles = useStyles(colors);
 	const players = usePlayersStore((s) => s.players);
@@ -101,9 +104,11 @@ export function PlayerSelection({ maxPlayers, selectedIds, onChange }: Props) {
 				</Text>
 			)}
 			{activePlayers.length === 0 && (
-				<Text style={styles.hint}>
-					Aucun joueur disponible. Crée d'abord des joueurs dans l'onglet Joueurs.
-				</Text>
+				<EmptyState
+					icon="person-add-outline"
+					message="Aucun joueur disponible : crée les joueurs de la partie, ils seront ensuite proposés ici."
+					action={{ label: "Créer un joueur", onPress: () => router.push("/players/new") }}
+				/>
 			)}
 		</>
 	);
