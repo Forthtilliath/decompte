@@ -1,5 +1,6 @@
 import { useKeepAwake } from "expo-keep-awake";
 import { fireEvent, screen } from "expo-router/testing-library";
+import { Keyboard, TextInput } from "react-native";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useGroupsStore } from "@/stores/groupsStore";
 import { useHistoryStore } from "@/stores/historyStore";
@@ -99,6 +100,42 @@ describe("saisie des scores", () => {
 		expect(await screen.findByText("Étape 2 / 2")).toBeOnTheScreen();
 		await press("Voir le classement");
 		expect(app.getPathname()).toBe("/jeux/play/results");
+	});
+
+	describe("touche Entrée du clavier", () => {
+		// Le mock de TextInput partage un même `focus` entre toutes ses instances.
+		const focus = TextInput.prototype.focus as jest.Mock;
+		const dismiss = jest.spyOn(Keyboard, "dismiss");
+		const submit = (index: number, label: string) =>
+			fireEvent(screen.getAllByLabelText(label)[index], "submitEditing");
+
+		beforeEach(() => {
+			focus.mockClear();
+			dismiss.mockClear();
+		});
+
+		it("passe au champ du joueur suivant sans quitter l'étape", async () => {
+			const app = await renderApp("/jeux/play/murs");
+			await submit(0, "Murs");
+			expect(focus).toHaveBeenCalledTimes(1);
+			expect(app.getPathname()).toBe("/jeux/play/murs");
+		});
+
+		it("ouvre l'étape suivante depuis le dernier champ, son premier champ prenant le clavier", async () => {
+			const app = await renderApp("/jeux/play/murs");
+			await submit(1, "Murs");
+			expect(await screen.findByText("Étape 2 / 2")).toBeOnTheScreen();
+			expect(app.getPathname()).toBe("/jeux/play/bonus");
+			expect(focus).toHaveBeenCalledTimes(1);
+			expect(dismiss).not.toHaveBeenCalled();
+		});
+
+		it("ferme le clavier et montre le classement depuis le dernier champ de la partie", async () => {
+			const app = await renderApp("/jeux/play/bonus");
+			await submit(1, "Bonus");
+			expect(dismiss).toHaveBeenCalled();
+			expect(app.getPathname()).toBe("/jeux/play/results");
+		});
 	});
 
 	it("signale avant l'enregistrement les catégories jamais saisies, et y ramène", async () => {
