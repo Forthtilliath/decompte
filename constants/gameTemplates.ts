@@ -1,3 +1,7 @@
+import { EXPERT_GAME_TEMPLATES } from "@/constants/gameTemplatesExpert";
+import { FAMILY_GAME_TEMPLATES } from "@/constants/gameTemplatesFamily";
+import { manual } from "@/constants/templateBricks";
+
 /**
  * Feuilles de score prêtes à l'emploi, au format d'un jeu partagé (lib/gameExportSchema) : elles
  * passent par le même import vérifié qu'un jeu reçu d'un autre joueur, et un test s'assure qu'elles
@@ -9,11 +13,6 @@ export type GameTemplate = {
 	summary: string;
 	game: Record<string, unknown>;
 };
-
-const manual = (label: string, allowNegative = false) => ({
-	label,
-	brick: { kind: "manual", allowNegative },
-});
 
 export const GAME_TEMPLATES: GameTemplate[] = [
 	{
@@ -125,4 +124,6 @@ export const GAME_TEMPLATES: GameTemplate[] = [
 			categories: [manual("Têtes de bœuf")],
 		},
 	},
+	...EXPERT_GAME_TEMPLATES,
+	...FAMILY_GAME_TEMPLATES,
 ];
