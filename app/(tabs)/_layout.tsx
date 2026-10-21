@@ -1,7 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import type { ComponentProps } from "react";
-import type { ColorValue } from "react-native";
+import { type ColorValue, StyleSheet, Text } from "react-native";
+import { TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
 /**
@@ -11,6 +12,22 @@ import { useColors } from "@/hooks/useColors";
 function tabIcon(name: ComponentProps<typeof Ionicons>["name"]) {
 	return ({ color, size }: { color: ColorValue; size: number }) => (
 		<Ionicons name={name} color={color as string} size={size} />
+	);
+}
+
+/**
+ * Libellé d'onglet au style par défaut de React Navigation, mais plafonné : cinq onglets se
+ * partagent la largeur, et « Historique » serait tronqué avec une police système agrandie.
+ */
+function tabLabel(text?: string) {
+	return ({ color, children }: { color: ColorValue; children: string }) => (
+		<Text
+			numberOfLines={1}
+			maxFontSizeMultiplier={TIGHT_FONT_SCALE}
+			style={[styles.tabLabel, { color }]}
+		>
+			{text ?? children}
+		</Text>
 	);
 }
 
@@ -27,6 +44,7 @@ export default function TabsLayout() {
 				tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
 				tabBarActiveTintColor: colors.primary,
 				tabBarInactiveTintColor: colors.textMuted,
+				tabBarLabel: tabLabel(),
 			}}
 		>
 			<Tabs.Screen name="index" options={{ href: null, headerShown: false }} />
@@ -58,7 +76,7 @@ export default function TabsLayout() {
 				name="stats"
 				options={{
 					title: "Statistiques",
-					tabBarLabel: "Stats",
+					tabBarLabel: tabLabel("Stats"),
 					tabBarIcon: tabIcon("stats-chart"),
 					tabBarActiveTintColor: colors.purple,
 				}}
@@ -75,3 +93,13 @@ export default function TabsLayout() {
 		</Tabs>
 	);
 }
+
+const styles = StyleSheet.create({
+	// Taille et graisse du libellé sous l'icône par défaut (React Navigation).
+	tabLabel: {
+		fontSize: 10,
+		fontWeight: "500",
+		textAlign: "center",
+		backgroundColor: "transparent",
+	},
+});

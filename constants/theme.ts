@@ -50,6 +50,13 @@ export const LIGHT_COLORS: ThemeColors = {
 	purple: "#7440b5",
 };
 
+/**
+ * Agrandissement maximal du texte (Réglages Android ▸ Taille de police) dans les zones à largeur
+ * fixe : boutons du stepper, tableau des stats, rang et total d'un classement. Ailleurs, le texte
+ * suit la taille choisie sans limite.
+ */
+export const TIGHT_FONT_SCALE = 1.3;
+
 export const RADIUS = {
 	sm: 8,
 	md: 12,

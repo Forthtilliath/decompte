@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
-import { SPACING } from "@/constants/theme";
+import { SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
 export type BarRow = {
@@ -42,7 +42,11 @@ export function SignedBarChart({ rows, labelWidth = 72, formatValue = String }: 
 					accessible
 					accessibilityLabel={`${row.label} : ${formatValue(row.value)}`}
 				>
-					<Text style={[styles.label, { width: labelWidth }]} numberOfLines={1}>
+					<Text
+						style={[styles.label, { width: labelWidth }]}
+						numberOfLines={1}
+						maxFontSizeMultiplier={TIGHT_FONT_SCALE}
+					>
 						{row.label}
 					</Text>
 					<View style={styles.track}>
@@ -72,7 +76,9 @@ export function SignedBarChart({ rows, labelWidth = 72, formatValue = String }: 
 							)}
 						</View>
 					</View>
-					<Text style={styles.value}>{formatValue(row.value)}</Text>
+					<Text style={styles.value} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+						{formatValue(row.value)}
+					</Text>
 				</View>
 			))}
 		</View>

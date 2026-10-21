@@ -4,8 +4,9 @@ import { clamp } from "@forthtilliath/ts-kit/number/clamp";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS } from "@/constants/theme";
+import { RADIUS, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { readableTextOn } from "@/lib/contrast";
 import { parseIntegerInput, sanitizeIntegerInput } from "@/lib/numbers";
 
 type Props = {
@@ -54,6 +55,8 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 	const colors = useColors();
 	const styles = useStyles(colors);
 	const color = accentColor ?? colors.primary;
+	// Le blanc ne se lit pas sur toutes les couleurs de catégorie (citron vert, ambre…).
+	const labelColor = { color: readableTextOn(color) };
 	// "number-pad" a un clavier purement numérique, sans touche "-" sur Android. Dès qu'un
 	// négatif est possible, on bascule sur "numeric" qui affiche le signe.
 	const allowsNegative = min === undefined || min < 0;
@@ -85,7 +88,9 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 				accessibilityState={{ disabled: atMin }}
 				accessibilityLabel={label ? `Diminuer ${label}` : "Diminuer"}
 			>
-				<Text style={styles.buttonLabel}>–</Text>
+				<Text style={[styles.buttonLabel, labelColor]} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+					–
+				</Text>
 			</Pressable>
 
 			<TextInput
@@ -99,6 +104,7 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 				}}
 				onBlur={() => setText(String(value))}
 				selectTextOnFocus
+				maxFontSizeMultiplier={TIGHT_FONT_SCALE}
 				accessibilityLabel={label}
 			/>
 
@@ -110,7 +116,9 @@ export function NumberStepper({ value, onChange, min, max, step = 1, accentColor
 				accessibilityState={{ disabled: atMax }}
 				accessibilityLabel={label ? `Augmenter ${label}` : "Augmenter"}
 			>
-				<Text style={styles.buttonLabel}>+</Text>
+				<Text style={[styles.buttonLabel, labelColor]} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+					+
+				</Text>
 			</Pressable>
 		</View>
 	);
@@ -137,7 +145,6 @@ function useStyles(colors: ThemeColors) {
 					opacity: 0.4,
 				},
 				buttonLabel: {
-					color: colors.primaryText,
 					fontSize: 20,
 					fontWeight: "700",
 				},
