@@ -43,7 +43,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - [react-native-gifted-charts](https://gifted-charts.web.app/) (camemberts, sur `react-native-svg`)
 - [Biome](https://biomejs.dev/) pour le lint et le formatage
 - [Jest](https://jestjs.io/) (preset `jest-expo`) et [Testing Library](https://callstack.github.io/react-native-testing-library/) pour les tests
-- Briques partagées de [`forthtilliath-packages`](https://github.com/Forthtilliath/forthtilliath-packages) : `@forthtilliath/react-native-kit`, `@forthtilliath/ts-kit`, `@forthtilliath/expo-config-plugins`
+- Briques partagées de [`forthtilliath-packages`](https://github.com/Forthtilliath/forthtilliath-packages) : `@forthtilliath/react-native-kit`, `@forthtilliath/ts-kit`, `@forthtilliath/expo-backup` (+ `-ui`), `@forthtilliath/expo-release-updates` (+ `-ui`), `@forthtilliath/expo-config-plugins`, et pour les tests `@forthtilliath/test-kit` et `@forthtilliath/expo-test-kit`
 
 ## Développement
 
@@ -103,7 +103,9 @@ La mise à jour intégrée compare la version de l'app (`version` de `package.js
 
 ## Sécurité
 
-Les APK publiés sont signés avec une clé propre à l'app, jamais avec la clé de debug publique de React Native. Une mise à jour ne peut donc venir que de ce projet : Android refuse d'installer par-dessus l'app un APK signé avec une autre clé. La mise à jour intégrée ne télécharge que depuis github.com, en HTTPS, et Android demande toujours confirmation avant l'installation.
+Les APK publiés sont signés avec une clé propre à l'app, jamais avec la clé de debug publique de React Native. Une mise à jour ne peut donc venir que de ce projet : Android refuse d'installer par-dessus l'app un APK signé avec une autre clé. La mise à jour intégrée ne télécharge qu'un APK des releases de ce dépôt, en HTTPS, vérifie son empreinte SHA-256 (calculée par GitHub) avant de l'installer, et Android demande toujours confirmation.
+
+Une app sans données (réinstallée, données perdues) n'écrase pas une sauvegarde Google Drive qui contient des données : l'envoi est bloqué jusqu'à une restauration ou une confirmation dans Réglages ▸ Sauvegarde.
 
 La sauvegarde automatique d'Android est désactivée (`allowBackup: false`) : seule la sauvegarde de l'app, vérifiée et éventuellement chiffrée, copie les données hors du téléphone.
 
