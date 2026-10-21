@@ -11,6 +11,7 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { useDeleteGame } from "@/hooks/useDeleteGame";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { chipColors } from "@/lib/contrast";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
@@ -34,6 +35,7 @@ export default function GameDetailScreen() {
 	const game = useGamesStore((s) => s.games.find((g) => g.id === id));
 	const toggleArchived = useGamesStore((s) => s.toggleArchived);
 	const offerUndo = useUndoStore((s) => s.offerUndo);
+	const deleteGame = useDeleteGame();
 	const players = usePlayersStore((s) => s.players);
 	const playersById = useMemo(() => indexById(players), [players]);
 	// `.filter()` retourne un nouveau tableau à chaque rendu : le sélectionner directement
@@ -206,6 +208,12 @@ export default function GameDetailScreen() {
 				<Button label="Partager" variant="secondary" onPress={shareGame} />
 				<Button label="Afficher le QR code" variant="secondary" onPress={showQrCode} />
 				<Button label="Archiver" variant="ghost" onPress={archive} disabled={isThisGameOngoing} />
+				<Button
+					label="Supprimer"
+					variant="danger"
+					onPress={() => deleteGame(game, sessions.length, archive)}
+					disabled={isThisGameOngoing}
+				/>
 			</ScrollView>
 			<GameQrSheet visible={qrText !== null} onClose={() => setQrText(null)} text={qrText ?? ""} />
 		</ScreenContainer>
