@@ -1,8 +1,8 @@
+import { moveItem } from "@forthtilliath/ts-kit/array/moveItem";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-import { moveItem } from "@/lib/arrays";
 import { idSchema, sessionEntriesSchema, teamsSchema, timestampSchema } from "@/lib/backupSchema";
 import { MAX_PLAYERS, MAX_ROUNDS } from "@/lib/gameLimits";
 import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";

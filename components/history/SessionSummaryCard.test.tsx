@@ -1,6 +1,6 @@
+import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { fireEvent, render, screen } from "@testing-library/react-native";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
-import { indexById } from "@/lib/byId";
 import { makeEntry, makeGame, makePlayer, makeSession } from "@/test/factories";
 
 const players = [makePlayer({ id: "p1", name: "Alice" }), makePlayer({ id: "p2", name: "Bob" })];

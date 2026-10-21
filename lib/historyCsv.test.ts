@@ -1,4 +1,4 @@
-import { indexById } from "@/lib/byId";
+import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { buildHistoryCsv } from "@/lib/historyCsv";
 import { makeCategory, makeEntry, makeGame, makePlayer, makeSession } from "@/test/factories";
 

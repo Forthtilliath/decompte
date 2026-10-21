@@ -1,3 +1,4 @@
+import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, Share, StyleSheet, Text, View } from "react-native";
@@ -11,7 +12,6 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
-import { indexById } from "@/lib/byId";
 import { chipColors } from "@/lib/contrast";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
 import { getRoundCount } from "@/lib/rounds";

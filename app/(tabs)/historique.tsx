@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { shareTextFile } from "@forthtilliath/react-native-kit/utils/helpers/shareTextFile";
+import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { formatFileTimestamp } from "@forthtilliath/ts-kit/files/formatFileTimestamp";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -19,7 +20,6 @@ import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { indexById } from "@/lib/byId";
 import { buildHistoryCsv } from "@/lib/historyCsv";
 import { matchesSearch, normalizeForSearch } from "@/lib/search";
 import { useGamesStore } from "@/stores/gamesStore";

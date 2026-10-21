@@ -1,5 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { successFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
+import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { useKeepAwake } from "expo-keep-awake";
 import { router, Stack } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -14,7 +15,6 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { indexById } from "@/lib/byId";
 import { getRoundCount } from "@/lib/rounds";
 import { rankSession } from "@/lib/scoring";
 import { getFirstStepHref, getMissingSteps, getStepHref } from "@/lib/sessionFlow";
