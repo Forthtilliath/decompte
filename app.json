@@ -37,6 +37,23 @@
 			"expo-sharing",
 			["expo-image-picker", { "microphonePermission": false }],
 			["expo-camera", { "recordAudioAndroid": false }],
+			[
+				"react-native-android-widget",
+				{
+					"widgets": [
+						{
+							"name": "Decompte",
+							"label": "Décompte",
+							"description": "Partie en cours ou dernier vainqueur",
+							"minWidth": "180dp",
+							"minHeight": "110dp",
+							"targetCellWidth": 3,
+							"targetCellHeight": 2,
+							"resizeMode": "horizontal|vertical"
+						}
+					]
+				}
+			],
 			["@forthtilliath/expo-config-plugins/withReleaseSigning", { "propertyPrefix": "DECOMPTE" }],
 			"@forthtilliath/expo-config-plugins/withAndroidAbis",
 			"expo-image",

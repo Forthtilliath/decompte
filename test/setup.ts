@@ -40,6 +40,15 @@ jest.mock("expo-haptics", () => ({
 // Pas d'écran à garder allumé sous Jest.
 jest.mock("expo-keep-awake", () => ({ useKeepAwake: jest.fn() }));
 
+// Pas d'écran d'accueil sous Jest : les composants du widget deviennent des éléments nommés, que
+// les tests peuvent inspecter, et les mises à jour ne font qu'être comptées.
+jest.mock("react-native-android-widget", () => ({
+	FlexWidget: "FlexWidget",
+	TextWidget: "TextWidget",
+	requestWidgetUpdate: jest.fn(() => Promise.resolve()),
+	registerWidgetTaskHandler: jest.fn(),
+}));
+
 // Ni appareil photo ni système de fichiers sous Jest : le choix d'une photo est annulé par défaut
 // (un test qui en veut une la fournit avec `mockResolvedValueOnce`), la miniature enregistrée prend
 // le nom de la photo d'origine, et les suppressions ne font qu'être comptées.

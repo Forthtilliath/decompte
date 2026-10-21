@@ -1,7 +1,7 @@
 {
 	"name": "decompte",
 	"version": "1.0.0-alpha.8",
-	"main": "expo-router/entry",
+	"main": "index.ts",
 	"dependencies": {
 		"@expo/vector-icons": "^15.0.2",
 		"@forthtilliath/expo-backup": "^0.3.0",
@@ -36,6 +36,7 @@
 		"react": "19.3.0",
 		"react-dom": "19.3.0",
 		"react-native": "0.88.0",
+		"react-native-android-widget": "0.22.1",
 		"react-native-gesture-handler": "~3.3.0",
 		"react-native-gifted-charts": "^1.4.81",
 		"react-native-safe-area-context": "~5.10.1",
