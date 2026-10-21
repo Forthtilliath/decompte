@@ -48,6 +48,9 @@ type Actions = {
 		},
 	) => void;
 	toggleArchived: (id: string) => void;
+	/** Suppression définitive, réservée à un jeu sans partie dans l'historique (hooks/useDeleteGame) :
+	 * ses parties ont besoin de sa définition pour s'afficher. */
+	removeGame: (id: string) => void;
 	replaceAll: (games: GameDef[]) => void;
 };
 
@@ -130,6 +133,10 @@ export const useGamesStore = create<State & Actions>()(
 				set({
 					games: get().games.map((g) => (g.id === id ? { ...g, isArchived: !g.isArchived } : g)),
 				});
+			},
+
+			removeGame: (id) => {
+				set({ games: get().games.filter((g) => g.id !== id) });
 			},
 
 			replaceAll: (games) => set({ games }),
