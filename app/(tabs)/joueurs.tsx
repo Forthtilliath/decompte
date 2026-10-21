@@ -4,6 +4,7 @@ import { FlatList, StyleSheet, Text, View } from "react-native";
 import { GroupListItem } from "@/components/groups/GroupListItem";
 import { PlayerListItem } from "@/components/players/PlayerListItem";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
@@ -29,6 +30,7 @@ export default function PlayersScreen() {
 	const sortedGroups = selectSortedGroups(groups);
 	const needle = normalizeForSearch(query);
 	const filtered = sorted.filter((p) => matchesSearch(p.name, needle));
+	const addPlayer = () => router.push("/players/new");
 
 	return (
 		<ScreenContainer>
@@ -69,11 +71,15 @@ export default function PlayersScreen() {
 					) : undefined
 				}
 				ListEmptyComponent={
-					<Text style={styles.empty}>
-						{query.length > 0
-							? "Aucun joueur ne correspond à cette recherche."
-							: "Aucun joueur pour l'instant."}
-					</Text>
+					query.length > 0 ? (
+						<EmptyState icon="search" message="Aucun joueur ne correspond à cette recherche." />
+					) : (
+						<EmptyState
+							icon="people-outline"
+							message="Aucun joueur pour l'instant."
+							action={{ label: "Ajouter un joueur", onPress: addPlayer }}
+						/>
+					)
 				}
 				renderItem={({ item }) => (
 					<PlayerListItem
@@ -84,11 +90,10 @@ export default function PlayersScreen() {
 					/>
 				)}
 			/>
-			<Button
-				label="Ajouter un joueur"
-				onPress={() => router.push("/players/new")}
-				style={styles.addButton}
-			/>
+			{/* Sans joueur, le bouton est déjà dans l'état vide. */}
+			{players.length > 0 && (
+				<Button label="Ajouter un joueur" onPress={addPlayer} style={styles.addButton} />
+			)}
 		</ScreenContainer>
 	);
 }
@@ -102,11 +107,6 @@ function useStyles(colors: ThemeColors) {
 				},
 				list: {
 					paddingBottom: SPACING.md,
-				},
-				empty: {
-					color: colors.textMuted,
-					textAlign: "center",
-					marginTop: SPACING.xl,
 				},
 				addButton: {
 					marginTop: SPACING.md,

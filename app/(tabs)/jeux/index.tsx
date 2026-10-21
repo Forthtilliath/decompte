@@ -1,8 +1,9 @@
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { StyleSheet, Text } from "react-native";
-import { SettingsRow } from "@/components/settings/SettingsRow";
+import { GameListItem } from "@/components/games/GameListItem";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { TextField } from "@/components/ui/TextField";
 import { UpdateBanner } from "@/components/updates/UpdateBanner";
@@ -10,7 +11,6 @@ import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
-import { getRoundCount } from "@/lib/rounds";
 import { matchesSearch, normalizeForSearch } from "@/lib/search";
 import { useGamesStore } from "@/stores/gamesStore";
 
@@ -29,6 +29,7 @@ export default function GamesListScreen() {
 			? activeGames
 			: activeGames.filter((g) => matchesSearch(g.name, needle));
 	}, [activeGames, query]);
+	const createGame = () => router.push("/jeux/new");
 
 	return (
 		<ScreenContainer style={styles.container}>
@@ -62,26 +63,21 @@ export default function GamesListScreen() {
 			)}
 
 			{activeGames.length === 0 ? (
-				<Text style={styles.empty}>
-					Aucun jeu créé pour l'instant. Crée ton premier jeu pour définir ses catégories de score.
-				</Text>
+				<EmptyState
+					icon="game-controller-outline"
+					message="Aucun jeu créé pour l'instant. Crée ton premier jeu pour définir ses catégories de score, ou pars d'un modèle."
+					action={{ label: "Créer un jeu", onPress: createGame }}
+				/>
 			) : filteredGames.length === 0 ? (
-				<Text style={styles.empty}>Aucun jeu ne correspond à cette recherche.</Text>
+				<EmptyState icon="search" message="Aucun jeu ne correspond à cette recherche." />
 			) : (
 				filteredGames.map((game) => (
-					<SettingsRow
-						key={game.id}
-						icon="game-controller-outline"
-						label={game.name}
-						value={`${game.categories.length} catégorie${game.categories.length > 1 ? "s" : ""}${
-							getRoundCount(game) > 1 ? ` · ${getRoundCount(game)} manches` : ""
-						}`}
-						onPress={() => router.push(`/jeux/${game.id}`)}
-					/>
+					<GameListItem key={game.id} game={game} onPress={() => router.push(`/jeux/${game.id}`)} />
 				))
 			)}
 
-			<Button label="Créer un jeu" onPress={() => router.push("/jeux/new")} />
+			{/* Sans jeu, le bouton est déjà dans l'état vide, plus haut. */}
+			{activeGames.length > 0 && <Button label="Créer un jeu" onPress={createGame} />}
 			<Button
 				label="Partir d'un modèle"
 				variant="secondary"
@@ -102,11 +98,6 @@ function useStyles(colors: ThemeColors) {
 			StyleSheet.create({
 				container: {
 					gap: SPACING.sm,
-				},
-				empty: {
-					color: colors.textMuted,
-					textAlign: "center",
-					marginVertical: SPACING.lg,
 				},
 				orphan: {
 					color: colors.textMuted,

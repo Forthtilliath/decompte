@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { GamesSection } from "@/components/stats/GamesSection";
@@ -7,6 +8,7 @@ import { RecordsSection } from "@/components/stats/RecordsSection";
 import { ScoreTable } from "@/components/stats/ScoreTable";
 import { StatsFiltersSheet } from "@/components/stats/StatsFiltersSheet";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import { RadioGroup } from "@/components/ui/RadioGroup";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
@@ -30,6 +32,7 @@ type ViewMode = "graph" | "table";
 type PickerTarget = null | "filters" | "compare";
 
 export default function StatsScreen() {
+	const router = useRouter();
 	const colors = useColors();
 	const styles = useStyles(colors);
 	const sessions = useHistoryStore((s) => s.sessions);
@@ -86,10 +89,11 @@ export default function StatsScreen() {
 	if (sessions.length === 0) {
 		return (
 			<ScreenContainer>
-				<Text style={styles.empty}>
-					Aucune statistique pour l'instant : termine une partie pour voir apparaître les premières
-					données.
-				</Text>
+				<EmptyState
+					icon="stats-chart-outline"
+					message="Aucune statistique pour l'instant : termine une partie pour voir apparaître les premières données."
+					action={{ label: "Choisir un jeu", onPress: () => router.navigate("/jeux") }}
+				/>
 			</ScreenContainer>
 		);
 	}
@@ -238,11 +242,6 @@ function useStyles(colors: ThemeColors) {
 					color: colors.textMuted,
 					fontStyle: "italic",
 					textAlign: "center",
-				},
-				empty: {
-					color: colors.textMuted,
-					textAlign: "center",
-					marginTop: SPACING.xl,
 				},
 			}),
 		[colors],

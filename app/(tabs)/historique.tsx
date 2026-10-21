@@ -13,6 +13,7 @@ import {
 	View,
 } from "react-native";
 import { SessionSummaryCard } from "@/components/history/SessionSummaryCard";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { TextField } from "@/components/ui/TextField";
 import type { ThemeColors } from "@/constants/theme";
@@ -121,11 +122,15 @@ export default function HistoryScreen() {
 				contentContainerStyle={styles.list}
 				ItemSeparatorComponent={Separator}
 				ListEmptyComponent={
-					<Text style={styles.empty}>
-						{isFiltered
-							? "Aucune partie ne correspond à cette recherche."
-							: "Aucune partie enregistrée pour l'instant."}
-					</Text>
+					isFiltered ? (
+						<EmptyState icon="search" message="Aucune partie ne correspond à cette recherche." />
+					) : (
+						<EmptyState
+							icon="time-outline"
+							message="Aucune partie enregistrée pour l'instant."
+							action={{ label: "Choisir un jeu", onPress: () => router.navigate("/jeux") }}
+						/>
+					)
 				}
 				renderItem={renderItem}
 				// Hauteur variable (les joueurs passent à la ligne) : pas de getItemLayout. Une fenêtre
@@ -177,11 +182,6 @@ function useStyles(colors: ThemeColors) {
 				},
 				list: {
 					paddingBottom: SPACING.md,
-				},
-				empty: {
-					color: colors.textMuted,
-					textAlign: "center",
-					marginTop: SPACING.lg,
 				},
 			}),
 		[colors],
