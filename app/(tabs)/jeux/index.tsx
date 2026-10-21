@@ -1,7 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { GameListItem } from "@/components/games/GameListItem";
+import { GameSortSheet } from "@/components/games/GameSortSheet";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
@@ -11,8 +13,12 @@ import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
+import { GAME_SORT_LABELS, sortGames } from "@/lib/gameSort";
 import { matchesSearch, normalizeForSearch } from "@/lib/search";
+import { computeGamePlayStats } from "@/lib/stats";
+import { useGameListStore } from "@/stores/gameListStore";
 import { useGamesStore } from "@/stores/gamesStore";
+import { useHistoryStore } from "@/stores/historyStore";
 
 export default function GamesListScreen() {
 	const colors = useColors();
@@ -22,13 +28,19 @@ export default function GamesListScreen() {
 	const { hasOngoingSession, ongoingGame, isOrphan, resume, confirmAbandon } = useOngoingSession();
 	const [query, setQuery] = useState("");
 
+	const sessions = useHistoryStore((s) => s.sessions);
+	const sortOrder = useGameListStore((s) => s.sortOrder);
+	const setSortOrder = useGameListStore((s) => s.setSortOrder);
+	const [sortSheetVisible, setSortSheetVisible] = useState(false);
+
+	const playStats = useMemo(() => computeGamePlayStats(sessions), [sessions]);
 	const activeGames = useMemo(() => games.filter((g) => !g.isArchived), [games]);
 	const filteredGames = useMemo(() => {
 		const needle = normalizeForSearch(query);
-		return needle.length === 0
-			? activeGames
-			: activeGames.filter((g) => matchesSearch(g.name, needle));
-	}, [activeGames, query]);
+		const matching =
+			needle.length === 0 ? activeGames : activeGames.filter((g) => matchesSearch(g.name, needle));
+		return sortGames(matching, sortOrder, playStats);
+	}, [activeGames, query, sortOrder, playStats]);
 	const createGame = () => router.push("/jeux/new");
 
 	return (
@@ -61,6 +73,18 @@ export default function GamesListScreen() {
 					autoCapitalize="none"
 				/>
 			)}
+			{activeGames.length > 1 && (
+				<Pressable
+					style={({ pressed }) => [styles.sort, pressed && styles.pressed]}
+					onPress={() => setSortSheetVisible(true)}
+					accessibilityRole="button"
+					accessibilityLabel={`Trier les jeux : ${GAME_SORT_LABELS[sortOrder]}`}
+					hitSlop={8}
+				>
+					<Ionicons name="swap-vertical" size={16} color={colors.textMuted} />
+					<Text style={styles.sortLabel}>{GAME_SORT_LABELS[sortOrder]}</Text>
+				</Pressable>
+			)}
 
 			{activeGames.length === 0 ? (
 				<EmptyState
@@ -88,6 +112,13 @@ export default function GamesListScreen() {
 				variant="ghost"
 				onPress={() => router.push("/jeux/import")}
 			/>
+
+			<GameSortSheet
+				visible={sortSheetVisible}
+				onClose={() => setSortSheetVisible(false)}
+				value={sortOrder}
+				onChange={setSortOrder}
+			/>
 		</ScreenContainer>
 	);
 }
@@ -102,6 +133,21 @@ function useStyles(colors: ThemeColors) {
 				orphan: {
 					color: colors.textMuted,
 					textAlign: "center",
+				},
+				sort: {
+					flexDirection: "row",
+					alignItems: "center",
+					alignSelf: "flex-end",
+					gap: SPACING.xs,
+					paddingVertical: SPACING.xs,
+				},
+				pressed: {
+					opacity: 0.6,
+				},
+				sortLabel: {
+					color: colors.textMuted,
+					fontSize: 13,
+					fontWeight: "600",
 				},
 			}),
 		[colors],
