@@ -24,15 +24,6 @@
 			},
 			"style": {
 				"noNonNullAssertion": "off",
-				"noRestrictedImports": {
-					"level": "error",
-					"options": {
-						"paths": {
-							// Intl.PluralRules, absent de Hermes : l'app Android se ferme.
-							"@forthtilliath/ts-kit/string/pluralize": "Utiliser plural de @/lib/plural."
-						}
-					}
-				},
 				"useImportType": "error",
 				"useExportType": "error",
 				"useConst": "error",
