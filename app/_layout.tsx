@@ -6,6 +6,7 @@ import { UndoHost } from "@/components/ui/UndoHost";
 import { useCloudAutoBackup } from "@/hooks/useCloudAutoBackup";
 import { useDataIssuesAlert } from "@/hooks/useDataIssuesAlert";
 import { useStackScreenOptions } from "@/hooks/useStackScreenOptions";
+import { useWidgetSync } from "@/hooks/useWidgetSync";
 import { useThemeStore } from "@/stores/themeStore";
 
 export default function RootLayout() {
@@ -13,6 +14,7 @@ export default function RootLayout() {
 	const mode = useThemeStore((s) => s.mode);
 	useCloudAutoBackup();
 	useDataIssuesAlert();
+	useWidgetSync();
 
 	return (
 		<GestureHandlerRootView style={{ flex: 1 }}>
