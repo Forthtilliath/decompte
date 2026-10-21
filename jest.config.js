@@ -13,7 +13,7 @@ module.exports = {
 		"/node_modules/react-native-reanimated/plugin/",
 	],
 	collectCoverageFrom: [
-		"{app,components,hooks,lib,stores,types,constants}/**/*.{ts,tsx}",
+		"{app,components,hooks,lib,stores,types,constants,widget}/**/*.{ts,tsx}",
 		"plugins/**/*.js",
 		"!**/*.test.{ts,tsx}",
 	],
