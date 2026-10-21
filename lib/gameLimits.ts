@@ -9,6 +9,10 @@ export const MAX_ITEMS = 30;
 export const MAX_SCORE = 10_000;
 export const MAX_PLAYERS = 50;
 export const MAX_ROUNDS = 20;
+/** Manches d'une partie en manches ouvertes (OpenRounds), dont le nombre n'est pas fixé d'avance. */
+export const MAX_OPEN_ROUNDS = 50;
+/** Clés de score d'un joueur dans une partie : une par catégorie et par manche (lib/rounds). */
+export const MAX_SCORE_KEYS = MAX_CATEGORIES * MAX_OPEN_ROUNDS;
 export const MAX_TEAM_NAME_LENGTH = 30;
 /** Total d'une catégorie pour un joueur : des jetons nombreux peuvent dépasser MAX_SCORE. */
 export const MAX_SESSION_SCORE = MAX_SCORE * 1000;

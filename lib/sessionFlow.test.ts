@@ -3,7 +3,10 @@ import {
 	getMissingSteps,
 	getReplayPlan,
 	getResumeStep,
+	getRoundEndHref,
+	getRoundStartHref,
 	getScoringSteps,
+	getSessionSetup,
 	getStepHref,
 } from "@/lib/sessionFlow";
 import { makeCategory, makeEntry, makeGame, makePlayer, makeSession } from "@/test/factories";
@@ -34,12 +37,35 @@ describe("getScoringSteps", () => {
 			"c2/3",
 		]);
 	});
+
+	it("suit les manches commencées d'une partie en manches ouvertes", () => {
+		const game = makeGame({ categories: categories.slice(0, 2), openRounds: { scoreLimit: 15 } });
+		expect(getScoringSteps(game, 2).map((s) => `${s.categoryId}/${s.round}`)).toEqual([
+			"c1/1",
+			"c2/1",
+			"c1/2",
+			"c2/2",
+		]);
+	});
 });
 
 describe("getStepHref", () => {
 	it("met toujours la manche dans l'URL, même la première", () => {
 		expect(getStepHref({ categoryId: "c2", round: 3 })).toBe("/jeux/play/c2?round=3");
 		expect(getFirstStepHref(makeGame({ categories }))).toBe("/jeux/play/c1?round=1");
+	});
+
+	it("mène au début d'une manche et à son récapitulatif", () => {
+		expect(getRoundStartHref(makeGame({ categories }), 4)).toBe("/jeux/play/c1?round=4");
+		expect(getRoundEndHref(3)).toBe("/jeux/play/round-end?round=3");
+	});
+});
+
+describe("getSessionSetup", () => {
+	it("recopie les manches ouvertes du jeu dans la partie", () => {
+		const game = makeGame({ lowestWins: true, openRounds: { scoreLimit: 15 } });
+		expect(getSessionSetup(game)).toEqual({ lowestWins: true, openRounds: { scoreLimit: 15 } });
+		expect(getSessionSetup(makeGame())).toEqual({});
 	});
 });
 
