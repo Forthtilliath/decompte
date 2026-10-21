@@ -141,6 +141,7 @@ export default function SessionDetailScreen() {
 								ranking={ranking}
 								entries={session.entries}
 								players={players}
+								roundCount={getRoundCount(game)}
 							/>
 						)}
 					</>

@@ -134,6 +134,7 @@ export default function ResultsScreen() {
 						ranking={ranking}
 						entries={entries}
 						players={allPlayers}
+						roundCount={roundCount}
 					/>
 				)}
 			</ScrollView>

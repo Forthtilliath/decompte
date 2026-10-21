@@ -25,7 +25,10 @@ jest.mock("expo-font", () => ({
 jest.mock("react-native-gifted-charts", () => {
 	const { createElement } = require("react");
 	const { View } = require("react-native");
-	return { PieChart: () => createElement(View, { testID: "PieChart" }) };
+	return {
+		PieChart: () => createElement(View, { testID: "PieChart" }),
+		LineChart: () => createElement(View, { testID: "LineChart" }),
+	};
 });
 
 // Les vibrations n'ont pas d'équivalent en test : promesses résolues, enums conservés.
