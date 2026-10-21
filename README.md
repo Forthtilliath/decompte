@@ -32,6 +32,7 @@ Compteur de scores universel pour jeux de société, sur Android. Vous décrivez
 - **Mises à jour en un geste** : l'app annonce une nouvelle version publiée sur GitHub, la télécharge et lance son installation. L'historique des versions et de leurs nouveautés est dans Réglages.
 - **Réglages** : apparence, sauvegarde, mises à jour, soutien au projet (don, partage, signalement de bug), à propos, effacement des données.
 - Thème clair ou sombre, avec une couleur de fond au choix pour chacun (bleu nuit, tapis vert, acajou, ardoise ; carton, blanc, sauge, rose poudré).
+- **Accessibilité** : textes lisibles sur toutes les couleurs de catégorie (contraste calculé, texte blanc ou noir selon la teinte), police système agrandie respectée (plafonnée seulement dans les zones étroites), classements, historique, tableaux et graphiques lus d'un bloc par le lecteur d'écran, animations coupées si Android le demande.
 - Rien n'est supprimé définitivement : jeux, joueurs et groupes s'archivent, pour que l'historique reste lisible. Archiver un jeu ou supprimer une partie se fait sans confirmation, mais s'annule pendant quelques secondes ; effacer toutes les données demande de taper « EFFACER ».
 
 ## Stack
