@@ -1,6 +1,10 @@
+import {
+	contrastRatio as contrast,
+	GRAPHIC_CONTRAST,
+	TEXT_CONTRAST,
+} from "@forthtilliath/ts-kit/color/contrastRatio";
 import { findPageBackground, PAGE_BACKGROUNDS, resolveThemeColors } from "@/constants/backgrounds";
 import { DARK_COLORS, LIGHT_COLORS } from "@/constants/theme";
-import { contrastRatio as contrast } from "@/lib/contrast";
 
 const ALL = (["dark", "light"] as const).flatMap((mode) =>
 	PAGE_BACKGROUNDS[mode].map((background) => ({ mode, background })),
@@ -37,8 +41,8 @@ describe("fonds de page", () => {
 	it.each(ALL)("$mode / $background.label : textes lisibles (≥ 4,5)", ({ mode, background }) => {
 		const colors = resolveThemeColors(mode, background.id);
 		for (const surface of [colors.background, colors.surface, colors.surfaceAlt]) {
-			expect(contrast(colors.text, surface)).toBeGreaterThanOrEqual(4.5);
-			expect(contrast(colors.textMuted, surface)).toBeGreaterThanOrEqual(4.5);
+			expect(contrast(colors.text, surface)).toBeGreaterThanOrEqual(TEXT_CONTRAST);
+			expect(contrast(colors.textMuted, surface)).toBeGreaterThanOrEqual(TEXT_CONTRAST);
 		}
 	});
 
@@ -53,7 +57,7 @@ describe("fonds de page", () => {
 				colors.success,
 				colors.purple,
 			]) {
-				expect(contrast(tint, colors.surface)).toBeGreaterThanOrEqual(3);
+				expect(contrast(tint, colors.surface)).toBeGreaterThanOrEqual(GRAPHIC_CONTRAST);
 			}
 		},
 	);

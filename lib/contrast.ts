@@ -1,33 +1,11 @@
-// Contrastes WCAG 2 : 4,5 pour du texte courant, 3 pour un élément graphique (barre, pastille).
-// Les couleurs sont des hex à 6 chiffres (palettes du thème et des catégories).
+import {
+	contrastRatio,
+	readableTextOn,
+	TEXT_CONTRAST,
+} from "@forthtilliath/ts-kit/color/contrastRatio";
 
-/** Seuil WCAG AA d'un texte de taille courante. */
-export const TEXT_CONTRAST = 4.5;
-
-const WHITE = "#ffffff";
-const BLACK = "#000000";
-
-function luminance(hex: string): number {
-	const [r, g, b] = [1, 3, 5].map((i) => {
-		const c = Number.parseInt(hex.slice(i, i + 2), 16) / 255;
-		return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-	});
-	return 0.2126 * r + 0.7152 * g + 0.0722 * b;
-}
-
-/** Rapport de contraste entre deux couleurs, de 1 (identiques) à 21 (noir sur blanc). */
-export function contrastRatio(a: string, b: string): number {
-	const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-	return (light + 0.05) / (dark + 0.05);
-}
-
-/**
- * Texte blanc ou noir, le plus lisible sur ce fond. Le noir et le blanc purs garantissent
- * toujours au moins 4,58 : au pire, le fond est à égale distance des deux.
- */
-export function readableTextOn(background: string): string {
-	return contrastRatio(WHITE, background) >= contrastRatio(BLACK, background) ? WHITE : BLACK;
-}
+// Teintes de catégorie posées sur le fond du thème : contraste WCAG 2 de ts-kit, seuils propres à
+// l'app. Les couleurs sont des hex à 6 chiffres (palettes du thème et des catégories).
 
 /** La couleur elle-même si elle se lit sur ce fond, sinon `fallback` (texte du thème). */
 export function readableTint(color: string, surface: string, fallback: string): string {

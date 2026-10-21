@@ -1,12 +1,12 @@
 import { usePressRepeat } from "@forthtilliath/react-native-kit/hooks/usePressRepeat";
 import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
+import { readableTextOn } from "@forthtilliath/ts-kit/color/contrastRatio";
 import { clamp } from "@forthtilliath/ts-kit/number/clamp";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { readableTextOn } from "@/lib/contrast";
 import { parseIntegerInput, sanitizeIntegerInput } from "@/lib/numbers";
 
 type Props = {
