@@ -6,6 +6,7 @@ import { NumberStepper } from "@/components/ui/NumberStepper";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { readableTint } from "@/lib/contrast";
 import { computeTokensTotal, type TokenDenomination } from "@/lib/tokens";
 
 type Props = {
@@ -61,7 +62,14 @@ export function TokenCounterSheet({
 
 			<View style={styles.totalRow}>
 				<Text style={styles.totalLabel}>Total</Text>
-				<Text style={[styles.totalValue, { color: accentColor }]}>{total}</Text>
+				<Text
+					style={[
+						styles.totalValue,
+						{ color: readableTint(accentColor, colors.surface, colors.text) },
+					]}
+				>
+					{total}
+				</Text>
 			</View>
 
 			<Button

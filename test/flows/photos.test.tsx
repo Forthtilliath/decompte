@@ -67,7 +67,8 @@ describe("photo des joueurs", () => {
 	it("retire la photo : les initiales reviennent", async () => {
 		await renderApp("/players/alice");
 		await press("Retirer la photo");
-		expect(screen.getByText("AL")).toBeOnTheScreen();
+		// Initiales masquées au lecteur d'écran (le nom est écrit à côté) : cherchées quand même.
+		expect(screen.getByText("AL", { includeHiddenElements: true })).toBeOnTheScreen();
 		await press("Enregistrer");
 
 		expect(usePlayersStore.getState().players[0].avatarUri).toBeUndefined();

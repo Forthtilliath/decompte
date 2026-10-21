@@ -7,6 +7,7 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { AVATAR_PALETTE } from "@/lib/avatarColor";
+import { readableTextOn } from "@/lib/contrast";
 
 /** Noms lus par le lecteur d'écran, dans l'ordre de AVATAR_PALETTE. */
 const COLOR_NAMES: Record<(typeof AVATAR_PALETTE)[number], string> = {
@@ -65,7 +66,7 @@ export function CategoryColorSheet({ visible, value, onChange, onClose }: Props)
 							accessibilityState={{ selected }}
 							accessibilityLabel={COLOR_NAMES[color]}
 						>
-							{selected && <Ionicons name="checkmark" size={22} color="#ffffff" />}
+							{selected && <Ionicons name="checkmark" size={22} color={readableTextOn(color)} />}
 						</Pressable>
 					);
 				})}
