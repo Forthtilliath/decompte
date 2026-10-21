@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
-import { RANK_MEDALS } from "@/constants/ranking";
+import { formatRank, RANK_MEDALS } from "@/constants/ranking";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
@@ -34,6 +34,14 @@ export const SessionSummaryCard = memo(function SessionSummaryCard({
 	const colors = useColors();
 	const styles = useStyles(colors);
 	const ranking = getSessionRanking(session);
+	// Lu après le libellé du bouton : ce que la carte affiche (jeu, classement).
+	const summary = [
+		...(showGameName ? [game?.name ?? "Jeu introuvable"] : []),
+		...ranking.map(
+			(score) =>
+				`${formatRank(score.rank)} ${playersById.get(score.playerId)?.name ?? DELETED_PLAYER_LABEL}, ${score.total} points`,
+		),
+	].join(" ; ");
 
 	return (
 		<Pressable
@@ -41,6 +49,7 @@ export const SessionSummaryCard = memo(function SessionSummaryCard({
 			onPress={() => onPress(session.id)}
 			accessibilityRole="button"
 			accessibilityLabel={`Voir le détail de la partie du ${formatDate(session.createdAt)}`}
+			accessibilityValue={{ text: summary }}
 		>
 			<View style={styles.row}>
 				{showGameName && (
@@ -72,7 +81,7 @@ export const SessionSummaryCard = memo(function SessionSummaryCard({
 								{player?.name ?? DELETED_PLAYER_LABEL}
 							</Text>
 							<Text style={[styles.playerScore, score.rank === 1 && styles.winnerScore]}>
-								{RANK_MEDALS[score.rank] ?? `${score.rank}e`} {score.total}
+								{RANK_MEDALS[score.rank] ?? formatRank(score.rank)} {score.total}
 							</Text>
 						</View>
 					);

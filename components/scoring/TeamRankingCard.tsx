@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { RANK_MEDALS } from "@/constants/ranking";
+import { formatRank, RANK_MEDALS } from "@/constants/ranking";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
 import type { RankedTeam } from "@/lib/scoring";
@@ -26,9 +26,11 @@ export function TeamRankingCard({ team, playersById }: Props) {
 		<View
 			style={[styles.card, team.rank === 1 && styles.cardWinner]}
 			accessible
-			accessibilityLabel={`${team.rank}e, ${team.name}, ${team.total} points : ${members}`}
+			accessibilityLabel={`${formatRank(team.rank)}, ${team.name}, ${team.total} points : ${members}`}
 		>
-			<Text style={styles.rank}>{RANK_MEDALS[team.rank] ?? `#${team.rank}`}</Text>
+			<Text style={styles.rank} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+				{RANK_MEDALS[team.rank] ?? `#${team.rank}`}
+			</Text>
 			<View style={styles.body}>
 				<Text style={styles.name} numberOfLines={1}>
 					{team.name}
@@ -37,7 +39,9 @@ export function TeamRankingCard({ team, playersById }: Props) {
 					{members}
 				</Text>
 			</View>
-			<Text style={styles.total}>{team.total}</Text>
+			<Text style={styles.total} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+				{team.total}
+			</Text>
 		</View>
 	);
 }
