@@ -13,15 +13,17 @@ type State = {
 
 type NewCategoryInput = Omit<CategoryDef, "id"> & { id?: string };
 
-/** Options d'un jeu (règles de classement, équipes) : `false`/absent = désactivée. */
-type GameOptions = Pick<GameDef, "lowestWins" | "tieBreakerId" | "teamPlay">;
+/** Options d'un jeu (règles de classement, équipes, manches ouvertes) : `false`/absent =
+ * désactivée. */
+type GameOptions = Pick<GameDef, "lowestWins" | "tieBreakerId" | "teamPlay" | "openRounds">;
 
 /** Seules les options actives sont écrites : un jeu sans option garde la forme d'avant leur ajout. */
-function gameOptions({ lowestWins, tieBreakerId, teamPlay }: GameOptions): GameOptions {
+function gameOptions({ lowestWins, tieBreakerId, teamPlay, openRounds }: GameOptions): GameOptions {
 	return {
 		...(lowestWins && { lowestWins: true }),
 		...(tieBreakerId && { tieBreakerId }),
 		...(teamPlay && { teamPlay: true }),
+		...(openRounds && { openRounds }),
 	};
 }
 
@@ -110,7 +112,7 @@ export const useGamesStore = create<State & Actions>()(
 					games: get().games.map((g) => {
 						if (g.id !== id) return g;
 						// Options retirées puis remises seulement si elles sont actives.
-						const { lowestWins: _l, tieBreakerId: _t, teamPlay: _p, ...rest } = g;
+						const { lowestWins: _l, tieBreakerId: _t, teamPlay: _p, openRounds: _o, ...rest } = g;
 						return {
 							...rest,
 							name: patch.name.trim(),
