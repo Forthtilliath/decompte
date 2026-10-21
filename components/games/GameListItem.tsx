@@ -7,7 +7,7 @@ import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { getAvatarColor } from "@/lib/avatarColor";
 import { plural } from "@/lib/plural";
-import { getRoundCount } from "@/lib/rounds";
+import { describeRounds } from "@/lib/rounds";
 import type { GameDef } from "@/types/game";
 
 type Props = {
@@ -23,9 +23,9 @@ export function GameListItem({ game, onPress }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
 	const avatarColor = getAvatarColor(game.id);
-	const roundCount = getRoundCount(game);
+	const rounds = describeRounds(game);
 	const meta = `${game.categories.length} ${plural(game.categories.length, "catégorie")}${
-		roundCount > 1 ? ` · ${roundCount} manches` : ""
+		rounds ? ` · ${rounds}` : ""
 	}`;
 
 	return (

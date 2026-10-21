@@ -16,7 +16,9 @@ function draft(overrides: Partial<GameDraftInput> = {}): GameDraftInput {
 		name: "Azul",
 		minPlayers: "2",
 		maxPlayers: "4",
+		roundMode: "fixed",
 		rounds: "1",
+		scoreLimit: "",
 		categories: [manual()],
 		lowestWins: false,
 		teamPlay: false,
@@ -145,6 +147,40 @@ describe("validateGameDraft", () => {
 		it("refuse plus de 20 manches (limite de l'import)", () => {
 			expect(rounds("20")).toBe(20);
 			expect(rounds("21")).toBe("Trop de manches");
+		});
+	});
+
+	describe("manches ouvertes", () => {
+		const openRounds = (overrides: Partial<GameDraftInput>) => {
+			const result = validateGameDraft(draft(overrides));
+			return result.ok ? result.values : result.title;
+		};
+
+		it("enregistre le seuil de fin de partie, sans nombre de manches", () => {
+			expect(
+				openRounds({ roundMode: "scoreLimit", scoreLimit: " 15 ", rounds: "4" }),
+			).toMatchObject({ rounds: 1, openRounds: { scoreLimit: 15 } });
+		});
+
+		it("refuse un seuil vide, nul, décimal ou trop grand", () => {
+			for (const scoreLimit of ["", "0", "-5", "12.5", "abc", "10001"]) {
+				expect(openRounds({ roundMode: "scoreLimit", scoreLimit })).toBe("Seuil invalide");
+			}
+			expect(openRounds({ roundMode: "scoreLimit", scoreLimit: "10000" })).toMatchObject({
+				openRounds: { scoreLimit: 10_000 },
+			});
+		});
+
+		it("enregistre des manches libres, sans seuil", () => {
+			expect(openRounds({ roundMode: "free", scoreLimit: "15" })).toMatchObject({
+				rounds: 1,
+				openRounds: {},
+			});
+		});
+
+		it("n'écrit rien de plus pour un nombre fixe de manches", () => {
+			const values = openRounds({ roundMode: "fixed", scoreLimit: "15" });
+			expect(values).not.toHaveProperty("openRounds");
 		});
 	});
 

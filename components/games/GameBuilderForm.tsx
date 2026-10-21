@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { CategoryEditor } from "@/components/games/CategoryEditor";
+import { GameRoundsEditor } from "@/components/games/GameRoundsEditor";
 import { GameRulesEditor } from "@/components/games/GameRulesEditor";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/TextField";
@@ -15,6 +16,7 @@ import {
 	nextCategoryColor,
 	validateGameDraft,
 } from "@/lib/gameDraft";
+import { getRoundMode, type RoundsDraft } from "@/lib/gameDraftRounds";
 import { paletteColor } from "@/lib/gameExport";
 import type { GameDef } from "@/types/game";
 
@@ -25,6 +27,7 @@ export type GameBuilderValues = Pick<
 	| "minPlayers"
 	| "maxPlayers"
 	| "rounds"
+	| "openRounds"
 	| "lowestWins"
 	| "tieBreakerId"
 	| "teamPlay"
@@ -44,7 +47,11 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 	const [name, setName] = useState(initial?.name ?? "");
 	const [minPlayers, setMinPlayers] = useState(String(initial?.minPlayers ?? 1));
 	const [maxPlayers, setMaxPlayers] = useState(String(initial?.maxPlayers ?? 8));
-	const [rounds, setRounds] = useState(String(initial?.rounds ?? 1));
+	const [roundsDraft, setRoundsDraft] = useState<RoundsDraft>({
+		roundMode: getRoundMode(initial?.openRounds),
+		rounds: String(initial?.rounds ?? 1),
+		scoreLimit: String(initial?.openRounds?.scoreLimit ?? ""),
+	});
 	const [categories, setCategories] = useState<DraftCategory[]>(
 		initial?.categories.map((c) => ({
 			id: c.id,
@@ -81,7 +88,7 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 			name,
 			minPlayers,
 			maxPlayers,
-			rounds,
+			...roundsDraft,
 			categories,
 			...options,
 		});
@@ -113,20 +120,13 @@ export function GameBuilderForm({ initial, submitLabel, onSubmit }: Props) {
 						keyboardType="number-pad"
 					/>
 				</View>
-				<View style={styles.playersField}>
-					<TextField
-						label="Manches"
-						value={rounds}
-						onChangeText={setRounds}
-						keyboardType="number-pad"
-					/>
-				</View>
 			</View>
-			{Number.parseInt(rounds, 10) > 1 && (
-				<Text style={styles.hint}>
-					Toutes les catégories se saisissent à chaque manche, puis les manches s'additionnent.
-				</Text>
-			)}
+
+			<Text style={styles.sectionTitle}>Manches</Text>
+			<GameRoundsEditor
+				value={roundsDraft}
+				onChange={(patch) => setRoundsDraft((current) => ({ ...current, ...patch }))}
+			/>
 
 			<Text style={styles.sectionTitle}>Catégories de score</Text>
 			{categories.map((category, index) => (
@@ -168,10 +168,6 @@ function useStyles(colors: ThemeColors) {
 				},
 				playersField: {
 					flex: 1,
-				},
-				hint: {
-					color: colors.textMuted,
-					fontSize: 13,
 				},
 				sectionTitle: {
 					color: colors.textMuted,

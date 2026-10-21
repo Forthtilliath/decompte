@@ -14,7 +14,7 @@ import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { chipColors } from "@/lib/contrast";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
-import { getRoundCount } from "@/lib/rounds";
+import { describeRounds } from "@/lib/rounds";
 import { getFirstStepHref, getSessionSetup } from "@/lib/sessionFlow";
 import { buildTeams, MIN_TEAMS, playersByTeam, type TeamAssignment } from "@/lib/teams";
 import { useGamesStore } from "@/stores/gamesStore";
@@ -61,7 +61,7 @@ export default function GameDetailScreen() {
 	const teams = game.teamPlay ? buildTeams(selectedIds, assignment, teamCount) : null;
 	const canStart =
 		selectedIds.length >= game.minPlayers && (teams === null || teams.length >= MIN_TEAMS);
-	const roundCount = getRoundCount(game);
+	const rounds = describeRounds(game);
 	const selectedPlayers = selectedIds
 		.map((playerId) => playersById.get(playerId))
 		.filter((p) => p !== undefined);
@@ -115,7 +115,7 @@ export default function GameDetailScreen() {
 					{game.minPlayers === game.maxPlayers
 						? `${game.minPlayers} joueur${game.minPlayers > 1 ? "s" : ""}`
 						: `${game.minPlayers}–${game.maxPlayers} joueurs`}
-					{roundCount > 1 && ` · ${roundCount} manches`}
+					{rounds && ` · ${rounds}`}
 					{game.teamPlay && " · en équipes"}
 					{game.lowestWins && " · le plus bas gagne"}
 				</Text>
