@@ -1,17 +1,22 @@
+import {
+	BackgroundPicker,
+	type BackgroundPickerStyles,
+} from "@forthtilliath/react-native-kit/components/theme/BackgroundPicker";
+import { selectFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { useMemo } from "react";
 import { StyleSheet, Text } from "react-native";
-import { BackgroundPicker } from "@/components/settings/BackgroundPicker";
 import { RadioGroup } from "@/components/ui/RadioGroup";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import { findPageBackground, PAGE_BACKGROUNDS } from "@/constants/backgrounds";
 import type { ThemeColors } from "@/constants/theme";
-import { SPACING } from "@/constants/theme";
+import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { type ThemeMode, useThemeStore } from "@/stores/themeStore";
 
 export default function AppearanceSettingsScreen() {
 	const colors = useColors();
 	const styles = useStyles(colors);
+	const pickerStyles = useBackgroundPickerStyles(colors);
 	const mode = useThemeStore((s) => s.mode);
 	const backgroundId = useThemeStore((s) => s.backgrounds[mode]);
 	const setMode = useThemeStore((s) => s.setMode);
@@ -33,7 +38,11 @@ export default function AppearanceSettingsScreen() {
 			<BackgroundPicker
 				options={PAGE_BACKGROUNDS[mode]}
 				value={findPageBackground(mode, backgroundId).id}
-				onChange={setBackground}
+				onChange={(option) => {
+					selectFeedback();
+					setBackground(option.id);
+				}}
+				styles={pickerStyles}
 			/>
 			<Text style={styles.hint}>
 				Les thèmes sombre et clair gardent chacun leur propre couleur de fond.
@@ -64,6 +73,24 @@ function useStyles(colors: ThemeColors) {
 					fontSize: 13,
 				},
 			}),
+		[colors],
+	);
+}
+
+/** Pastilles de fond (page + carte en aperçu, coche sur la sélection) aux couleurs du thème. */
+function useBackgroundPickerStyles(colors: ThemeColors): BackgroundPickerStyles {
+	return useMemo(
+		() => ({
+			row: { gap: SPACING.sm },
+			option: { gap: SPACING.xs },
+			swatch: { borderRadius: RADIUS.md, borderColor: colors.border, padding: SPACING.sm },
+			swatchSelected: { borderColor: colors.primary },
+			card: { borderRadius: RADIUS.sm },
+			check: { top: SPACING.xs, right: SPACING.xs, backgroundColor: colors.primary },
+			checkIconColor: colors.primaryText,
+			label: { color: colors.textMuted },
+			labelSelected: { color: colors.text },
+		}),
 		[colors],
 	);
 }

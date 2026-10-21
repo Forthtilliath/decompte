@@ -83,15 +83,15 @@ describe("réglages", () => {
 
 	it("change la couleur de fond du thème affiché, sans toucher à l'autre", async () => {
 		await renderApp("/reglages/apparence");
-		expect(screen.getByRole("radio", { name: "Bleu nuit" })).toBeSelected();
+		expect(screen.getByRole("radio", { name: "Bleu nuit" })).toBeChecked();
 
 		await fireEvent.press(screen.getByRole("radio", { name: "Tapis vert" }));
-		expect(screen.getByRole("radio", { name: "Tapis vert" })).toBeSelected();
+		expect(screen.getByRole("radio", { name: "Tapis vert" })).toBeChecked();
 
 		// Le thème clair propose ses propres fonds et garde celui d'origine.
 		await fireEvent.press(screen.getByRole("radio", { name: "Clair" }));
 		expect(screen.queryByRole("radio", { name: "Tapis vert" })).toBeNull();
-		expect(screen.getByRole("radio", { name: "Carton" })).toBeSelected();
+		expect(screen.getByRole("radio", { name: "Carton" })).toBeChecked();
 		expect(useThemeStore.getState().backgrounds).toEqual({ dark: "tapis" });
 	});
 
