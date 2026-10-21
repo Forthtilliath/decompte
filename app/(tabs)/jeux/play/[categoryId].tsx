@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useKeepAwake } from "expo-keep-awake";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Keyboard, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PlayerOrderSheet } from "@/components/players/PlayerOrderSheet";
 import { PlayerCategoryEntry } from "@/components/scoring/PlayerCategoryEntry";
 import { StepProgressBar } from "@/components/scoring/StepProgressBar";
@@ -12,6 +12,7 @@ import { SwipeView } from "@/components/ui/SwipeView";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { useFieldChain } from "@/hooks/useFieldChain";
 import { getSessionRoundCount } from "@/lib/rounds";
 import { getRoundEndHref, getScoringSteps, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
@@ -19,7 +20,7 @@ import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
 
 export default function PlayScoreScreen() {
-	const params = useLocalSearchParams<{ categoryId: string; round?: string }>();
+	const params = useLocalSearchParams<{ categoryId: string; round?: string; focus?: string }>();
 	const { categoryId } = params;
 	// Manche absente de l'URL (lien d'avant les manches) : la première.
 	const round = Number(params.round) || 1;
@@ -36,6 +37,7 @@ export default function PlayScoreScreen() {
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 	const allPlayers = usePlayersStore((s) => s.players);
 	const [orderOpen, setOrderOpen] = useState(false);
+	const chainFor = useFieldChain(playerIds, params.focus === "1");
 	// Entre deux catégories, le téléphone reste posé sur la table : il ne doit pas se mettre en veille.
 	useKeepAwake();
 
@@ -76,6 +78,17 @@ export default function PlayScoreScreen() {
 			router.push("/jeux/play/results");
 		} else {
 			router.push(getStepHref(steps[index + 1]));
+		}
+	};
+
+	// Entrée sur le dernier champ : l'étape suivante reprend le clavier ; la fin de manche et le
+	// classement, sans champ, le referment.
+	const submitLastField = () => {
+		if (isRoundEnd || isLast) {
+			Keyboard.dismiss();
+			goNext();
+		} else {
+			router.push(getStepHref(steps[index + 1], { focusFirstField: true }));
 		}
 	};
 
@@ -176,6 +189,7 @@ export default function PlayScoreScreen() {
 								category={category}
 								categories={game.categories}
 								round={round}
+								chain={chainFor(player.id, submitLastField)}
 							/>
 						);
 					})}

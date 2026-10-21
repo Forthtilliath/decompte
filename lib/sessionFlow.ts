@@ -30,9 +30,11 @@ export function getScoringSteps(game: GameDef, roundCount = getRoundCount(game))
 /**
  * Écran de saisie d'une étape. La manche est toujours dans l'URL, même la 1 : `dismissTo` vers une
  * étape de la manche 1 doit écraser la manche de l'écran courant, pas la conserver.
+ * `focusFirstField` : étape atteinte par la touche Entrée, son premier champ prend le clavier.
  */
-export function getStepHref(step: ScoringStep): Href {
-	return `/jeux/play/${step.categoryId}?round=${step.round}`;
+export function getStepHref(step: ScoringStep, { focusFirstField = false } = {}): Href {
+	const href = `/jeux/play/${step.categoryId}?round=${step.round}`;
+	return focusFirstField ? `${href}&focus=1` : href;
 }
 
 /** Première étape : lancement, partie rejouée ou correction depuis les résultats. */
