@@ -101,3 +101,44 @@ describe("options de classement d'un jeu partagé", () => {
 		expect(result).toEqual({ ok: false, error: `Jeu invalide : ${field} incorrect.` });
 	});
 });
+
+describe("manches ouvertes d'un jeu partagé", () => {
+	it("transmet le seuil de fin de partie ou des manches libres", () => {
+		for (const openRounds of [{ scoreLimit: 15 }, {}]) {
+			const result = parseGameExport(serializeGame(makeGame({ categories, openRounds })));
+			if (!result.ok) throw new Error(result.error);
+			expect(result.game.openRounds).toEqual(openRounds);
+		}
+	});
+
+	it("n'en écrit rien pour un jeu à manches fixes", () => {
+		expect(serializeGame(makeGame({ categories, rounds: 3 }))).not.toMatch(/openRounds/);
+	});
+
+	it.each([
+		[
+			"un seuil nul",
+			{ openRounds: { scoreLimit: 0 } },
+			"manches ouvertes › seuil de fin de partie",
+		],
+		[
+			"un seuil trop grand",
+			{ openRounds: { scoreLimit: 10_001 } },
+			"manches ouvertes › seuil de fin de partie",
+		],
+		[
+			"un seuil décimal",
+			{ openRounds: { scoreLimit: 12.5 } },
+			"manches ouvertes › seuil de fin de partie",
+		],
+		[
+			"un seuil en texte",
+			{ openRounds: { scoreLimit: "15" } },
+			"manches ouvertes › seuil de fin de partie",
+		],
+		["des manches ouvertes qui ne sont pas un objet", { openRounds: "oui" }, "manches ouvertes"],
+	])("refuse %s", (_, game, field) => {
+		const result = parseGameExport(envelope(game));
+		expect(result).toEqual({ ok: false, error: `Jeu invalide : ${field} incorrect.` });
+	});
+});
