@@ -2,9 +2,9 @@ import { sum } from "@forthtilliath/ts-kit/number/sum";
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
-import { RANK_MEDALS } from "@/constants/ranking";
+import { formatRank, RANK_MEDALS } from "@/constants/ranking";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
 import { sumByCategory, sumByRound } from "@/lib/rounds";
@@ -40,10 +40,32 @@ export function RankedPlayerCard({ player, ranked, entry, categories, roundCount
 			.map(([, points]) => points),
 	);
 
+	const name = player?.name ?? DELETED_PLAYER_LABEL;
+	const details = [
+		...(byRound.length > 1
+			? byRound.map((points, index) => `manche ${index + 1} : ${points}`)
+			: []),
+		...categories
+			.filter((category) => byCategory[category.id])
+			.map((category) => `${category.label} ${byCategory[category.id]}`),
+		...(removedPoints !== 0 ? [`catégories retirées ${removedPoints}`] : []),
+	];
+
 	return (
-		<View style={[styles.card, ranked.rank === 1 && styles.cardWinner]}>
+		<View
+			style={[styles.card, ranked.rank === 1 && styles.cardWinner]}
+			// Une seule annonce par joueur (« 1er, Alice, 42 points… ») plutôt qu'un arrêt sur la
+			// médaille, le nom, le total puis chaque puce.
+			accessible
+			accessibilityLabel={[
+				`${formatRank(ranked.rank)}, ${name}, ${ranked.total} points`,
+				...details,
+			].join(", ")}
+		>
 			<View style={styles.header}>
-				<Text style={styles.rank}>{RANK_MEDALS[ranked.rank] ?? `#${ranked.rank}`}</Text>
+				<Text style={styles.rank} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+					{RANK_MEDALS[ranked.rank] ?? `#${ranked.rank}`}
+				</Text>
 				<PlayerAvatar
 					name={player?.name ?? "?"}
 					avatarUri={player?.avatarUri}
@@ -51,9 +73,11 @@ export function RankedPlayerCard({ player, ranked, entry, categories, roundCount
 					size={44}
 				/>
 				<Text style={[styles.name, !player && styles.deletedName]} numberOfLines={1}>
-					{player?.name ?? DELETED_PLAYER_LABEL}
+					{name}
 				</Text>
-				<Text style={styles.total}>{ranked.total}</Text>
+				<Text style={styles.total} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+					{ranked.total}
+				</Text>
 			</View>
 
 			{byRound.length > 1 && (

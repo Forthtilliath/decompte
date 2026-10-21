@@ -79,4 +79,18 @@ describe("SessionSummaryCard", () => {
 		);
 		expect(onPress).toHaveBeenCalledWith(session.id);
 	});
+
+	it("donne au lecteur d'écran le jeu et le classement affichés", async () => {
+		await render(
+			<SessionSummaryCard
+				session={session}
+				game={makeGame({ name: "Azul" })}
+				playersById={indexById(players)}
+				onPress={jest.fn()}
+			/>,
+		);
+		expect(screen.getByRole("button")).toHaveAccessibilityValue({
+			text: "Azul ; 1er Bob, 10 points ; 2e Alice, 3 points",
+		});
+	});
 });

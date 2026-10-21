@@ -33,13 +33,16 @@ export function CategoryPieChart({ categories, values }: Props) {
 
 	return (
 		<View style={styles.row}>
-			<PieChart
-				data={slices.map((slice) => ({ value: slice.value, color: slice.category.color }))}
-				radius={64}
-				donut
-				innerRadius={34}
-				innerCircleColor={colors.surface}
-			/>
+			{/* Le lecteur d'écran lit la légende, qui donne les mêmes parts en texte. */}
+			<View accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+				<PieChart
+					data={slices.map((slice) => ({ value: slice.value, color: slice.category.color }))}
+					radius={64}
+					donut
+					innerRadius={34}
+					innerCircleColor={colors.surface}
+				/>
+			</View>
 			<View style={styles.legend}>
 				{slices.map(({ category, value }) => {
 					const percent = `${Math.round((value / total) * 100)}%`;

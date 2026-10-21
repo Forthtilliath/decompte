@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { formatAverage, type PlayerStats } from "@/lib/stats";
 import type { CategoryDef } from "@/types/game";
@@ -21,11 +21,22 @@ const PLAYER_WIDTH = 76;
 export function ScoreTable({ players, categories, statsByPlayerId }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
+	const total = (player: Player) => formatAverage(statsByPlayerId[player.id]?.averageTotal ?? 0);
+	const average = (player: Player, category: CategoryDef) =>
+		formatAverage(statsByPlayerId[player.id]?.averageByCategory[category.id] ?? 0);
+	// Une annonce par ligne (« Murs : Alice 14,5, Bob 9 ») : cellule par cellule, le lecteur d'écran
+	// perdrait à qui et à quelle catégorie correspond chaque nombre.
+	const rowLabel = (title: string, value: (player: Player) => string) =>
+		`${title} : ${players.map((player) => `${player.name} ${value(player)}`).join(", ")}`;
 
 	return (
 		<ScrollView horizontal showsHorizontalScrollIndicator>
 			<View>
-				<View style={styles.row}>
+				<View
+					style={styles.row}
+					accessibilityElementsHidden
+					importantForAccessibility="no-hide-descendants"
+				>
 					<View style={[styles.cell, styles.labelCell]} />
 					{players.map((player) => (
 						<View key={player.id} style={[styles.cell, styles.playerCell]}>
@@ -35,38 +46,57 @@ export function ScoreTable({ players, categories, statsByPlayerId }: Props) {
 								seed={player.id}
 								size={28}
 							/>
-							<Text style={styles.playerName} numberOfLines={1}>
+							<Text
+								style={styles.playerName}
+								numberOfLines={1}
+								maxFontSizeMultiplier={TIGHT_FONT_SCALE}
+							>
 								{player.name}
 							</Text>
 						</View>
 					))}
 				</View>
 
-				<View style={[styles.row, styles.totalRow]}>
+				<View
+					style={[styles.row, styles.totalRow]}
+					accessible
+					accessibilityLabel={rowLabel("Total moyen", total)}
+				>
 					<View style={[styles.cell, styles.labelCell]}>
-						<Text style={styles.labelTextBold}>Total</Text>
+						<Text style={styles.labelTextBold} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+							Total
+						</Text>
 					</View>
 					{players.map((player) => (
 						<View key={player.id} style={[styles.cell, styles.playerCell]}>
-							<Text style={styles.valueTextBold}>
-								{formatAverage(statsByPlayerId[player.id]?.averageTotal ?? 0)}
+							<Text style={styles.valueTextBold} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+								{total(player)}
 							</Text>
 						</View>
 					))}
 				</View>
 
 				{categories.map((category) => (
-					<View key={category.id} style={styles.row}>
+					<View
+						key={category.id}
+						style={styles.row}
+						accessible
+						accessibilityLabel={rowLabel(category.label, (player) => average(player, category))}
+					>
 						<View style={[styles.cell, styles.labelCell]}>
 							<View style={[styles.dot, { backgroundColor: category.color }]} />
-							<Text style={styles.labelText} numberOfLines={1}>
+							<Text
+								style={styles.labelText}
+								numberOfLines={1}
+								maxFontSizeMultiplier={TIGHT_FONT_SCALE}
+							>
 								{category.label}
 							</Text>
 						</View>
 						{players.map((player) => (
 							<View key={player.id} style={[styles.cell, styles.playerCell]}>
-								<Text style={styles.valueText}>
-									{formatAverage(statsByPlayerId[player.id]?.averageByCategory[category.id] ?? 0)}
+								<Text style={styles.valueText} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+									{average(player, category)}
 								</Text>
 							</View>
 						))}

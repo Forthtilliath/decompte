@@ -89,6 +89,21 @@ describe("RankedPlayerCard", () => {
 		expect(screen.getByText("Bonus 9")).toBeOnTheScreen();
 	});
 
+	it("s'annonce d'un bloc au lecteur d'écran : rang, nom, total puis détail", async () => {
+		await render(
+			<RankedPlayerCard
+				player={makePlayer({ name: "Alice" })}
+				ranked={{ playerId: "p1", total: 13, rank: 1 }}
+				entry={makeEntry("p1", { murs: 5, "murs#2": 7, bonus: 1 })}
+				categories={categories}
+				roundCount={2}
+			/>,
+		);
+		expect(
+			screen.getByLabelText("1er, Alice, 13 points, manche 1 : 6, manche 2 : 7, Murs 12, Bonus 1"),
+		).toBeOnTheScreen();
+	});
+
 	it("n'affiche pas de détail par manche pour un jeu en une manche", async () => {
 		await render(
 			<RankedPlayerCard

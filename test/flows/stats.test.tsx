@@ -99,6 +99,9 @@ describe("statistiques", () => {
 
 		expect(await screen.findByText("Total")).toBeOnTheScreen();
 		expect(screen.getByText("23")).toBeOnTheScreen();
+		// Lue ligne par ligne, chaque valeur avec son joueur.
+		expect(screen.getByLabelText(/^Total moyen : .*\b23\b/)).toBeOnTheScreen();
+		expect(screen.getByLabelText(/^Murs : Alice /)).toBeOnTheScreen();
 	});
 });
 

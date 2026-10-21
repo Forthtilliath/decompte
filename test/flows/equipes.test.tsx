@@ -70,7 +70,7 @@ describe("partie en équipes", () => {
 
 		await fireEvent.press(screen.getByRole("button", { name: "Étape suivante" }));
 		await fireEvent.press(await screen.findByRole("button", { name: "Voir les résultats" }));
-		expect(await screen.findByLabelText("1e, Équipe 1, 90 points : Alice, Bob")).toBeOnTheScreen();
+		expect(await screen.findByLabelText("1er, Équipe 1, 90 points : Alice, Bob")).toBeOnTheScreen();
 		expect(screen.getByLabelText("2e, Équipe 2, 80 points : Carole, Denis")).toBeOnTheScreen();
 	});
 });
