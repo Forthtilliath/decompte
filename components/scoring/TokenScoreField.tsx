@@ -3,6 +3,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ManualPointsFields } from "@/components/scoring/ManualPointsFields";
 import { TokenCounterSheet } from "@/components/scoring/TokenCounterSheet";
 import { SPACING } from "@/constants/theme";
+import { useColors } from "@/hooks/useColors";
+import { readableTint } from "@/lib/contrast";
 import type { TokenDenomination } from "@/lib/tokens";
 
 type Props = {
@@ -16,6 +18,7 @@ type Props = {
 /** Catégorie "compteur de jetons" : total ajustable à la main (comme une catégorie "manuel"), avec
  * en plus un lien vers la calculette de jetons pour ne pas avoir à faire l'addition soi-même. */
 export function TokenScoreField({ points, color, label, tokens, onChange }: Props) {
+	const colors = useColors();
 	const [visible, setVisible] = useState(false);
 	// Des jetons de défaite (valeur négative) peuvent faire passer le total sous zéro.
 	const allowNegative = tokens.some((t) => t.value < 0);
@@ -28,8 +31,17 @@ export function TokenScoreField({ points, color, label, tokens, onChange }: Prop
 				allowNegative={allowNegative}
 				onChange={onChange}
 			/>
-			<Pressable onPress={() => setVisible(true)} hitSlop={8} style={styles.link}>
-				<Text style={[styles.linkText, { color }]}>Compter par jetons</Text>
+			<Pressable
+				onPress={() => setVisible(true)}
+				hitSlop={8}
+				style={styles.link}
+				accessibilityRole="button"
+			>
+				<Text
+					style={[styles.linkText, { color: readableTint(color, colors.surface, colors.text) }]}
+				>
+					Compter par jetons
+				</Text>
 			</Pressable>
 			<TokenCounterSheet
 				visible={visible}

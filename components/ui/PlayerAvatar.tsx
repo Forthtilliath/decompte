@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { getAvatarColor } from "@/lib/avatarColor";
+import { readableTextOn } from "@/lib/contrast";
 
 type Props = {
 	name: string;
@@ -14,6 +15,13 @@ type Props = {
 	seed?: string;
 };
 
+// Décoratif : le nom du joueur est toujours écrit à côté, ou dans le libellé du bouton qui contient
+// l'avatar. Sans ça, le lecteur d'écran lirait les initiales (« AL ») en plus du nom.
+const HIDDEN_FROM_SCREEN_READER = {
+	accessibilityElementsHidden: true,
+	importantForAccessibility: "no-hide-descendants",
+} as const;
+
 export function PlayerAvatar({ name, avatarUri, size = 56, seed }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
@@ -22,15 +30,29 @@ export function PlayerAvatar({ name, avatarUri, size = 56, seed }: Props) {
 
 	if (avatarUri) {
 		return (
-			<Image source={{ uri: avatarUri }} style={[styles.image, dimension]} contentFit="cover" />
+			<Image
+				source={{ uri: avatarUri }}
+				style={[styles.image, dimension]}
+				contentFit="cover"
+				{...HIDDEN_FROM_SCREEN_READER}
+			/>
 		);
 	}
 
 	const backgroundColor = getAvatarColor(seed || name);
 
 	return (
-		<View style={[styles.placeholder, dimension, { backgroundColor }]}>
-			<Text style={[styles.initials, { fontSize: size * 0.36 }]}>{initials}</Text>
+		<View
+			style={[styles.placeholder, dimension, { backgroundColor }]}
+			{...HIDDEN_FROM_SCREEN_READER}
+		>
+			<Text
+				style={[styles.initials, { fontSize: size * 0.36, color: readableTextOn(backgroundColor) }]}
+				// Les initiales remplissent un cercle de taille fixe : agrandies, elles en débordent.
+				allowFontScaling={false}
+			>
+				{initials}
+			</Text>
 		</View>
 	);
 }
@@ -55,7 +77,6 @@ function useStyles(colors: ThemeColors) {
 					justifyContent: "center",
 				},
 				initials: {
-					color: colors.text,
 					fontWeight: "700",
 				},
 			}),

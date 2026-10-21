@@ -1,5 +1,5 @@
-// Palette de couleurs saturées, choisies pour rester lisibles avec du texte blanc dessus, aussi
-// bien en thème sombre que clair. 18 teintes réparties sur tout le cercle chromatique (au lieu de
+// Palette de couleurs saturées, pour les avatars sans photo et les catégories. Le texte posé dessus
+// est blanc ou noir selon la teinte (`readableTextOn`, lib/contrast). 18 teintes réparties sur tout le cercle chromatique (au lieu de
 // 10) pour que deux entités distinctes se ressemblent moins souvent, même dans un groupe nombreux.
 export const AVATAR_PALETTE = [
 	"#ef4444", // rouge

@@ -12,6 +12,7 @@ import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
 import { indexById } from "@/lib/byId";
+import { chipColors } from "@/lib/contrast";
 import { parseGameExport, serializeGame } from "@/lib/gameExport";
 import { getRoundCount } from "@/lib/rounds";
 import { getFirstStepHref, getSessionSetup } from "@/lib/sessionFlow";
@@ -120,11 +121,14 @@ export default function GameDetailScreen() {
 				</Text>
 
 				<View style={styles.chipsRow}>
-					{game.categories.map((c) => (
-						<View key={c.id} style={[styles.chip, { borderColor: c.color }]}>
-							<Text style={[styles.chipLabel, { color: c.color }]}>{c.label}</Text>
-						</View>
-					))}
+					{game.categories.map((c) => {
+						const { color, ...chip } = chipColors(c.color, colors.background);
+						return (
+							<View key={c.id} style={[styles.chip, chip]}>
+								<Text style={[styles.chipLabel, { color }]}>{c.label}</Text>
+							</View>
+						);
+					})}
 				</View>
 
 				{otherGameOngoing ? (
