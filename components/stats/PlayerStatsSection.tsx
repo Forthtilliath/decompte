@@ -10,7 +10,14 @@ import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { plural } from "@/lib/plural";
-import { computePlayerGameStats, computePlayerStats, formatAverage, formatRate } from "@/lib/stats";
+import { getRoundCount } from "@/lib/rounds";
+import {
+	computePlayerGameStats,
+	computePlayerRoundAverages,
+	computePlayerStats,
+	formatAverage,
+	formatRate,
+} from "@/lib/stats";
 import type { GameDef, Session } from "@/types/game";
 import type { Player } from "@/types/player";
 
@@ -36,6 +43,14 @@ export function PlayerStatsSection({ player, sessions, game, games }: Props) {
 	);
 	const perGame = useMemo(
 		() => (game ? [] : computePlayerGameStats(player.id, sessions)),
+		[game, player.id, sessions],
+	);
+	// Une moyenne par manche n'a de sens que pour un jeu qui en a plusieurs.
+	const roundAverages = useMemo(
+		() =>
+			game && (game.openRounds || getRoundCount(game) > 1)
+				? computePlayerRoundAverages(player.id, sessions, getRoundCount(game))
+				: [],
 		[game, player.id, sessions],
 	);
 
@@ -83,6 +98,24 @@ export function PlayerStatsSection({ player, sessions, game, games }: Props) {
 							<View style={styles.card}>
 								<CategoryPieChart categories={game.categories} values={stats.averageByCategory} />
 							</View>
+
+							{roundAverages.length > 1 && (
+								<>
+									<SectionTitle>Points moyens par manche</SectionTitle>
+									<View style={styles.card}>
+										<SignedBarChart
+											labelWidth={96}
+											formatValue={formatAverage}
+											rows={roundAverages.map((average, index) => ({
+												id: String(index + 1),
+												label: `Manche ${index + 1}`,
+												value: average,
+												color: colors.primary,
+											}))}
+										/>
+									</View>
+								</>
+							)}
 						</>
 					) : (
 						<>
