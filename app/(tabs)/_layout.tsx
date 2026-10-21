@@ -2,8 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import type { ComponentProps } from "react";
 import { type ColorValue, StyleSheet, Text } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+
+/** Hauteur de la barre native des Stacks sous Android (`?attr/actionBarSize`), hors barre d'état. */
+const NATIVE_HEADER_HEIGHT = 56;
 
 /**
  * Les couleurs d'onglet viennent de `tabBarActiveTintColor`/`tabBarInactiveTintColor`, toujours des
@@ -33,12 +37,18 @@ function tabLabel(text?: string) {
 
 export default function TabsLayout() {
 	const colors = useColors();
+	const insets = useSafeAreaInsets();
 
 	// Chaque onglet actif a sa couleur : les 4 pions classiques (bleu, rouge, vert, jaune), plus violet pour Stats.
 	return (
 		<Tabs
 			screenOptions={{
-				headerStyle: { backgroundColor: colors.surface },
+				// L'en-tête JS des onglets fait 64 dp sous Android, la barre native des Stacks 56 dp
+				// (actionBarSize) : on l'aligne pour que tous les en-têtes aient la même hauteur.
+				headerStyle: {
+					backgroundColor: colors.surface,
+					height: NATIVE_HEADER_HEIGHT + insets.top,
+				},
 				headerTintColor: colors.text,
 				headerTitleStyle: { color: colors.text },
 				tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border },
