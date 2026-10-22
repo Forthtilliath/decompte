@@ -4,9 +4,10 @@ import {
 	TEXT_CONTRAST,
 } from "@forthtilliath/ts-kit/color/contrastRatio";
 import { findPageBackground, PAGE_BACKGROUNDS, resolveThemeColors } from "@/constants/backgrounds";
-import { DARK_COLORS, LIGHT_COLORS } from "@/constants/theme";
+import { DARK_COLORS, LIGHT_COLORS, LUDO_COLORS } from "@/constants/theme";
+import { THEME_MODES } from "@/stores/themeStore";
 
-const ALL = (["dark", "light"] as const).flatMap((mode) =>
+const ALL = THEME_MODES.flatMap((mode) =>
 	PAGE_BACKGROUNDS[mode].map((background) => ({ mode, background })),
 );
 
@@ -14,6 +15,7 @@ describe("fonds de page", () => {
 	it("gardent le fond d'origine en premier, appliqué par défaut", () => {
 		expect(resolveThemeColors("dark", undefined)).toEqual(DARK_COLORS);
 		expect(resolveThemeColors("light", undefined)).toEqual(LIGHT_COLORS);
+		expect(resolveThemeColors("ludo", undefined)).toEqual(LUDO_COLORS);
 	});
 
 	it("reviennent au fond d'origine pour un identifiant inconnu", () => {
@@ -29,7 +31,7 @@ describe("fonds de page", () => {
 	});
 
 	it("ont des identifiants uniques et des hex à 6 chiffres", () => {
-		for (const mode of ["dark", "light"] as const) {
+		for (const mode of THEME_MODES) {
 			const ids = PAGE_BACKGROUNDS[mode].map((b) => b.id);
 			expect(new Set(ids).size).toBe(ids.length);
 		}
