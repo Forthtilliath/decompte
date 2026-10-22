@@ -6,8 +6,9 @@ import {
 import { PAGE_BACKGROUNDS, resolveThemeColors } from "@/constants/backgrounds";
 import { AVATAR_PALETTE } from "@/lib/avatarColor";
 import { chipColors, readableTint } from "@/lib/contrast";
+import { THEME_MODES } from "@/stores/themeStore";
 
-const THEMES = (["dark", "light"] as const).flatMap((mode) =>
+const THEMES = THEME_MODES.flatMap((mode) =>
 	PAGE_BACKGROUNDS[mode].map((background) => ({
 		name: `${mode} / ${background.label}`,
 		colors: resolveThemeColors(mode, background.id),

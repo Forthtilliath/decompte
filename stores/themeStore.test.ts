@@ -29,6 +29,18 @@ describe("useThemeStore", () => {
 		expect(useThemeStore.getState().backgrounds).toEqual({ dark: "tapis", light: "sauge" });
 	});
 
+	it("recharge le thème Ludique et son fond", async () => {
+		await writePersisted(
+			AsyncStorage,
+			"theme-store",
+			{ mode: "ludo", backgrounds: { ludo: "kraft" } },
+			THEME_STORE_VERSION,
+		);
+		await useThemeStore.persist.rehydrate();
+		expect(useThemeStore.getState().mode).toBe("ludo");
+		expect(useThemeStore.getState().backgrounds).toEqual({ ludo: "kraft" });
+	});
+
 	it("recharge le mode et les fonds enregistrés", async () => {
 		await writePersisted(
 			AsyncStorage,
