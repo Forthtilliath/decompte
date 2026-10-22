@@ -9,7 +9,6 @@ import { useColors } from "@/hooks/useColors";
 
 type Props = PropsWithChildren<
 	ViewProps & {
-		scroll?: boolean;
 		padded?: boolean;
 		edges?: Edge[];
 	}
