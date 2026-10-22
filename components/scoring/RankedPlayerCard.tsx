@@ -4,7 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
 import { formatRank, RANK_MEDALS } from "@/constants/ranking";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
+import { displayFont, RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
 import { sumByCategory, sumByRound } from "@/lib/rounds";
@@ -120,6 +120,7 @@ function useStyles(colors: ThemeColors) {
 					gap: SPACING.sm,
 					borderWidth: 1.5,
 					borderColor: "transparent",
+					...colors.decor.card,
 				},
 				cardWinner: {
 					borderColor: colors.gold,
@@ -150,6 +151,7 @@ function useStyles(colors: ThemeColors) {
 					color: colors.gold,
 					fontSize: 22,
 					fontWeight: "800",
+					...displayFont(colors),
 				},
 				rounds: {
 					color: colors.text,

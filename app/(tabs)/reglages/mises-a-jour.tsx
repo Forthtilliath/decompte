@@ -41,6 +41,7 @@ function useUpdateScreenStyles(colors: ThemeColors): UpdateSettingsScreenStyles 
 			backgroundColor: colors.surface,
 			borderColor: colors.border,
 			borderRadius: RADIUS.md,
+			...colors.decor.card,
 		};
 		return {
 			infoBox: card,

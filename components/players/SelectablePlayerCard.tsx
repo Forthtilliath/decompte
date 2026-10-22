@@ -75,6 +75,7 @@ function useStyles(colors: ThemeColors) {
 					borderWidth: 2,
 					borderColor: "transparent",
 					paddingVertical: SPACING.sm,
+					...colors.decor.card,
 				},
 				cardSelected: {
 					borderColor: colors.primary,

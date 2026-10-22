@@ -51,6 +51,7 @@ function useBannerStyles(colors: ThemeColors): UpdateAvailableBannerStyles {
 		() =>
 			StyleSheet.create({
 				container: {
+					...colors.decor.card,
 					backgroundColor: colors.surface,
 					borderRadius: RADIUS.md,
 					borderWidth: 1,
@@ -72,6 +73,7 @@ function useUpdateInstallCardStyles(colors: ThemeColors): UpdateInstallCardStyle
 	return useMemo(() => {
 		const styles = StyleSheet.create({
 			container: {
+				...colors.decor.card,
 				alignSelf: "stretch",
 				backgroundColor: colors.surface,
 				borderRadius: RADIUS.md,

@@ -100,6 +100,7 @@ function useStyles(colors: ThemeColors) {
 					borderRadius: RADIUS.md,
 					padding: SPACING.md,
 					gap: SPACING.sm,
+					...colors.decor.card,
 				},
 				pressed: {
 					opacity: 0.7,

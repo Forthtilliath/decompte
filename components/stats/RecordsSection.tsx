@@ -131,6 +131,7 @@ function useStyles(colors: ThemeColors) {
 					paddingHorizontal: SPACING.xs,
 					alignItems: "center",
 					gap: 2,
+					...colors.decor.card,
 				},
 				value: {
 					color: colors.text,

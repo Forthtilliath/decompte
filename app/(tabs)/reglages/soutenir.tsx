@@ -63,6 +63,7 @@ function useStyles(colors: ThemeColors) {
 					borderRadius: RADIUS.md,
 					padding: SPACING.md,
 					marginBottom: SPACING.sm,
+					...colors.decor.card,
 				},
 				text: {
 					color: colors.text,
