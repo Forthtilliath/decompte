@@ -58,6 +58,14 @@
 			"@forthtilliath/expo-config-plugins/withAndroidAbis",
 			"expo-image",
 			[
+				"expo-font",
+				{
+					"fonts": [
+						"node_modules/@expo-google-fonts/lilita-one/400Regular/LilitaOne_400Regular.ttf"
+					]
+				}
+			],
+			[
 				"expo-build-properties",
 				{
 					"android": {
