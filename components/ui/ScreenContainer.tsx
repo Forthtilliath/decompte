@@ -2,6 +2,7 @@ import type { PropsWithChildren } from "react";
 import { useMemo } from "react";
 import { StyleSheet, View, type ViewProps } from "react-native";
 import { type Edge, SafeAreaView } from "react-native-safe-area-context";
+import { BoardPattern } from "@/components/ui/BoardPattern";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
@@ -20,7 +21,7 @@ type Props = PropsWithChildren<
 // explicitement.
 const DEFAULT_EDGES: Edge[] = ["left", "right"];
 
-/** Conteneur d'écran standard : fond de thème + zone sûre + padding par défaut. */
+/** Conteneur d'écran standard : fond de thème (et son motif) + zone sûre + padding par défaut. */
 export function ScreenContainer({
 	children,
 	style,
@@ -33,6 +34,7 @@ export function ScreenContainer({
 
 	return (
 		<SafeAreaView style={styles.root} edges={edges}>
+			{colors.decor.pattern && <BoardPattern {...colors.decor.pattern} />}
 			<View style={[styles.container, padded && styles.padded, style]} {...rest}>
 				{children}
 			</View>
