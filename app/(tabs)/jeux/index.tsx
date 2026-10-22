@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { GameListItem } from "@/components/games/GameListItem";
 import { GameSortSheet } from "@/components/games/GameSortSheet";
 import { Button } from "@/components/ui/Button";
@@ -44,74 +44,80 @@ export default function GamesListScreen() {
 	const createGame = () => router.push("/jeux/new");
 
 	return (
-		<ScreenContainer style={styles.container}>
-			<UpdateBanner />
-			{hasOngoingSession && ongoingGame && (
+		<ScreenContainer padded={false}>
+			<ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+				<UpdateBanner />
+				{hasOngoingSession && ongoingGame && (
+					<Button
+						label={`Reprendre la partie en cours (${ongoingGame.name})`}
+						variant="success"
+						onPress={resume}
+					/>
+				)}
+				{isOrphan && (
+					<Text style={styles.orphan}>
+						Une partie est en cours sur un jeu qui n'existe plus sur ce téléphone (retiré par une
+						restauration). Elle ne peut pas être reprise : abandonne-la pour en lancer une autre.
+					</Text>
+				)}
+				{/* Proposé même si le jeu de la partie est introuvable : sinon la partie bloquerait le
+				    lancement de toute autre partie, sans aucun moyen d'en sortir. */}
+				{hasOngoingSession && (
+					<Button label="Abandonner la partie en cours" variant="ghost" onPress={confirmAbandon} />
+				)}
+
+				{activeGames.length > 0 && (
+					<TextField
+						placeholder="Rechercher un jeu..."
+						value={query}
+						onChangeText={setQuery}
+						autoCapitalize="none"
+					/>
+				)}
+				{activeGames.length > 1 && (
+					<Pressable
+						style={({ pressed }) => [styles.sort, pressed && styles.pressed]}
+						onPress={() => setSortSheetVisible(true)}
+						accessibilityRole="button"
+						accessibilityLabel={`Trier les jeux : ${GAME_SORT_LABELS[sortOrder]}`}
+						hitSlop={8}
+					>
+						<Ionicons name="swap-vertical" size={16} color={colors.textMuted} />
+						<Text style={styles.sortLabel}>{GAME_SORT_LABELS[sortOrder]}</Text>
+					</Pressable>
+				)}
+
+				{activeGames.length === 0 ? (
+					<EmptyState
+						icon="game-controller-outline"
+						message="Aucun jeu créé pour l'instant. Crée ton premier jeu pour définir ses catégories de score, ou pars d'un modèle."
+						action={{ label: "Créer un jeu", onPress: createGame }}
+					/>
+				) : filteredGames.length === 0 ? (
+					<EmptyState icon="search" message="Aucun jeu ne correspond à cette recherche." />
+				) : (
+					filteredGames.map((game) => (
+						<GameListItem
+							key={game.id}
+							game={game}
+							onPress={() => router.push(`/jeux/${game.id}`)}
+						/>
+					))
+				)}
+
+				{/* Sans jeu, le bouton est déjà dans l'état vide, plus haut. */}
+				{activeGames.length > 0 && <Button label="Créer un jeu" onPress={createGame} />}
 				<Button
-					label={`Reprendre la partie en cours (${ongoingGame.name})`}
-					variant="success"
-					onPress={resume}
+					label="Partir d'un modèle"
+					variant="secondary"
+					onPress={() => router.push("/jeux/modeles")}
 				/>
-			)}
-			{isOrphan && (
-				<Text style={styles.orphan}>
-					Une partie est en cours sur un jeu qui n'existe plus sur ce téléphone (retiré par une
-					restauration). Elle ne peut pas être reprise : abandonne-la pour en lancer une autre.
-				</Text>
-			)}
-			{/* Proposé même si le jeu de la partie est introuvable : sinon la partie bloquerait le
-			    lancement de toute autre partie, sans aucun moyen d'en sortir. */}
-			{hasOngoingSession && (
-				<Button label="Abandonner la partie en cours" variant="ghost" onPress={confirmAbandon} />
-			)}
-
-			{activeGames.length > 0 && (
-				<TextField
-					placeholder="Rechercher un jeu..."
-					value={query}
-					onChangeText={setQuery}
-					autoCapitalize="none"
+				<Button
+					label="Importer un jeu partagé"
+					variant="ghost"
+					onPress={() => router.push("/jeux/import")}
 				/>
-			)}
-			{activeGames.length > 1 && (
-				<Pressable
-					style={({ pressed }) => [styles.sort, pressed && styles.pressed]}
-					onPress={() => setSortSheetVisible(true)}
-					accessibilityRole="button"
-					accessibilityLabel={`Trier les jeux : ${GAME_SORT_LABELS[sortOrder]}`}
-					hitSlop={8}
-				>
-					<Ionicons name="swap-vertical" size={16} color={colors.textMuted} />
-					<Text style={styles.sortLabel}>{GAME_SORT_LABELS[sortOrder]}</Text>
-				</Pressable>
-			)}
-
-			{activeGames.length === 0 ? (
-				<EmptyState
-					icon="game-controller-outline"
-					message="Aucun jeu créé pour l'instant. Crée ton premier jeu pour définir ses catégories de score, ou pars d'un modèle."
-					action={{ label: "Créer un jeu", onPress: createGame }}
-				/>
-			) : filteredGames.length === 0 ? (
-				<EmptyState icon="search" message="Aucun jeu ne correspond à cette recherche." />
-			) : (
-				filteredGames.map((game) => (
-					<GameListItem key={game.id} game={game} onPress={() => router.push(`/jeux/${game.id}`)} />
-				))
-			)}
-
-			{/* Sans jeu, le bouton est déjà dans l'état vide, plus haut. */}
-			{activeGames.length > 0 && <Button label="Créer un jeu" onPress={createGame} />}
-			<Button
-				label="Partir d'un modèle"
-				variant="secondary"
-				onPress={() => router.push("/jeux/modeles")}
-			/>
-			<Button
-				label="Importer un jeu partagé"
-				variant="ghost"
-				onPress={() => router.push("/jeux/import")}
-			/>
+			</ScrollView>
 
 			<GameSortSheet
 				visible={sortSheetVisible}
@@ -127,8 +133,9 @@ function useStyles(colors: ThemeColors) {
 	return useMemo(
 		() =>
 			StyleSheet.create({
-				container: {
+				content: {
 					gap: SPACING.sm,
+					padding: SPACING.md,
 				},
 				orphan: {
 					color: colors.textMuted,
