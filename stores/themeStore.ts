@@ -4,7 +4,15 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { validatedMerge } from "@/lib/persistedState";
 
-export type ThemeMode = "dark" | "light";
+/** Thèmes, dans l'ordre du sélecteur de Réglages ▸ Apparence. */
+export const THEME_MODES = ["dark", "light", "ludo"] as const;
+export type ThemeMode = (typeof THEME_MODES)[number];
+
+export const THEME_LABELS: Record<ThemeMode, string> = {
+	dark: "Sombre",
+	light: "Clair",
+	ludo: "Ludique",
+};
 
 type State = {
 	mode: ThemeMode;
@@ -23,8 +31,8 @@ export const THEME_STORE_VERSION = 2;
 
 const backgroundIdSchema = z.string().max(64).optional();
 const themeStateSchema = z.object({
-	mode: z.enum(["dark", "light"]),
-	backgrounds: z.object({ dark: backgroundIdSchema, light: backgroundIdSchema }),
+	mode: z.enum(THEME_MODES),
+	backgrounds: z.partialRecord(z.enum(THEME_MODES), backgroundIdSchema),
 });
 
 /** Exportée pour être testée isolément, sans instancier tout le store Zustand + AsyncStorage. */
