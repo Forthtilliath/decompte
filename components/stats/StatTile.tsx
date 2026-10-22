@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
+import { displayFont, RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
 type Props = {
@@ -39,11 +39,13 @@ function useStyles(colors: ThemeColors) {
 					paddingHorizontal: SPACING.xs,
 					alignItems: "center",
 					gap: 2,
+					...colors.decor.card,
 				},
 				value: {
 					color: colors.gold,
 					fontSize: 22,
 					fontWeight: "800",
+					...displayFont(colors),
 				},
 				label: {
 					color: colors.textMuted,

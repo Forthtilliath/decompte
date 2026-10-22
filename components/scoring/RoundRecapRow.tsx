@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { formatRank, RANK_MEDALS } from "@/constants/ranking";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
+import { displayFont, RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import type { RoundRecapLine } from "@/lib/roundRecap";
 
@@ -61,6 +61,7 @@ function useStyles(colors: ThemeColors) {
 					padding: SPACING.md,
 					borderWidth: 1.5,
 					borderColor: colors.border,
+					...colors.decor.card,
 				},
 				cardReached: {
 					borderColor: colors.danger,
@@ -93,6 +94,7 @@ function useStyles(colors: ThemeColors) {
 					color: colors.text,
 					fontSize: 22,
 					fontWeight: "800",
+					...displayFont(colors),
 				},
 			}),
 		[colors],

@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { formatRank, RANK_MEDALS } from "@/constants/ranking";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
+import { displayFont, RADIUS, SPACING, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { DELETED_PLAYER_LABEL } from "@/lib/playerDeletion";
 import type { RankedTeam } from "@/lib/scoring";
@@ -59,6 +59,7 @@ function useStyles(colors: ThemeColors) {
 					padding: SPACING.md,
 					borderWidth: 1.5,
 					borderColor: "transparent",
+					...colors.decor.card,
 				},
 				cardWinner: {
 					borderColor: colors.gold,
@@ -87,6 +88,7 @@ function useStyles(colors: ThemeColors) {
 					color: colors.gold,
 					fontSize: 22,
 					fontWeight: "800",
+					...displayFont(colors),
 				},
 			}),
 		[colors],

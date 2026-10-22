@@ -57,6 +57,7 @@ function useStyles(colors: ThemeColors) {
 		() =>
 			StyleSheet.create({
 				card: {
+					...colors.decor.card,
 					gap: SPACING.xs,
 					padding: SPACING.md,
 					borderRadius: RADIUS.md,

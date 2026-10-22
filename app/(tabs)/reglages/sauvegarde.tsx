@@ -31,6 +31,7 @@ function useBackupScreenStyles(colors: ThemeColors): BackupScreenStyles {
 				borderRadius: RADIUS.md,
 				padding: SPACING.md,
 				gap: SPACING.sm,
+				...colors.decor.card,
 			},
 			sectionTitle: { color: colors.text },
 			hint: { color: colors.textMuted },

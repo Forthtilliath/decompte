@@ -165,6 +165,7 @@ function useStyles(colors: ThemeColors) {
 					backgroundColor: colors.surface,
 					borderRadius: RADIUS.md,
 					padding: SPACING.md,
+					...colors.decor.card,
 				},
 				list: {
 					gap: SPACING.xs,

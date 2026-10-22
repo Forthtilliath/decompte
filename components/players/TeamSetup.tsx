@@ -65,6 +65,7 @@ function useStyles(colors: ThemeColors) {
 					borderRadius: RADIUS.md,
 					padding: SPACING.md,
 					gap: SPACING.sm,
+					...colors.decor.card,
 				},
 				countRow: {
 					flexDirection: "row",

@@ -72,6 +72,7 @@ function useStyles(colors: ThemeColors) {
 					backgroundColor: colors.surface,
 					borderRadius: RADIUS.md,
 					padding: SPACING.sm,
+					...colors.decor.card,
 				},
 				archivedRow: {
 					opacity: 0.5,
