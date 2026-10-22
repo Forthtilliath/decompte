@@ -10,7 +10,7 @@ import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { backup } from "@/lib/backup";
-import { useThemeStore } from "@/stores/themeStore";
+import { THEME_LABELS, useThemeStore } from "@/stores/themeStore";
 
 export default function SettingsScreen() {
 	const colors = useColors();
@@ -35,7 +35,7 @@ export default function SettingsScreen() {
 				<SettingsRow
 					icon="contrast"
 					label="Apparence"
-					value={`${mode === "dark" ? "Sombre" : "Clair"}, fond ${background.label.toLowerCase()}`}
+					value={`${THEME_LABELS[mode]}, fond ${background.label.toLowerCase()}`}
 					onPress={() => router.push("/reglages/apparence")}
 				/>
 
