@@ -3,6 +3,7 @@
 	"version": "1.0.0-alpha.12",
 	"main": "index.ts",
 	"dependencies": {
+		"@expo-google-fonts/lilita-one": "^0.4.1",
 		"@expo/vector-icons": "^15.0.2",
 		"@forthtilliath/expo-backup": "^0.4.0",
 		"@forthtilliath/expo-backup-ui": "^0.4.0",
