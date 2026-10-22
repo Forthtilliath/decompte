@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/Button";
 import { Reveal } from "@/components/ui/Reveal";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
-import { SPACING } from "@/constants/theme";
+import { displayFont, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { getSessionRoundCount } from "@/lib/rounds";
 import { rankSession } from "@/lib/scoring";
@@ -151,6 +151,7 @@ function useStyles(colors: ThemeColors) {
 					color: colors.text,
 					fontSize: 22,
 					fontWeight: "800",
+					...displayFont(colors),
 					marginBottom: SPACING.md,
 				},
 				list: {

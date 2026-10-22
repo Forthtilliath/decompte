@@ -9,7 +9,7 @@ import { TeamSetup } from "@/components/players/TeamSetup";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { displayFont, RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 import { useDeleteGame } from "@/hooks/useDeleteGame";
 import { useOngoingSession } from "@/hooks/useOngoingSession";
@@ -232,6 +232,7 @@ function useStyles(colors: ThemeColors) {
 					color: colors.text,
 					fontSize: 22,
 					fontWeight: "800",
+					...displayFont(colors),
 				},
 				meta: {
 					color: colors.textMuted,
