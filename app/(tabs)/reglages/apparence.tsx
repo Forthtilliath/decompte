@@ -11,7 +11,12 @@ import { findPageBackground, PAGE_BACKGROUNDS } from "@/constants/backgrounds";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { type ThemeMode, useThemeStore } from "@/stores/themeStore";
+import { THEME_LABELS, THEME_MODES, type ThemeMode, useThemeStore } from "@/stores/themeStore";
+
+const THEME_OPTIONS = THEME_MODES.map((value) => ({
+	value,
+	label: THEME_LABELS[value],
+}));
 
 export default function AppearanceSettingsScreen() {
 	const colors = useColors();
@@ -25,14 +30,7 @@ export default function AppearanceSettingsScreen() {
 	return (
 		<ScreenContainer style={styles.container}>
 			<Text style={styles.section}>Thème</Text>
-			<RadioGroup<ThemeMode>
-				options={[
-					{ value: "dark", label: "Sombre" },
-					{ value: "light", label: "Clair" },
-				]}
-				value={mode}
-				onChange={setMode}
-			/>
+			<RadioGroup<ThemeMode> options={THEME_OPTIONS} value={mode} onChange={setMode} />
 
 			<Text style={[styles.section, styles.spaced]}>Couleur de fond</Text>
 			<BackgroundPicker
@@ -44,9 +42,7 @@ export default function AppearanceSettingsScreen() {
 				}}
 				styles={pickerStyles}
 			/>
-			<Text style={styles.hint}>
-				Les thèmes sombre et clair gardent chacun leur propre couleur de fond.
-			</Text>
+			<Text style={styles.hint}>Chaque thème garde sa propre couleur de fond.</Text>
 		</ScreenContainer>
 	);
 }
