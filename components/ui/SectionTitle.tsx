@@ -1,7 +1,7 @@
 import type { PropsWithChildren } from "react";
 import { useMemo } from "react";
 import { type StyleProp, StyleSheet, Text, type TextStyle } from "react-native";
-import type { ThemeColors } from "@/constants/theme";
+import { displayFont, type ThemeColors } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
 type Props = PropsWithChildren<{ style?: StyleProp<TextStyle> }>;
@@ -27,6 +27,7 @@ function useStyles(colors: ThemeColors) {
 					fontSize: 14,
 					textTransform: "uppercase",
 					letterSpacing: 0.5,
+					...displayFont(colors),
 				},
 			}),
 		[colors],
