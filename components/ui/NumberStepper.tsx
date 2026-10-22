@@ -164,6 +164,7 @@ function useStyles(colors: ThemeColors) {
 					borderRadius: RADIUS.sm,
 					alignItems: "center",
 					justifyContent: "center",
+					...colors.decor.raised,
 				},
 				// Même opacité que les boutons désactivés (components/ui/Button).
 				buttonAtBound: {

@@ -2,7 +2,7 @@ import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/hapti
 import { useMemo } from "react";
 import { Pressable, type StyleProp, StyleSheet, Text, type ViewStyle } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { displayFont, RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
 /** `success` (vert) : actions qui font avancer une partie (lancer, reprendre, terminer). */
@@ -69,19 +69,19 @@ function useStyles(colors: ThemeColors) {
 					borderRadius: RADIUS.md,
 					alignItems: "center",
 					justifyContent: "center",
+					...colors.decor.raised,
 				},
 				label: {
 					color: colors.primaryText,
 					fontSize: 16,
 					fontWeight: "600",
+					...displayFont(colors),
 				},
 				// Fonds neutres (transparent, surfaceAlt) : le blanc y serait illisible en thème clair.
 				neutralLabel: {
 					color: colors.text,
 				},
-				pressed: {
-					opacity: 0.75,
-				},
+				pressed: colors.decor.raisedPressed ?? { opacity: 0.75 },
 				disabled: {
 					opacity: 0.4,
 				},
