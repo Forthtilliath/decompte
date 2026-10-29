@@ -24,7 +24,8 @@ type Props = {
 
 /**
  * Ligne du classement : rang, joueur, total, points de chaque manche s'il y en a plusieurs, et
- * détail des points par catégorie toutes manches confondues (hors zéros).
+ * détail des points par catégorie toutes manches confondues (hors zéros). Un jeu à une seule
+ * catégorie n'a pas de détail par catégorie : il redirait le total.
  */
 export function RankedPlayerCard({ player, ranked, entry, categories, roundCount = 1 }: Props) {
 	const colors = useColors();
@@ -40,14 +41,17 @@ export function RankedPlayerCard({ player, ranked, entry, categories, roundCount
 			.map(([, points]) => points),
 	);
 
+	const shownCategories =
+		categories.length > 1 || removedPoints !== 0
+			? categories.filter((category) => byCategory[category.id])
+			: [];
+
 	const name = player?.name ?? DELETED_PLAYER_LABEL;
 	const details = [
 		...(byRound.length > 1
 			? byRound.map((points, index) => `manche ${index + 1} : ${points}`)
 			: []),
-		...categories
-			.filter((category) => byCategory[category.id])
-			.map((category) => `${category.label} ${byCategory[category.id]}`),
+		...shownCategories.map((category) => `${category.label} ${byCategory[category.id]}`),
 		...(removedPoints !== 0 ? [`catégories retirées ${removedPoints}`] : []),
 	];
 
@@ -81,30 +85,37 @@ export function RankedPlayerCard({ player, ranked, entry, categories, roundCount
 			</View>
 
 			{byRound.length > 1 && (
-				<Text style={styles.rounds}>
-					{byRound.map((points, index) => `Manche ${index + 1} : ${points}`).join("  ·  ")}
-				</Text>
+				<View style={styles.rounds}>
+					{byRound
+						.map((points, index) => ({ round: index + 1, points }))
+						.map(({ round, points }) => (
+							<View key={round} style={styles.roundTile}>
+								<Text style={styles.roundLabel}>M{round}</Text>
+								<Text style={styles.roundPoints} maxFontSizeMultiplier={TIGHT_FONT_SCALE}>
+									{points}
+								</Text>
+							</View>
+						))}
+				</View>
 			)}
 
-			<View style={styles.breakdown}>
-				{categories.map((category) => {
-					const value = byCategory[category.id];
-					if (!value) return null;
-					return (
+			{(shownCategories.length > 0 || removedPoints !== 0) && (
+				<View style={styles.breakdown}>
+					{shownCategories.map((category) => (
 						<View key={category.id} style={styles.chip}>
 							<View style={[styles.dot, { backgroundColor: category.color }]} />
 							<Text style={styles.chipText}>
-								{category.label} {value}
+								{category.label} {byCategory[category.id]}
 							</Text>
 						</View>
-					);
-				})}
-				{removedPoints !== 0 && (
-					<View style={styles.chip}>
-						<Text style={styles.chipText}>Catégories retirées {removedPoints}</Text>
-					</View>
-				)}
-			</View>
+					))}
+					{removedPoints !== 0 && (
+						<View style={styles.chip}>
+							<Text style={styles.chipText}>Catégories retirées {removedPoints}</Text>
+						</View>
+					)}
+				</View>
+			)}
 		</View>
 	);
 }
@@ -154,9 +165,27 @@ function useStyles(colors: ThemeColors) {
 					...displayFont(colors),
 				},
 				rounds: {
-					color: colors.text,
-					fontSize: 13,
+					flexDirection: "row",
+					flexWrap: "wrap",
+					gap: SPACING.xs,
+				},
+				roundTile: {
+					minWidth: 40,
+					alignItems: "center",
+					backgroundColor: colors.surfaceAlt,
+					borderRadius: RADIUS.sm,
+					paddingHorizontal: SPACING.xs,
+					paddingVertical: 2,
+				},
+				roundLabel: {
+					color: colors.textMuted,
+					fontSize: 10,
 					fontWeight: "600",
+				},
+				roundPoints: {
+					color: colors.text,
+					fontSize: 15,
+					fontWeight: "700",
 				},
 				breakdown: {
 					flexDirection: "row",
