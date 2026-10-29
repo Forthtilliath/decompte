@@ -51,25 +51,32 @@ export function GameCharts({ categories, ranking, entries, players, roundCount }
 		};
 	});
 
+	// Avec une seule catégorie, chaque joueur aurait un camembert à 100 % : rien à répartir.
+	const hasSeveralCategories = categories.length > 1;
+
 	return (
 		<View style={styles.container}>
-			<SectionTitle>Répartition par joueur</SectionTitle>
-			{rows.map(({ ranked, player, label, scores }) => (
-				<View key={ranked.playerId} style={styles.card}>
-					<View style={styles.cardHeader}>
-						<PlayerAvatar
-							name={player?.name ?? "?"}
-							avatarUri={player?.avatarUri}
-							seed={ranked.playerId}
-							size={32}
-						/>
-						<Text style={styles.cardTitle} numberOfLines={1}>
-							{label}
-						</Text>
-					</View>
-					<CategoryPieChart categories={categories} values={scores} />
-				</View>
-			))}
+			{hasSeveralCategories && (
+				<>
+					<SectionTitle>Répartition par joueur</SectionTitle>
+					{rows.map(({ ranked, player, label, scores }) => (
+						<View key={ranked.playerId} style={styles.card}>
+							<View style={styles.cardHeader}>
+								<PlayerAvatar
+									name={player?.name ?? "?"}
+									avatarUri={player?.avatarUri}
+									seed={ranked.playerId}
+									size={32}
+								/>
+								<Text style={styles.cardTitle} numberOfLines={1}>
+									{label}
+								</Text>
+							</View>
+							<CategoryPieChart categories={categories} values={scores} />
+						</View>
+					))}
+				</>
+			)}
 
 			<SectionTitle>Comparaison par catégorie</SectionTitle>
 			{categories.map((category) => (

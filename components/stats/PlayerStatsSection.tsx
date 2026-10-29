@@ -80,24 +80,32 @@ export function PlayerStatsSection({ player, sessions, game, games }: Props) {
 								<StatTile label="Meilleur score" value={String(stats.bestTotal)} />
 							</View>
 
-							<SectionTitle>Points moyens par catégorie</SectionTitle>
-							<View style={styles.card}>
-								<SignedBarChart
-									labelWidth={96}
-									formatValue={formatAverage}
-									rows={game.categories.map((category) => ({
-										id: category.id,
-										label: category.label,
-										value: stats.averageByCategory[category.id] ?? 0,
-										color: category.color,
-									}))}
-								/>
-							</View>
+							{/* Une seule catégorie : la barre redirait le score moyen et le camembert serait à 100 %. */}
+							{game.categories.length > 1 && (
+								<>
+									<SectionTitle>Points moyens par catégorie</SectionTitle>
+									<View style={styles.card}>
+										<SignedBarChart
+											labelWidth={96}
+											formatValue={formatAverage}
+											rows={game.categories.map((category) => ({
+												id: category.id,
+												label: category.label,
+												value: stats.averageByCategory[category.id] ?? 0,
+												color: category.color,
+											}))}
+										/>
+									</View>
 
-							<SectionTitle>Répartition des points</SectionTitle>
-							<View style={styles.card}>
-								<CategoryPieChart categories={game.categories} values={stats.averageByCategory} />
-							</View>
+									<SectionTitle>Répartition des points</SectionTitle>
+									<View style={styles.card}>
+										<CategoryPieChart
+											categories={game.categories}
+											values={stats.averageByCategory}
+										/>
+									</View>
+								</>
+							)}
 
 							{roundAverages.length > 1 && (
 								<>
