@@ -72,8 +72,12 @@ describe("une partie en plusieurs manches", () => {
 		await press("Voir les résultats");
 
 		// Alice 5+2 puis 6+0 = 13 ; Bob 3+4 puis 1+7 = 15.
-		expect(await screen.findByText("Manche 1 : 7  ·  Manche 2 : 8")).toBeOnTheScreen();
-		expect(screen.getByText("Manche 1 : 7  ·  Manche 2 : 6")).toBeOnTheScreen();
+		expect(
+			await screen.findByLabelText(/^1er, Bob, 15 points, manche 1 : 7, manche 2 : 8/),
+		).toBeOnTheScreen();
+		expect(
+			screen.getByLabelText(/^2e, Alice, 13 points, manche 1 : 7, manche 2 : 6/),
+		).toBeOnTheScreen();
 		expect(screen.getAllByText(/^(13|15)$/).map((t) => t.props.children)).toEqual([15, 13]);
 		expect(screen.getByText("Cartes 11")).toBeOnTheScreen();
 

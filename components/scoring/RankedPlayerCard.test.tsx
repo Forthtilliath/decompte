@@ -84,7 +84,14 @@ describe("RankedPlayerCard", () => {
 				roundCount={3}
 			/>,
 		);
-		expect(screen.getByText("Manche 1 : 6  ·  Manche 2 : 7  ·  Manche 3 : 8")).toBeOnTheScreen();
+		for (const [label, points] of [
+			["M1", "6"],
+			["M2", "7"],
+			["M3", "8"],
+		]) {
+			expect(screen.getByText(label)).toBeOnTheScreen();
+			expect(screen.getByText(points)).toBeOnTheScreen();
+		}
 		expect(screen.getByText("Murs 12")).toBeOnTheScreen();
 		expect(screen.getByText("Bonus 9")).toBeOnTheScreen();
 	});
@@ -113,6 +120,22 @@ describe("RankedPlayerCard", () => {
 				categories={categories}
 			/>,
 		);
-		expect(screen.queryByText(/Manche/)).not.toBeOnTheScreen();
+		expect(screen.queryByText("M1")).not.toBeOnTheScreen();
+	});
+
+	it("n'affiche pas de détail par catégorie pour un jeu à une seule catégorie : il redirait le total", async () => {
+		await render(
+			<RankedPlayerCard
+				player={makePlayer({ name: "Alice" })}
+				ranked={{ playerId: "p1", total: 9, rank: 1 }}
+				entry={makeEntry("p1", { cartes: 4, "cartes#2": 5 })}
+				categories={[makeCategory({ id: "cartes", label: "Cartes en main" })]}
+				roundCount={2}
+			/>,
+		);
+		expect(screen.queryByText(/Cartes en main/)).not.toBeOnTheScreen();
+		expect(
+			screen.getByLabelText("1er, Alice, 9 points, manche 1 : 4, manche 2 : 5"),
+		).toBeOnTheScreen();
 	});
 });
