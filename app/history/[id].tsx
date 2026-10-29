@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text } from "react-native";
 import { SessionExtrasEditor } from "@/components/history/SessionExtrasEditor";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
+import { RoundStandingsSection } from "@/components/scoring/RoundStandingsSection";
 import { TeamRankingCard } from "@/components/scoring/TeamRankingCard";
 import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
@@ -130,6 +131,11 @@ export default function SessionDetailScreen() {
 				})}
 				{game && (
 					<>
+						<RoundStandingsSection
+							session={session}
+							roundCount={getRoundCount(game)}
+							players={players}
+						/>
 						<Button
 							label={chartsVisible ? "Masquer les graphiques" : "Voir les graphiques"}
 							variant="ghost"

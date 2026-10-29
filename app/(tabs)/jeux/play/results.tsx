@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
 import { MissingScoresNotice } from "@/components/scoring/MissingScoresNotice";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
+import { RoundStandingsSection } from "@/components/scoring/RoundStandingsSection";
 import { TeamRankingCard } from "@/components/scoring/TeamRankingCard";
 import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
@@ -44,17 +45,17 @@ export default function ResultsScreen() {
 	const teams = useSessionStore((s) => s.teams);
 	const sessionRoundCount = useSessionStore((s) => s.roundCount);
 	const roundCount = game ? getSessionRoundCount(game, sessionRoundCount) : 1;
-	const { players: ranking, teams: teamRanking } = useMemo(
-		() =>
-			rankSession({
-				playerIds,
-				entries,
-				lowestWins,
-				tieBreakerId: tieBreakerId ?? undefined,
-				teams: teams ?? undefined,
-			}),
+	const rankable = useMemo(
+		() => ({
+			playerIds,
+			entries,
+			lowestWins,
+			tieBreakerId: tieBreakerId ?? undefined,
+			teams: teams ?? undefined,
+		}),
 		[playerIds, entries, lowestWins, tieBreakerId, teams],
 	);
+	const { players: ranking, teams: teamRanking } = useMemo(() => rankSession(rankable), [rankable]);
 	const playersById = useMemo(() => indexById(allPlayers), [allPlayers]);
 	const missingSteps = useMemo(
 		() => (game ? getMissingSteps(game, playerIds, entries, roundCount) : []),
@@ -123,6 +124,7 @@ export default function ResultsScreen() {
 						</Reveal>
 					);
 				})}
+				<RoundStandingsSection session={rankable} roundCount={roundCount} players={allPlayers} />
 				<Button
 					label={chartsVisible ? "Masquer les graphiques" : "Voir les graphiques"}
 					variant="ghost"
