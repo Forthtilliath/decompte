@@ -1,4 +1,4 @@
-import { getRoundPoints, getRoundRecap } from "@/lib/roundRecap";
+import { getRoundPoints, getRoundRecap, getRoundStandings } from "@/lib/roundRecap";
 import { rankSession } from "@/lib/scoring";
 import { makeEntry } from "@/test/factories";
 
@@ -47,6 +47,26 @@ describe("getRoundRecap", () => {
 		expect(getRoundRecap(ranking, entries, 2, nameOf)).toEqual([
 			{ id: "t1", name: "Rouges", rank: 1, total: 13, roundPoints: 9 },
 			{ id: "t2", name: "Bleus", rank: 2, total: 9, roundPoints: 0 },
+		]);
+	});
+});
+
+describe("getRoundStandings", () => {
+	it("reclasse les joueurs à la fin de chaque manche, sur leurs totaux cumulés", () => {
+		const standings = getRoundStandings(
+			{ playerIds: ["alice", "bob", "chloe"], entries, lowestWins: true },
+			2,
+			nameOf,
+		);
+		expect(standings[0]).toEqual([
+			{ id: "bob", name: "BOB", rank: 1, total: 0, roundPoints: 0 },
+			{ id: "alice", name: "ALICE", rank: 2, total: 4, roundPoints: 4 },
+			{ id: "chloe", name: "CHLOE", rank: 3, total: 9, roundPoints: 9 },
+		]);
+		expect(standings[1].map((line) => [line.id, line.rank, line.total])).toEqual([
+			["bob", 1, 2],
+			["chloe", 2, 9],
+			["alice", 3, 11],
 		]);
 	});
 });
