@@ -3,15 +3,16 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text } from "react-native";
 import { SessionExtrasEditor } from "@/components/history/SessionExtrasEditor";
-import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
+import { SessionRanking } from "@/components/history/SessionRanking";
+import { SessionShareImage } from "@/components/history/SessionShareImage";
 import { RoundStandingsSection } from "@/components/scoring/RoundStandingsSection";
-import { TeamRankingCard } from "@/components/scoring/TeamRankingCard";
 import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
+import { useViewShare } from "@/hooks/useViewShare";
 import { formatDate } from "@/lib/date";
 import { getRoundCount } from "@/lib/rounds";
 import { getFirstStepHref, getReplayPlan, getSessionSetup } from "@/lib/sessionFlow";
@@ -38,9 +39,10 @@ export default function SessionDetailScreen() {
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const startNewSession = useSessionStore((s) => s.startNewSession);
 	const [chartsVisible, setChartsVisible] = useState(false);
+	const { ref: imageRef, capturing, share: shareImage } = useViewShare("Partager la partie");
 
 	const playersById = useMemo(() => indexById(players), [players]);
-	const { players: ranking, teams: teamRanking } = useMemo(
+	const fullRanking = useMemo(
 		() => (session ? getFullSessionRanking(session) : { players: [], teams: null }),
 		[session],
 	);
@@ -52,6 +54,8 @@ export default function SessionDetailScreen() {
 			</ScreenContainer>
 		);
 	}
+
+	const rankingProps = { session, game, ranking: fullRanking, players, playersById };
 
 	// Suppression immédiate plutôt qu'une confirmation : la barre « Annuler » la rattrape.
 	const deleteSession = () => {
@@ -111,24 +115,13 @@ export default function SessionDetailScreen() {
 			<Stack.Screen options={{ title: game?.name ?? "Détail de la partie" }} />
 			<Text style={styles.date}>{formatDate(session.createdAt)}</Text>
 			<ScrollView contentContainerStyle={styles.list}>
-				{teamRanking?.map((team) => (
-					<TeamRankingCard key={team.teamId} team={team} playersById={playersById} />
-				))}
-				{ranking.map((ranked) => {
-					const player = players.find((p) => p.id === ranked.playerId);
-					const entry = session.entries[ranked.playerId];
-					if (!entry) return null;
-					return (
-						<RankedPlayerCard
-							key={ranked.playerId}
-							player={player}
-							ranked={ranked}
-							entry={entry}
-							categories={game?.categories ?? []}
-							roundCount={game ? getRoundCount(game) : 1}
-						/>
-					);
-				})}
+				<SessionRanking {...rankingProps} />
+				<Button
+					label="Partager en image"
+					variant="secondary"
+					onPress={shareImage}
+					disabled={capturing}
+				/>
 				{game && (
 					<>
 						<RoundStandingsSection
@@ -144,7 +137,7 @@ export default function SessionDetailScreen() {
 						{chartsVisible && (
 							<GameCharts
 								categories={game.categories}
-								ranking={ranking}
+								ranking={fullRanking.players}
 								entries={session.entries}
 								players={players}
 								roundCount={getRoundCount(game)}
@@ -167,6 +160,7 @@ export default function SessionDetailScreen() {
 				/>
 			)}
 			<Button label="Supprimer cette partie" variant="danger" onPress={deleteSession} />
+			{capturing && <SessionShareImage {...rankingProps} imageRef={imageRef} />}
 		</ScreenContainer>
 	);
 }
