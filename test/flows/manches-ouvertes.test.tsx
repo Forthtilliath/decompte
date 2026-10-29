@@ -69,8 +69,18 @@ describe("une partie jusqu'à un seuil de points", () => {
 		expect(screen.queryByRole("button", { name: "Manche 3" })).toBeNull();
 		await press("Voir le classement");
 
-		expect(await screen.findByText("Manche 1 : 3  ·  Manche 2 : 2")).toBeOnTheScreen();
-		expect(screen.getAllByText(/^(5|16)$/).map((t) => t.props.children)).toEqual([5, 16]);
+		// Le plus bas en tête, et pas de détail « Cartes en main » qui redirait le total.
+		expect(
+			await screen.findByLabelText("1er, Bob, 5 points, manche 1 : 3, manche 2 : 2"),
+		).toBeOnTheScreen();
+		expect(
+			screen.getByLabelText("2e, Alice, 16 points, manche 1 : 5, manche 2 : 11"),
+		).toBeOnTheScreen();
+
+		// Après la manche 1, Bob menait déjà ; Alice ne fait que creuser l'écart.
+		await press("Voir le classement par manche");
+		expect(screen.getByLabelText("1er, Bob, 3 points, +3 cette manche")).toBeOnTheScreen();
+		expect(screen.getByLabelText("2e, Alice, 16 points, +11 cette manche")).toBeOnTheScreen();
 		await press("Terminer et enregistrer la partie");
 
 		const [saved] = useHistoryStore.getState().sessions;
