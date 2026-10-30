@@ -17,11 +17,15 @@ export const RELEASE_DOWNLOADS = releaseDownloadUrlPrefix(RELEASES_REPO);
 /**
  * Dernière version publiée avec un APK, pre-releases comprises (les versions de l'app sont des
  * alphas, que `/releases/latest` ignore). Rien n'est proposé que l'installation refuserait : un APK
- * sans empreinte SHA-256 calculée par GitHub, ou hors des releases de ce dépôt.
+ * sans empreinte SHA-256 calculée par GitHub, ou hors des releases de ce dépôt, est sauté au profit
+ * de la version suivante.
  */
-export async function fetchLatestRelease(): Promise<LatestRelease | null> {
-	const latest = await fetchGithubLatestRelease({ ...RELEASES_REPO, includePrereleases: true });
-	return latest?.apkSha256 && latest.apkUrl.startsWith(RELEASE_DOWNLOADS) ? latest : null;
+export function fetchLatestRelease(): Promise<LatestRelease | null> {
+	return fetchGithubLatestRelease({
+		...RELEASES_REPO,
+		includePrereleases: true,
+		requireVerifiedApk: true,
+	});
 }
 
 /**

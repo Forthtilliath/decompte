@@ -58,8 +58,11 @@ describe("fetchLatestRelease", () => {
 			"hors des releases du dépôt",
 			apkAsset("v2.0.0", { browser_download_url: "https://github.com/autre/depot/a.apk" }),
 		],
-	])("ne propose pas un APK %s", async (_, asset) => {
+	])("passe à la version suivante plutôt que proposer un APK %s", async (_, asset) => {
 		mockGithub([release({ tag_name: "v2.0.0", assets: [asset] }), release({ tag_name: "v1.0.0" })]);
+		await expect(fetchLatestRelease()).resolves.toMatchObject({ version: "1.0.0" });
+
+		mockGithub([release({ tag_name: "v2.0.0", assets: [asset] })]);
 		await expect(fetchLatestRelease()).resolves.toBeNull();
 	});
 
