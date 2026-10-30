@@ -1,8 +1,11 @@
 import { saveImageThumbnail } from "@forthtilliath/react-native-kit/utils/files/imageThumbnail";
+import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react-native";
 import * as ImagePicker from "expo-image-picker";
 import { AvatarPhotoPicker } from "@/components/players/AvatarPhotoPicker";
 import { mockAlert } from "@/test/alerts";
+
+jest.mock("@forthtilliath/react-native-kit/utils/helpers/haptics");
 
 const { spy: alert, choose } = mockAlert();
 
@@ -85,6 +88,13 @@ describe("AvatarPhotoPicker", () => {
 			expect(alert).toHaveBeenCalledWith("Photo non enregistrée", expect.any(String)),
 		);
 		expect(onChange).not.toHaveBeenCalled();
+	});
+
+	it("vibre à l'ouverture du choix", async () => {
+		jest.mocked(tapFeedback).mockClear();
+		await renderPicker();
+		await fireEvent.press(screen.getByRole("button", { name: "Ajouter une photo du joueur" }));
+		expect(tapFeedback).toHaveBeenCalledTimes(1);
 	});
 
 	it("retire la photo", async () => {
