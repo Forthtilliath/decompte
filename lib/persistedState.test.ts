@@ -3,16 +3,17 @@ import { z } from "zod";
 import { createStoreMigrate, runMigrationSteps, validatedMerge } from "@/lib/persistedState";
 import { rescueStorageKey } from "@/lib/rescueCopies";
 import { useDataIssuesStore } from "@/stores/dataIssuesStore";
-import { fileSystemControl, memoryFiles, resetMemoryFiles } from "@/test/fileSystem";
+import { memoryFileSystem } from "@/test/fileSystem";
 
-jest.mock("expo-file-system", () => require("@/test/fileSystem").memoryFileSystem);
+jest.mock("expo-file-system", () => require("@/test/fileSystem").createMemoryFileSystem());
 jest.mock("@forthtilliath/react-native-kit/utils/files/appFiles", () =>
 	jest.requireActual("@forthtilliath/react-native-kit/utils/files/appFiles"),
 );
 
 const RESCUE_DIRECTORY = "file:///documents/secours";
+const memoryFiles = () => memoryFileSystem().store;
 const readCopy = (name: string) =>
-	JSON.parse(memoryFiles.get(`${RESCUE_DIRECTORY}/${name}`) ?? "null");
+	JSON.parse(memoryFiles().get(`${RESCUE_DIRECTORY}/${name}`) ?? "null");
 const issues = () => useDataIssuesStore.getState().issues;
 
 /** Les écritures de secours dans AsyncStorage ne sont pas attendues : on les laisse finir. */
@@ -20,7 +21,7 @@ const flushStorage = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 beforeEach(async () => {
 	await AsyncStorage.clear();
-	resetMemoryFiles();
+	memoryFileSystem().reset();
 	useDataIssuesStore.getState().clear();
 });
 
@@ -30,13 +31,13 @@ describe("validatedMerge", () => {
 
 	it("reprend un état valide tel qu'enregistré, sans toucher aux actions", () => {
 		expect(merge({ count: 3 }, current)).toEqual({ ...current, count: 3 });
-		expect(memoryFiles.size).toBe(0);
+		expect(memoryFiles().size).toBe(0);
 	});
 
 	it("garde l'état initial quand rien n'est enregistré", async () => {
 		expect(merge(undefined, current)).toBe(current);
 		await flushStorage();
-		expect(memoryFiles.size).toBe(0);
+		expect(memoryFiles().size).toBe(0);
 		expect(await AsyncStorage.getAllKeys()).toEqual([]);
 	});
 
@@ -65,7 +66,7 @@ describe("validatedMerge", () => {
 	});
 
 	it("garde la copie dans AsyncStorage si le fichier ne peut pas être écrit", async () => {
-		fileSystemControl.failWrites = true;
+		memoryFileSystem().failWrites = true;
 		merge({ count: "3" }, current);
 		await flushStorage();
 		const kept = JSON.parse((await AsyncStorage.getItem(rescueStorageKey("test-store"))) ?? "");
