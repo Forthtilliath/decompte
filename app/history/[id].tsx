@@ -1,7 +1,8 @@
+import { useViewShare } from "@forthtilliath/react-native-kit/hooks/useViewShare";
 import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text } from "react-native";
+import { type ComponentRef, type RefObject, useMemo, useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text, type View } from "react-native";
 import { SessionExtrasEditor } from "@/components/history/SessionExtrasEditor";
 import { SessionRanking } from "@/components/history/SessionRanking";
 import { SessionShareImage } from "@/components/history/SessionShareImage";
@@ -12,7 +13,6 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { useViewShare } from "@/hooks/useViewShare";
 import { formatDate } from "@/lib/date";
 import { getRoundCount } from "@/lib/rounds";
 import { getFirstStepHref, getReplayPlan, getSessionSetup } from "@/lib/sessionFlow";
@@ -39,7 +39,10 @@ export default function SessionDetailScreen() {
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const startNewSession = useSessionStore((s) => s.startNewSession);
 	const [chartsVisible, setChartsVisible] = useState(false);
-	const { ref: imageRef, capturing, share: shareImage } = useViewShare("Partager la partie");
+	const { ref, capturing, share: shareImage } = useViewShare({ dialogTitle: "Partager la partie" });
+	// react-native-kit 0.21 type cette ref avec `View`, qui désigne le composant (et non l'instance)
+	// depuis RN 0.88 : cast à retirer quand la lib l'aura corrigé (noté dans son A-FAIRE.md).
+	const imageRef = ref as unknown as RefObject<ComponentRef<typeof View> | null>;
 
 	const playersById = useMemo(() => indexById(players), [players]);
 	const fullRanking = useMemo(
