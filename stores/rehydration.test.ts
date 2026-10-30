@@ -9,19 +9,20 @@ import { PLAYERS_MIGRATIONS, PLAYERS_STORE_VERSION, usePlayersStore } from "@/st
 import { SESSION_MIGRATIONS, SESSION_STORE_VERSION, useSessionStore } from "@/stores/sessionStore";
 import { THEME_STORE_VERSION, useThemeStore } from "@/stores/themeStore";
 import { makeCategory, makeEntry, makeGame, makePlayer } from "@/test/factories";
-import { memoryFiles, resetMemoryFiles } from "@/test/fileSystem";
+import { memoryFileSystem } from "@/test/fileSystem";
 
-jest.mock("expo-file-system", () => require("@/test/fileSystem").memoryFileSystem);
+jest.mock("expo-file-system", () => require("@/test/fileSystem").createMemoryFileSystem());
 jest.mock("@forthtilliath/react-native-kit/utils/files/appFiles", () =>
 	jest.requireActual("@forthtilliath/react-native-kit/utils/files/appFiles"),
 );
 
+const memoryFiles = () => memoryFileSystem().store;
 const readCopy = (name: string) =>
-	JSON.parse(memoryFiles.get(`file:///documents/secours/${name}`) ?? "null");
+	JSON.parse(memoryFiles().get(`file:///documents/secours/${name}`) ?? "null");
 
 beforeEach(async () => {
 	await AsyncStorage.clear();
-	resetMemoryFiles();
+	memoryFileSystem().reset();
 	useDataIssuesStore.getState().clear();
 	useGamesStore.setState({ games: [] });
 	usePlayersStore.setState({ players: [] });
@@ -50,7 +51,7 @@ describe("relecture des stores", () => {
 		await useGamesStore.persist.rehydrate();
 
 		expect(useGamesStore.getState().games).toEqual(games);
-		expect(memoryFiles.size).toBe(0);
+		expect(memoryFiles().size).toBe(0);
 	});
 
 	it("convertit des jeux v1 (plancher `min`) et garde une copie d'origine", async () => {
