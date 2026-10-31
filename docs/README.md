@@ -7,6 +7,7 @@ Tout ce qu'il faut pour travailler sur le code de Décompte. La présentation de
 - [Stack](#stack)
 - [Démarrer](#démarrer)
 - [Structure du projet](#structure-du-projet)
+- [Briques partagées et adaptateurs](#briques-partagées-et-adaptateurs)
 - [Modèle de données](#modèle-de-données)
 - [Tests et CI](#tests-et-ci)
 - [Sauvegarde Google Drive : configuration](#sauvegarde-google-drive--configuration)
@@ -58,6 +59,28 @@ Le schéma de liens profonds est `decompte://` : `adb shell am start -a android.
 | `scripts/` | `bump-version.ts` (montée de version) et `demo-backup.ts` (sauvegarde de démonstration pour les captures), voir plus bas |
 | `test/` | Outils de test (fabriques de données, rendu de l'app entière) et parcours de bout en bout (`test/flows/`) |
 | `docs/` | Ce fichier et les captures du README principal |
+
+## Briques partagées et adaptateurs
+
+Tout ce qui est générique vient des paquets partagés, en **import profond** (`@forthtilliath/<paquet>/<chemin>`, jamais la racine du paquet). Les composants d'interface du kit ne sont jamais importés directement par les écrans : chacun passe par un **adaptateur mince** de `components/ui/`, qui lui applique la palette et la typographie du thème courant. Changer de thème ou de police ne touche donc que ces fichiers.
+
+| Adaptateur (`components/ui/`) | Brique du kit | Ce que l'adaptateur ajoute |
+|---|---|---|
+| `Button.tsx` | `components/form/Button` | variantes et couleurs du thème (`kitButtonTheme`), relief des boutons du thème Ludique, retour haptique |
+| `TextField.tsx`, `IntegerField.tsx` | `components/form/TextField`, `components/form/IntegerField` | couleurs et police du thème |
+| `SectionTitle.tsx`, `EmptyState.tsx` | `components/layout/SectionTitle`, `components/feedback/EmptyState` | police d'affiche du thème Ludique, couleurs |
+| `UndoHost.tsx` | `components/feedback/ToastHost` | position au-dessus de la barre d'onglets (`bottomOffset` = marge système + 64), une seule ligne |
+| `NumberStepper.tsx` | *(local)* `usePressRepeat` du kit + `parseIntegerInput` / `sanitizeIntegerInput` / `clamp` de ts-kit | reste propre à l'app : couleur de la catégorie, contraste calculé, bornes du jeu |
+
+Autres briques utilisées directement :
+
+- **Annulation** : [`lib/undo.ts`](../lib/undo.ts) (`offerUndo`) affiche un toast « Annuler » par `showToast` du kit (`components/feedback/toast`) ; `UndoHost` est monté une fois à la racine. Utilisé pour la suppression d'une partie et l'archivage d'un jeu, annulables quelques secondes.
+- **Hooks** : `usePersistHydrated` (attendre la relecture des stores avant d'afficher la partie en cours ou les alertes de données), `useReducedMotion` (barre de progression de la saisie), `useViewShare` (partage d'une partie en image), `usePressRepeat` (appui long sur − / +).
+- **Mise en page et sélection** : `Reveal` (apparition des résultats), `ReorderList` (ordre des joueurs), `PhotoPicker` (avatars), `BackgroundPicker` (fonds des thèmes), `AboutSettingsScreen`, `UpdateSettingsScreen`.
+- **Fichiers** : `appFiles`, `imageThumbnail` (miniatures des avatars et des photos de table), `shareTextFile` (export CSV, copies de secours).
+- **ts-kit** : `parseUntrustedJson` (lecture bornée d'un jeu partagé, avant zod, dans [`lib/gameExport.ts`](../lib/gameExport.ts)), `escapeCsvField` (neutralisation des formules), `normalizeForSearch` (recherche sans accents), `contrastRatio`, `indexById`, `moveItem`, `sum`, `round`, `pluralize`, `compareVersions`, `formatFileTimestamp`.
+
+Une brique qui manque au kit (option, variante) s'ajoute dans [`forthtilliath-packages`](https://github.com/Forthtilliath/forthtilliath-packages) plutôt qu'en copie locale ; l'app passe ensuite à la nouvelle version.
 
 ## Modèle de données
 
