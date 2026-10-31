@@ -1,52 +1,50 @@
-import { useMemo } from "react";
-import { StyleSheet, Text, TextInput, type TextInputProps, View } from "react-native";
+import {
+	TextField as KitTextField,
+	type TextFieldColors,
+	type TextFieldProps,
+	type TextFieldStyles,
+} from "@forthtilliath/react-native-kit/components/form/TextField";
+import type { StyleProp, TextStyle } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
-type Props = TextInputProps & {
-	label?: string;
+type Props = Omit<TextFieldProps, "colors" | "styles"> & {
+	/** Style du champ de saisie lui-même. */
+	style?: StyleProp<TextStyle>;
 };
 
-export function TextField({ label, style, ...rest }: Props) {
-	const colors = useColors();
-	const styles = useStyles(colors);
-
-	return (
-		<View style={styles.wrapper}>
-			{label ? <Text style={styles.label}>{label}</Text> : null}
-			<TextInput
-				placeholderTextColor={colors.textMuted}
-				style={[styles.input, style]}
-				accessibilityLabel={label ?? rest.placeholder}
-				{...rest}
-			/>
-		</View>
-	);
+export function textFieldColors(colors: ThemeColors): TextFieldColors {
+	return {
+		text: colors.text,
+		label: colors.textMuted,
+		placeholder: colors.textMuted,
+		background: colors.surface,
+		border: colors.border,
+		borderFocused: colors.primary,
+		error: colors.danger,
+	};
 }
 
-function useStyles(colors: ThemeColors) {
-	return useMemo(
-		() =>
-			StyleSheet.create({
-				wrapper: {
-					gap: SPACING.xs,
-				},
-				label: {
-					color: colors.textMuted,
-					fontSize: 14,
-				},
-				input: {
-					backgroundColor: colors.surface,
-					borderWidth: 1,
-					borderColor: colors.border,
-					borderRadius: RADIUS.md,
-					paddingHorizontal: SPACING.md,
-					paddingVertical: SPACING.sm,
-					color: colors.text,
-					fontSize: 16,
-				},
-			}),
-		[colors],
+export const TEXT_FIELD_STYLES: TextFieldStyles = {
+	label: { fontSize: 14, fontWeight: "400" },
+	input: {
+		borderRadius: RADIUS.md,
+		paddingHorizontal: SPACING.md,
+		paddingVertical: SPACING.sm,
+	},
+};
+
+/** `TextField` de react-native-kit aux couleurs du thème. Sans libellé, le placeholder le nomme. */
+export function TextField({ style, accessibilityLabel, ...rest }: Props) {
+	const colors = useColors();
+
+	return (
+		<KitTextField
+			{...rest}
+			accessibilityLabel={accessibilityLabel ?? rest.label ?? rest.placeholder}
+			colors={textFieldColors(colors)}
+			styles={{ ...TEXT_FIELD_STYLES, input: [TEXT_FIELD_STYLES.input, style] }}
+		/>
 	);
 }

@@ -1,44 +1,31 @@
-import { useState } from "react";
-import type { TextInputProps } from "react-native";
-import { TextField } from "@/components/ui/TextField";
-import { parseIntegerInput, sanitizeIntegerInput } from "@/lib/numbers";
+import {
+	type IntegerFieldProps,
+	IntegerField as KitIntegerField,
+} from "@forthtilliath/react-native-kit/components/form/IntegerField";
+import type { StyleProp, TextStyle } from "react-native";
+import { TEXT_FIELD_STYLES, textFieldColors } from "@/components/ui/TextField";
+import { useColors } from "@/hooks/useColors";
 
-type Props = Omit<TextInputProps, "value" | "onChange" | "onChangeText" | "keyboardType"> & {
-	label?: string;
-	value: number;
-	onChange: (value: number) => void;
+type Props = Omit<IntegerFieldProps, "colors" | "styles" | "min" | "max"> & {
 	/** @defaultValue true */
 	allowNegative?: boolean;
+	style?: StyleProp<TextStyle>;
 };
 
 /**
- * Champ de configuration pour un nombre entier. Une saisie qui n'en est pas encore un (champ
- * vidé, "-" seul avant le chiffre d'un négatif) reste affichée telle quelle au lieu d'être
- * remplacée par 0 ; en quittant le champ, il réaffiche la dernière valeur valide.
+ * `IntegerField` de react-native-kit aux couleurs du thème : un négatif se tape normalement, un champ
+ * vidé reste vide pendant la saisie, et réaffiche la dernière valeur valide en le quittant.
  */
-export function IntegerField({ value, onChange, allowNegative = true, onBlur, ...rest }: Props) {
-	const [draft, setDraft] = useState<string | null>(null);
+export function IntegerField({ allowNegative = true, style, accessibilityLabel, ...rest }: Props) {
+	const colors = useColors();
 
 	return (
-		<TextField
+		<KitIntegerField
 			{...rest}
-			// "number-pad" n'a pas de touche "-" sur Android.
-			keyboardType={allowNegative ? "numeric" : "number-pad"}
-			value={draft ?? String(value)}
-			onChangeText={(raw) => {
-				const cleaned = sanitizeIntegerInput(raw, allowNegative);
-				const parsed = parseIntegerInput(cleaned);
-				if (parsed === null) {
-					setDraft(cleaned);
-				} else {
-					setDraft(null);
-					onChange(parsed);
-				}
-			}}
-			onBlur={(event) => {
-				setDraft(null);
-				onBlur?.(event);
-			}}
+			min={allowNegative ? -Infinity : 0}
+			accessibilityLabel={accessibilityLabel ?? rest.label ?? rest.placeholder}
+			colors={textFieldColors(colors)}
+			styles={{ ...TEXT_FIELD_STYLES, input: [TEXT_FIELD_STYLES.input, style] }}
 		/>
 	);
 }
