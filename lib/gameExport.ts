@@ -1,3 +1,4 @@
+import { parseUntrustedJson } from "@forthtilliath/ts-kit/security/parseUntrustedJson";
 import { AVATAR_PALETTE } from "@/lib/avatarColor";
 import {
 	type ExportedBrick,
@@ -147,34 +148,34 @@ export function parseGameTemplate(game: Record<string, unknown>): ImportResult {
  * moitié. Le message d'erreur est affichable tel quel.
  */
 export function parseGameExport(text: string): ImportResult {
-	const trimmed = text.trim();
-	if (trimmed.length === 0) return { ok: false, error: "Colle d'abord le texte du jeu partagé." };
-	if (trimmed.length > MAX_EXPORT_LENGTH) {
-		return { ok: false, error: "Ce texte est trop long pour être un jeu Décompte." };
-	}
-
-	let raw: unknown;
-	try {
-		raw = JSON.parse(trimmed);
-	} catch {
-		return { ok: false, error: "Ce texte n'est pas un jeu Décompte (format illisible)." };
-	}
-
-	const parsed = exportSchema.safeParse(raw);
-	if (!parsed.success) {
-		const issue = parsed.error.issues[0];
-		const where = describePath(issue.path);
+	// Vide, trop long (refusé avant JSON.parse), illisible, clés `__proto__` retirées, puis schéma.
+	const parsed = parseUntrustedJson(text, exportSchema, {
+		maxLength: MAX_EXPORT_LENGTH,
+		describePath,
+		messages: {
+			empty: "Colle d'abord le texte du jeu partagé.",
+			tooLong: "Ce texte est trop long pour être un jeu Décompte.",
+			malformed: "Ce texte n'est pas un jeu Décompte (format illisible).",
+			invalid: (where) => `Jeu invalide : ${where} incorrect.`,
+		},
+	});
+	if (!parsed.ok) {
+		if (parsed.reason !== "invalid") return { ok: false, error: parsed.error };
+		const where = describePath(parsed.path ?? []);
 		if (where === "format" || where === "") {
 			return { ok: false, error: "Ce texte n'est pas un jeu Décompte." };
 		}
-		const version = (raw as { version?: unknown }).version;
+		// Valeur non validée : seul son numéro de version est lu, pour conseiller une mise à jour.
+		const raw = parsed.raw;
+		const version =
+			typeof raw === "object" && raw !== null && "version" in raw ? raw.version : null;
 		if (where === "version" && typeof version === "number" && version > GAME_EXPORT_VERSION) {
 			return {
 				ok: false,
 				error: "Ce jeu vient d'une version de Décompte plus récente. Mets l'app à jour.",
 			};
 		}
-		return { ok: false, error: `Jeu invalide : ${where} incorrect.` };
+		return { ok: false, error: parsed.error };
 	}
 
 	const { game } = parsed.data;
