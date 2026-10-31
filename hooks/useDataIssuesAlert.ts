@@ -1,6 +1,6 @@
+import { usePersistHydrated } from "@forthtilliath/react-native-kit/hooks/usePersistHydrated";
 import { useEffect } from "react";
 import { Alert, type AlertButton } from "react-native";
-import { useStoresHydrated } from "@/hooks/useStoresHydrated";
 import { describeDataIssues, rescueCopyUris } from "@/lib/dataIssues";
 import { exportRescueCopies } from "@/lib/rescueCopies";
 import { useDataIssuesStore } from "@/stores/dataIssuesStore";
@@ -30,7 +30,7 @@ function exportCopies(uris: string[]) {
  * À monter une seule fois, dans le layout racine.
  */
 export function useDataIssuesAlert() {
-	const hydrated = useStoresHydrated(DATA_STORES);
+	const hydrated = usePersistHydrated(DATA_STORES);
 	const issues = useDataIssuesStore((s) => s.issues);
 
 	useEffect(() => {
