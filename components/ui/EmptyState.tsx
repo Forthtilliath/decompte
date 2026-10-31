@@ -1,9 +1,8 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { Button } from "@/components/ui/Button";
-import type { ThemeColors } from "@/constants/theme";
-import { RADIUS, SPACING } from "@/constants/theme";
+import { EmptyState as KitEmptyState } from "@forthtilliath/react-native-kit/components/feedback/EmptyState";
+import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
+import { kitButtonTheme } from "@/components/ui/Button";
+import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
 
 type Props = {
@@ -16,45 +15,27 @@ type Props = {
 /** Liste vide : une icône, l'explication et, si possible, l'action qui permet d'en sortir. */
 export function EmptyState({ icon, message, action }: Props) {
 	const colors = useColors();
-	const styles = useStyles(colors);
 
 	return (
-		<View style={styles.container}>
-			<View style={styles.iconWrap} accessibilityElementsHidden importantForAccessibility="no">
-				<Ionicons name={icon} size={36} color={colors.textMuted} />
-			</View>
-			<Text style={styles.message}>{message}</Text>
-			{action && <Button label={action.label} onPress={action.onPress} style={styles.action} />}
-		</View>
-	);
-}
-
-function useStyles(colors: ThemeColors) {
-	return useMemo(
-		() =>
-			StyleSheet.create({
-				container: {
-					alignItems: "center",
-					gap: SPACING.md,
-					paddingVertical: SPACING.xl,
-					paddingHorizontal: SPACING.md,
-				},
-				iconWrap: {
-					width: 72,
-					height: 72,
-					borderRadius: RADIUS.full,
-					backgroundColor: colors.surfaceAlt,
-					alignItems: "center",
-					justifyContent: "center",
-				},
-				message: {
-					color: colors.textMuted,
-					textAlign: "center",
-				},
-				action: {
-					alignSelf: "stretch",
-				},
-			}),
-		[colors],
+		<KitEmptyState
+			icon={<Ionicons name={icon} size={36} color={colors.textMuted} />}
+			message={message}
+			action={
+				action && {
+					label: action.label,
+					onPress: () => {
+						tapFeedback();
+						action.onPress();
+					},
+					fullWidth: true,
+					...kitButtonTheme("primary", colors),
+				}
+			}
+			styles={{
+				container: { gap: SPACING.md, paddingVertical: SPACING.xl, paddingHorizontal: SPACING.md },
+				iconWrap: { backgroundColor: colors.surfaceAlt },
+				message: { color: colors.textMuted, fontSize: 14, lineHeight: undefined },
+			}}
+		/>
 	);
 }
