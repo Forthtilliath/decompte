@@ -2,13 +2,14 @@ import { usePressRepeat } from "@forthtilliath/react-native-kit/hooks/usePressRe
 import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { readableTextOn } from "@forthtilliath/ts-kit/color/contrastRatio";
 import { clamp } from "@forthtilliath/ts-kit/number/clamp";
+import { parseIntegerInput } from "@forthtilliath/ts-kit/number/parseIntegerInput";
+import { sanitizeIntegerInput } from "@forthtilliath/ts-kit/number/sanitizeIntegerInput";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { TextInputInstance } from "react-native";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { RADIUS, TIGHT_FONT_SCALE } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { parseIntegerInput, sanitizeIntegerInput } from "@/lib/numbers";
 
 type Props = {
 	value: number;
@@ -35,8 +36,8 @@ export type KeyboardChain = {
 	onSubmit: () => void;
 };
 
-// Garde son propre stepper plutôt que le QuantityStepper de la lib, qui n'a ni `step`, ni retour
-// haptique, ni bornes optionnelles (noté dans A-FAIRE.md de forthtilliath-packages).
+// Garde son propre stepper plutôt que le QuantityStepper de la lib : un champ vidé y revient à 0 en
+// le quittant, ici il réaffiche la dernière valeur (noté dans A-FAIRE.md).
 export function NumberStepper({
 	value,
 	onChange,
@@ -123,7 +124,7 @@ export function NumberStepper({
 				keyboardType={allowsNegative ? "numeric" : "number-pad"}
 				value={text}
 				onChangeText={(raw) => {
-					const cleaned = sanitizeIntegerInput(raw, allowsNegative);
+					const cleaned = sanitizeIntegerInput(raw, { allowNegative: allowsNegative });
 					setText(cleaned);
 					commit(cleaned);
 				}}
