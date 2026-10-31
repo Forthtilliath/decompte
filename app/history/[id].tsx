@@ -1,8 +1,8 @@
 import { useViewShare } from "@forthtilliath/react-native-kit/hooks/useViewShare";
 import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { type ComponentRef, type RefObject, useMemo, useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, type View } from "react-native";
+import { useMemo, useState } from "react";
+import { Alert, ScrollView, StyleSheet, Text } from "react-native";
 import { SessionExtrasEditor } from "@/components/history/SessionExtrasEditor";
 import { SessionRanking } from "@/components/history/SessionRanking";
 import { SessionShareImage } from "@/components/history/SessionShareImage";
@@ -18,11 +18,11 @@ import { getRoundCount } from "@/lib/rounds";
 import { getFirstStepHref, getReplayPlan, getSessionSetup } from "@/lib/sessionFlow";
 import { getFullSessionRanking } from "@/lib/stats";
 import { replayTeams } from "@/lib/teams";
+import { offerUndo } from "@/lib/undo";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
-import { useUndoStore } from "@/stores/undoStore";
 
 export default function SessionDetailScreen() {
 	const router = useRouter();
@@ -33,16 +33,16 @@ export default function SessionDetailScreen() {
 	const removeSession = useHistoryStore((s) => s.removeSession);
 	const restoreSession = useHistoryStore((s) => s.restoreSession);
 	const updateSessionExtras = useHistoryStore((s) => s.updateSessionExtras);
-	const offerUndo = useUndoStore((s) => s.offerUndo);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === session?.gameDefId));
 	const players = usePlayersStore((s) => s.players);
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const startNewSession = useSessionStore((s) => s.startNewSession);
 	const [chartsVisible, setChartsVisible] = useState(false);
-	const { ref, capturing, share: shareImage } = useViewShare({ dialogTitle: "Partager la partie" });
-	// react-native-kit 0.21 type cette ref avec `View`, qui désigne le composant (et non l'instance)
-	// depuis RN 0.88 : cast à retirer quand la lib l'aura corrigé (noté dans son A-FAIRE.md).
-	const imageRef = ref as unknown as RefObject<ComponentRef<typeof View> | null>;
+	const {
+		ref: imageRef,
+		capturing,
+		share: shareImage,
+	} = useViewShare({ dialogTitle: "Partager la partie" });
 
 	const playersById = useMemo(() => indexById(players), [players]);
 	const fullRanking = useMemo(
