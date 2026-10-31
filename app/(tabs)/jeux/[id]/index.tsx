@@ -18,11 +18,11 @@ import { parseGameExport, serializeGame } from "@/lib/gameExport";
 import { describeRounds } from "@/lib/rounds";
 import { getFirstStepHref, getSessionSetup } from "@/lib/sessionFlow";
 import { buildTeams, MIN_TEAMS, playersByTeam, type TeamAssignment } from "@/lib/teams";
+import { offerUndo } from "@/lib/undo";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
-import { useUndoStore } from "@/stores/undoStore";
 
 /** Parties récentes affichées sur la fiche ; les autres sont dans l'onglet Historique. */
 const RECENT_SESSIONS = 5;
@@ -34,7 +34,6 @@ export default function GameDetailScreen() {
 	const router = useRouter();
 	const game = useGamesStore((s) => s.games.find((g) => g.id === id));
 	const toggleArchived = useGamesStore((s) => s.toggleArchived);
-	const offerUndo = useUndoStore((s) => s.offerUndo);
 	const deleteGame = useDeleteGame();
 	const players = usePlayersStore((s) => s.players);
 	const playersById = useMemo(() => indexById(players), [players]);

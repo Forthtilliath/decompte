@@ -70,3 +70,10 @@ jest.mock("@forthtilliath/react-native-kit/utils/files/appFiles", () => ({
 	deleteFileQuietly: jest.fn(),
 	pruneAppDirectory: jest.fn(() => 0),
 }));
+
+// Délai d'accessibilité Android (« Délai pour agir ») non réglé : la durée demandée, comme sur un
+// téléphone. Le mock de React Native répond `false`, que react-native-kit < 0.22.1 prenait pour 0
+// (la barre « Annuler » disparaissait aussitôt).
+jest
+	.spyOn(require("react-native").AccessibilityInfo, "getRecommendedTimeoutMillis")
+	.mockImplementation((...args: unknown[]) => Promise.resolve(args[0]));
