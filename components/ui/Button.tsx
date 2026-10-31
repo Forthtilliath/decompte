@@ -1,6 +1,11 @@
+import {
+	type ButtonColors,
+	type ButtonProps,
+	type ButtonVariant,
+	Button as KitButton,
+} from "@forthtilliath/react-native-kit/components/form/Button";
 import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
-import { useMemo } from "react";
-import { Pressable, type StyleProp, StyleSheet, Text, type ViewStyle } from "react-native";
+import type { StyleProp, ViewStyle } from "react-native";
 import type { ThemeColors } from "@/constants/theme";
 import { displayFont, RADIUS, SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
@@ -18,6 +23,53 @@ type Props = {
 	accessibilityLabel?: string;
 };
 
+/** Variante du kit qui porte chacune de celles de l'app (`success` = principal en vert). */
+const KIT_VARIANT: Record<Variant, ButtonVariant> = {
+	primary: "primary",
+	success: "primary",
+	secondary: "secondary",
+	ghost: "secondary",
+	danger: "danger",
+};
+
+/** Couleurs du kit pour une variante : les fonds neutres gardent un texte lisible en thème clair. */
+function kitColors(variant: Variant, colors: ThemeColors): ButtonColors {
+	const ghost = variant === "ghost";
+	const neutral = ghost ? "transparent" : colors.surfaceAlt;
+	return {
+		primary: variant === "success" ? colors.success : colors.primary,
+		onPrimary: colors.primaryText,
+		secondary: neutral,
+		onSecondary: colors.text,
+		// Seul le bouton discret a un contour : ailleurs, il se confond avec le fond.
+		border: ghost ? colors.border : neutral,
+		danger: colors.danger,
+		onDanger: colors.primaryText,
+	};
+}
+
+/** Props du `Button` du kit qui l'habillent aux couleurs, au relief et à la police du thème. */
+export function kitButtonTheme(
+	variant: Variant,
+	colors: ThemeColors,
+	style?: StyleProp<ViewStyle>,
+): Pick<ButtonProps, "variant" | "colors" | "styles"> {
+	return {
+		variant: KIT_VARIANT[variant],
+		colors: kitColors(variant, colors),
+		styles: {
+			button: [
+				{ borderRadius: RADIUS.md, paddingVertical: SPACING.md, paddingHorizontal: SPACING.lg },
+				colors.decor.raised,
+				style,
+			],
+			pressed: colors.decor.raisedPressed,
+			label: [{ fontWeight: "600" }, displayFont(colors)],
+		},
+	};
+}
+
+/** `Button` de react-native-kit aux couleurs, au relief et à la police du thème, avec vibration. */
 export function Button({
 	label,
 	onPress,
@@ -27,70 +79,17 @@ export function Button({
 	accessibilityLabel,
 }: Props) {
 	const colors = useColors();
-	const styles = useStyles(colors);
 
 	return (
-		<Pressable
-			disabled={disabled}
+		<KitButton
+			label={label}
 			onPress={() => {
 				tapFeedback();
 				onPress?.();
 			}}
-			style={({ pressed }) => [
-				styles.base,
-				styles[variant],
-				disabled && styles.disabled,
-				pressed && !disabled && styles.pressed,
-				style,
-			]}
-			accessibilityRole="button"
-			accessibilityLabel={accessibilityLabel ?? label}
-			accessibilityState={{ disabled: !!disabled }}
-		>
-			<Text
-				style={[
-					styles.label,
-					(variant === "ghost" || variant === "secondary") && styles.neutralLabel,
-				]}
-			>
-				{label}
-			</Text>
-		</Pressable>
-	);
-}
-
-function useStyles(colors: ThemeColors) {
-	return useMemo(
-		() =>
-			StyleSheet.create({
-				base: {
-					paddingVertical: SPACING.md,
-					paddingHorizontal: SPACING.lg,
-					borderRadius: RADIUS.md,
-					alignItems: "center",
-					justifyContent: "center",
-					...colors.decor.raised,
-				},
-				label: {
-					color: colors.primaryText,
-					fontSize: 16,
-					fontWeight: "600",
-					...displayFont(colors),
-				},
-				// Fonds neutres (transparent, surfaceAlt) : le blanc y serait illisible en thème clair.
-				neutralLabel: {
-					color: colors.text,
-				},
-				pressed: colors.decor.raisedPressed ?? { opacity: 0.75 },
-				disabled: {
-					opacity: 0.4,
-				},
-				primary: { backgroundColor: colors.primary },
-				secondary: { backgroundColor: colors.surfaceAlt },
-				success: { backgroundColor: colors.success },
-				danger: { backgroundColor: colors.danger },
-				ghost: { backgroundColor: "transparent", borderWidth: 1, borderColor: colors.border },
-			}),
-		[colors],
+			disabled={disabled}
+			accessibilityLabel={accessibilityLabel}
+			{...kitButtonTheme(variant, colors, style)}
+		/>
 	);
 }
