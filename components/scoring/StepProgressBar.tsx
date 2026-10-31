@@ -1,7 +1,7 @@
+import { useReducedMotion } from "@forthtilliath/react-native-kit/hooks/useReducedMotion";
 import { useEffect, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
 import { useColors } from "@/hooks/useColors";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 type Props = {
 	/** Avancement de 0 à 1 (étape courante / nombre d'étapes). */
