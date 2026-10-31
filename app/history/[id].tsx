@@ -1,3 +1,4 @@
+import { useViewShare } from "@forthtilliath/react-native-kit/hooks/useViewShare";
 import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
@@ -12,17 +13,16 @@ import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { SPACING } from "@/constants/theme";
 import { useColors } from "@/hooks/useColors";
-import { useViewShare } from "@/hooks/useViewShare";
 import { formatDate } from "@/lib/date";
 import { getRoundCount } from "@/lib/rounds";
 import { getFirstStepHref, getReplayPlan, getSessionSetup } from "@/lib/sessionFlow";
 import { getFullSessionRanking } from "@/lib/stats";
 import { replayTeams } from "@/lib/teams";
+import { offerUndo } from "@/lib/undo";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
-import { useUndoStore } from "@/stores/undoStore";
 
 export default function SessionDetailScreen() {
 	const router = useRouter();
@@ -33,13 +33,16 @@ export default function SessionDetailScreen() {
 	const removeSession = useHistoryStore((s) => s.removeSession);
 	const restoreSession = useHistoryStore((s) => s.restoreSession);
 	const updateSessionExtras = useHistoryStore((s) => s.updateSessionExtras);
-	const offerUndo = useUndoStore((s) => s.offerUndo);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === session?.gameDefId));
 	const players = usePlayersStore((s) => s.players);
 	const hasOngoingSession = useSessionStore((s) => s.hasOngoingSession());
 	const startNewSession = useSessionStore((s) => s.startNewSession);
 	const [chartsVisible, setChartsVisible] = useState(false);
-	const { ref: imageRef, capturing, share: shareImage } = useViewShare("Partager la partie");
+	const {
+		ref: imageRef,
+		capturing,
+		share: shareImage,
+	} = useViewShare({ dialogTitle: "Partager la partie" });
 
 	const playersById = useMemo(() => indexById(players), [players]);
 	const fullRanking = useMemo(

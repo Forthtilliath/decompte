@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Reveal } from "@forthtilliath/react-native-kit/components/layout/Reveal";
 import { successFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { indexById } from "@forthtilliath/ts-kit/array/indexById";
 import { useKeepAwake } from "expo-keep-awake";
@@ -11,7 +12,6 @@ import { RoundStandingsSection } from "@/components/scoring/RoundStandingsSectio
 import { TeamRankingCard } from "@/components/scoring/TeamRankingCard";
 import { GameCharts } from "@/components/stats/GameCharts";
 import { Button } from "@/components/ui/Button";
-import { Reveal } from "@/components/ui/Reveal";
 import { ScreenContainer } from "@/components/ui/ScreenContainer";
 import type { ThemeColors } from "@/constants/theme";
 import { displayFont, SPACING } from "@/constants/theme";

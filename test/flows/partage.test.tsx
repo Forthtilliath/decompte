@@ -62,7 +62,7 @@ describe("partage d'une partie en image", () => {
 		expect(attached).toBe(true);
 		expect(captured).toEqual(expect.arrayContaining(["Azul", "Bob", "Alice"]));
 		expect(captured).toContainEqual(expect.stringMatching(/19 octobre 2026/));
-		expect(share.mock.calls[0][1]).toEqual({ dialogTitle: "Partager la partie" });
+		expect(share.mock.calls[0][1]).toMatchObject({ dialogTitle: "Partager la partie" });
 		await waitFor(() => expect(screen.queryByTestId(IMAGE, HIDDEN)).not.toBeOnTheScreen());
 	});
 

@@ -1,116 +1,219 @@
 # Décompte
 
-Compteur de scores universel pour jeux de société, sur Android. Vous décrivez une fois la feuille de score d'un jeu, puis l'app guide la saisie catégorie par catégorie et calcule le classement. Les données restent sur le téléphone, sans compte à créer ; une sauvegarde sur Google Drive est proposée en option.
+**Le compteur de scores universel pour vos jeux de société, sur Android.**
 
-## Fonctionnalités
+Décrivez une fois la feuille de score d'un jeu (ses catégories, leur mode de calcul, ses manches, ses règles de classement) : à chaque partie, Décompte guide la saisie catégorie par catégorie, fait les additions, désigne le gagnant et garde tout dans un historique avec graphiques et statistiques. Tout reste sur le téléphone, sans compte à créer ni publicité ; une sauvegarde sur Google Drive est proposée en option.
 
-- **Feuilles de score personnalisables** : chaque jeu se compose de catégories, chacune avec sa couleur (au choix parmi 18) et son mode de calcul :
-  - **points saisis** à la main, négatifs et plafond en option ;
-  - **jetons** pondérés à compter (ex. jetons de victoire 1, 3, 5), additionnés automatiquement ;
-  - **choix** parmi des options à score fixe (ex. palier atteint) ;
-  - **oui / non**, chaque réponse avec son propre score ;
-  - **multiplicateur** : un nombre saisi multiplié par les points d'une autre catégorie (ex. sets × valeur des sets).
+<p align="center">
+  <img src="docs/screenshots/jeux.png" width="240" alt="Liste des jeux">
+  <img src="docs/screenshots/saisie.png" width="240" alt="Saisie des scores d'une catégorie">
+  <img src="docs/screenshots/resultats.png" width="240" alt="Classement final avec médailles">
+</p>
 
-  Une catégorie peut exiger un **critère à valider** : chaque joueur a une case à cocher, et ses points ne comptent qu'une fois le critère validé.
-- **Règles de classement** par jeu : le plus haut ou **le plus bas total gagne** (golf, Skyjo…), et une catégorie qui **départage les égalités**.
-- **Jeux en équipes** : au lancement, chaque joueur rejoint une équipe ; le classement se fait sur le total de chaque équipe.
-- **Modèles prêts à l'emploi** (7 Wonders, Les Aventuriers du Rail, Kingdomino, Time's Up!, Golf, Odin, Skyjo, 6 qui prend !), ajoutés en un geste puis modifiables.
-- **Saisie guidée** : une catégorie à la fois, avec le total de chaque joueur affiché en continu ; on passe à la suivante par un balayage ou par le bouton du bas, et l'écran reste allumé pendant toute la saisie.
-- **Jeux en plusieurs manches** (ex. Pixies, 3 manches) : toutes les catégories se saisissent à chaque manche, puis les manches s'additionnent ; les résultats détaillent les points de chaque manche.
-- **Manches sans nombre fixé** : jusqu'à un seuil de points (ex. Odin, fin à 15 points) ou libres. À la fin de chaque manche, un récapitulatif montre les totaux cumulés et l'écart au seuil, puis propose la manche suivante ou la fin de la partie ; le seuil atteint termine la partie.
-- **Ordre de jeu** : les joueurs jouent dans l'ordre où on les coche (numéro affiché sur leur avatar), modifiable à tout moment pendant la saisie.
-- **Partie en cours sauvegardée** : on la reprend à l'étape où on l'avait laissée, ou on l'abandonne.
-- **Classement final** avec médailles, et ex æquo gérés. Avant l'enregistrement, les catégories laissées vides pour un joueur sont signalées, avec un lien pour les compléter.
-- **Joueurs et groupes** : avatar en photo, prise sur le moment ou choisie dans la galerie (miniature gardée dans l'app, sans ses métadonnées), ou initiales colorées ; groupes d'habitués, cochés d'un geste au lancement d'une partie. Les joueurs les plus fréquents sont proposés en premier, après les favoris.
-- **Historique** des parties, avec le détail des scores par catégorie, et la possibilité de rejouer une partie avec les mêmes joueurs. La fiche d'un jeu montre ses 5 dernières parties, l'historique filtré sur ce jeu montre les autres. La recherche ignore les accents.
-- **Graphiques d'une partie** (résultats et historique) : répartition des points de chaque joueur, comparaison des joueurs catégorie par catégorie.
-- **Statistiques**, tous jeux confondus ou pour un jeu : records (meilleur score, plus longue série de victoires, partie la plus serrée), taux de victoire, jeux les plus joués, et pour chaque joueur ses points moyens et leur répartition par catégorie, en graphique ou en tableau, avec comparaison entre deux joueurs.
-- **Notes et photo de la table** attachées à chaque partie de l'historique (photo gardée dans l'app, sans ses métadonnées).
-- **Export CSV** de l'historique affiché (recherche et filtre compris), pour un tableur.
-- **Partage de jeux** : un jeu s'envoie en texte à un autre joueur, qui le colle dans Décompte, ou s'affiche en **QR code** que l'autre téléphone scanne. Couleurs et règles comprises ; le texte est entièrement vérifié avant d'être ajouté.
-- **Widget Android** : partie en cours à reprendre, ou vainqueur de la dernière partie.
-- **Sauvegarde** : envoi automatique sur Google Drive après chaque changement (dossier privé de l'app, chiffrement en option), ou export et restauration d'un fichier, avec annulation de la dernière restauration. Chaque sauvegarde est entièrement vérifiée avant d'être appliquée.
-- **Mises à jour en un geste** : l'app annonce une nouvelle version publiée sur GitHub, la télécharge et lance son installation. L'historique des versions et de leurs nouveautés est dans Réglages.
-- **Réglages** : apparence, sauvegarde, mises à jour, soutien au projet (don, partage, signalement de bug), à propos, effacement des données.
-- Thème clair ou sombre, avec une couleur de fond au choix pour chacun (bleu nuit, tapis vert, acajou, ardoise ; carton, blanc, sauge, rose poudré).
-- **Accessibilité** : textes lisibles sur toutes les couleurs de catégorie (contraste calculé, texte blanc ou noir selon la teinte), police système agrandie respectée (plafonnée seulement dans les zones étroites), classements, historique, tableaux et graphiques lus d'un bloc par le lecteur d'écran, animations coupées si Android le demande.
-- Rien n'est supprimé définitivement : jeux, joueurs et groupes s'archivent, pour que l'historique reste lisible. Archiver un jeu ou supprimer une partie se fait sans confirmation, mais s'annule pendant quelques secondes ; effacer toutes les données demande de taper « EFFACER ».
+> **Télécharger** : dernière version dans les [Releases GitHub](https://github.com/Forthtilliath/decompte/releases) (fichier `Decompte-<version>.apk`). L'app est en phase alpha : tout fonctionne, mais l'interface peut encore évoluer d'une version à l'autre.
 
-## Stack
+## Sommaire
 
-- [Expo](https://docs.expo.dev/versions/v58.0.0/) SDK 58, React Native 0.88, React 19, TypeScript
-- [Expo Router](https://docs.expo.dev/router/introduction/) (navigation par fichiers, dossier `app/`)
-- [Zustand](https://zustand.docs.pmnd.rs/) + AsyncStorage pour la persistance locale
-- [react-native-gifted-charts](https://gifted-charts.web.app/) (camemberts, sur `react-native-svg`)
-- [Biome](https://biomejs.dev/) pour le lint et le formatage
-- [Jest](https://jestjs.io/) (preset `jest-expo`) et [Testing Library](https://callstack.github.io/react-native-testing-library/) pour les tests
-- Briques partagées de [`forthtilliath-packages`](https://github.com/Forthtilliath/forthtilliath-packages) : `@forthtilliath/react-native-kit`, `@forthtilliath/ts-kit`, `@forthtilliath/expo-backup` (+ `-ui`), `@forthtilliath/expo-release-updates` (+ `-ui`), `@forthtilliath/expo-config-plugins`, et pour les tests `@forthtilliath/test-kit` et `@forthtilliath/expo-test-kit`
+- [Des feuilles de score sur mesure](#des-feuilles-de-score-sur-mesure)
+- [Lancer une partie](#lancer-une-partie)
+- [La saisie guidée](#la-saisie-guidée)
+- [Résultats et classement](#résultats-et-classement)
+- [Historique des parties](#historique-des-parties)
+- [Statistiques](#statistiques)
+- [Joueurs et groupes](#joueurs-et-groupes)
+- [Partager un jeu](#partager-un-jeu)
+- [Apparence](#apparence)
+- [Sauvegarde, mises à jour et widget](#sauvegarde-mises-à-jour-et-widget)
+- [Accessibilité](#accessibilité)
+- [Vos données](#vos-données)
+- [Installation](#installation)
+
+## Des feuilles de score sur mesure
+
+<img src="docs/screenshots/editeur.png" width="260" align="right" alt="Éditeur d'un jeu : nom, nombre de joueurs, manches et catégories">
+
+Chaque jeu se compose d'une ou plusieurs **catégories de score**, chacune avec son nom, sa couleur (18 teintes au choix) et son mode de calcul :
+
+- **Nombre** : des points saisis à la main, avec négatifs et plafond en option. Une **valeur par unité** est possible (ex. 5 points par objectif, −4 par calamité) : on saisit alors soit le nombre d'unités, soit les points directement.
+- **Jetons** : des jetons de valeurs différentes à compter (ex. Domaine 1, Duché 3, Province 6, Malédiction −1), additionnés automatiquement.
+- **Choix** : une option parmi plusieurs, chacune à score fixe (ex. palier militaire atteint).
+- **Oui / Non** : une condition remplie ou non, chaque réponse avec son propre score (ex. +10 pour le plus long chemin).
+- **Multiplicateur** : un nombre saisi multiplié par les points d'une catégorie précédente (ex. nombre de sets × valeur des sets).
+
+Une catégorie peut aussi exiger un **critère à valider** : chaque joueur a une case à cocher, et ses points ne comptent qu'une fois le critère rempli.
+
+**Manches** : en une seule fois, en un **nombre fixe** de manches (toutes les catégories se rejouent à chaque manche, puis les manches s'additionnent), **jusqu'à un seuil** de points (ex. fin dès qu'un joueur atteint 100 points), ou **libres** (on arrête quand on veut).
+
+**Règles de classement** : le plus haut total gagne, ou **le plus bas** (golf, Skyjo…) ; une catégorie peut **départager les égalités** (ex. le trésor à 7 Wonders) ; un jeu peut se jouer **en équipes**, classées sur la somme de leurs joueurs.
+
+**20 modèles prêts à l'emploi**, ajoutés en un geste puis modifiables :
+
+| Incontournables | Jeux familiaux | Jeux experts |
+|---|---|---|
+| 7 Wonders, Les Aventuriers du Rail, Kingdomino, Time's Up!, Golf (jeu de cartes), Odin, Skyjo, 6 qui prend ! | Catane, Citadelles, Akropolis, Harmonies, Faraway, Small World of Warcraft | Terraforming Mars, 7 Wonders Duel, Five Tribes, It's a Wonderful World, Dominion, Alhambra |
+
+<p align="center">
+  <img src="docs/screenshots/modeles.png" width="240" alt="Modèles de jeux prêts à l'emploi">
+</p>
+
+La liste des jeux montre les couleurs des catégories et le déroulé de chaque jeu (« 3 manches », « jusqu'à 100 points »). Elle se cherche sans tenir compte des accents et se trie au choix : joués récemment, les plus joués, ordre alphabétique ou ajoutés récemment.
+
+<br clear="right">
+
+## Lancer une partie
+
+<img src="docs/screenshots/fiche-jeu.png" width="260" align="right" alt="Fiche d'un jeu : catégories, choix des joueurs et historique du jeu">
+
+La fiche d'un jeu présente ses catégories, puis le choix des joueurs :
+
+- un **groupe** d'habitués (« Soirée du vendredi ») se coche d'un geste ;
+- les **favoris** sont proposés en premier, puis les joueurs les plus fréquents ;
+- les joueurs **jouent dans l'ordre où on les coche** (numéro affiché sur leur avatar), modifiable à tout moment pendant la saisie ;
+- pour un jeu en équipes, chaque joueur rejoint une équipe au lancement.
+
+En dessous, les **5 dernières parties** de ce jeu ; les autres sont dans l'historique, déjà filtré sur ce jeu.
+
+Depuis la fiche, on peut aussi **modifier** le jeu, le **partager** (texte ou QR code), l'**archiver** ou le **supprimer** (seulement s'il n'a encore aucune partie dans l'historique : sinon, l'archivage est proposé).
+
+<br clear="right">
+
+## La saisie guidée
+
+<img src="docs/screenshots/saisie.png" width="260" align="right" alt="Saisie des points d'une catégorie pour quatre joueurs">
+
+Une catégorie à la fois, dans la couleur de la catégorie, avec la progression en haut (« Étape 3 / 7 ») et le **total de chaque joueur** mis à jour en continu.
+
+- Boutons − / + ou saisie directe au clavier ; la touche Entrée passe au joueur suivant, puis à l'étape suivante.
+- On avance par un **balayage** ou par le bouton du bas, qui annonce la catégorie suivante.
+- L'**ordre des joueurs** se change depuis la saisie (icône ⇅).
+- L'**écran reste allumé** pendant toute la partie.
+- Pour les jeux à **manches ouvertes**, un récapitulatif s'affiche à la fin de chaque manche : totaux cumulés, écart au seuil, puis manche suivante ou fin de la partie. Le seuil atteint termine la partie.
+- La **partie en cours est sauvegardée** : on la reprend plus tard à l'étape où on l'avait laissée, ou on l'abandonne.
+
+<br clear="right">
+
+## Résultats et classement
+
+<img src="docs/screenshots/resultats.png" width="260" align="right" alt="Classement final avec médailles et détail par catégorie">
+
+Le **classement final** s'affiche avec médailles, le total de chaque joueur (ou de chaque équipe) et le détail de ses points catégorie par catégorie. Les ex æquo sont gérés, et le départage éventuel appliqué.
+
+Avant l'enregistrement, les catégories **laissées vides** pour un joueur sont signalées, avec un lien pour les compléter.
+
+Pour les jeux en plusieurs manches, le **classement après chaque manche** se consulte aussi, ainsi que les graphiques de la partie.
+
+<br clear="right">
+
+## Historique des parties
+
+<p align="center">
+  <img src="docs/screenshots/historique.png" width="240" alt="Historique des parties">
+  <img src="docs/screenshots/detail-partie.png" width="240" alt="Détail d'une partie en manches">
+  <img src="docs/screenshots/graphiques.png" width="240" alt="Graphiques d'une partie : évolution du score et comparaison par manche">
+</p>
+
+Toutes les parties terminées, avec podium et scores, cherchables par jeu ou par joueur (sans tenir compte des accents) et filtrables par jeu. Le détail d'une partie montre :
+
+- le classement, les points de chaque catégorie et de chaque manche (M1, M2…), et le **classement par manche** ;
+- des **graphiques** : répartition des points de chaque joueur, comparaison des joueurs catégorie par catégorie et manche par manche, **évolution du score** au fil des manches ;
+- des **notes** et une **photo de la table** (gardée dans l'app, sans ses métadonnées) ;
+- **Rejouer avec les mêmes joueurs** en un geste, **partager la partie en image** (classement prêt à envoyer dans une conversation), ou la **supprimer** (annulable pendant quelques secondes).
+
+L'historique affiché (recherche et filtre compris) s'**exporte en CSV** pour un tableur.
+
+## Statistiques
+
+<p align="center">
+  <img src="docs/screenshots/stats.png" width="240" alt="Statistiques : records et taux de victoire">
+  <img src="docs/screenshots/stats-joueur.png" width="240" alt="Statistiques d'un joueur : points moyens et répartition par catégorie">
+</p>
+
+Tous jeux confondus ou pour un jeu en particulier :
+
+- **records** : meilleur score, plus longue série de victoires, partie la plus serrée ;
+- **taux de victoire** de chaque joueur ;
+- jeux les plus joués ;
+- pour un joueur : score moyen, meilleur score, **points moyens par catégorie** et par manche, **répartition de ses points**, en graphique ou en tableau, et **comparaison avec un autre joueur**.
+
+## Joueurs et groupes
+
+<img src="docs/screenshots/joueurs.png" width="260" align="right" alt="Liste des groupes et des joueurs">
+
+- **Avatar** en photo (prise sur le moment ou choisie dans la galerie, gardée en miniature dans l'app, sans ses métadonnées) ou initiales sur une couleur propre à chaque joueur.
+- **Favoris** marqués d'une étoile, proposés en premier au lancement d'une partie.
+- **Groupes** d'habitués, pour cocher toute la tablée d'un coup.
+- Rien n'est supprimé définitivement par accident : joueurs, groupes et jeux s'**archivent**, pour que l'historique reste lisible. Avant de supprimer un joueur, l'app indique dans combien de parties il apparaît et propose de l'archiver plutôt.
+
+<br clear="right">
+
+## Partager un jeu
+
+<img src="docs/screenshots/qr-code.png" width="260" align="right" alt="QR code d'un jeu à scanner depuis un autre téléphone">
+
+Une feuille de score se transmet à un autre joueur de Décompte, couleurs et règles comprises :
+
+- en **texte**, envoyé par n'importe quelle messagerie puis collé dans Jeux ▸ Importer un jeu partagé ;
+- en **QR code**, scanné directement par l'autre téléphone.
+
+Le jeu reçu est **entièrement vérifié** avant d'être ajouté : un texte abîmé ou modifié est refusé avec un message clair, sans rien ajouter.
+
+<br clear="right">
+
+## Apparence
+
+<p align="center">
+  <img src="docs/screenshots/theme-ludique.png" width="240" alt="Thème ludique">
+  <img src="docs/screenshots/theme-clair.png" width="240" alt="Thème clair">
+  <img src="docs/screenshots/stats-joueur.png" width="240" alt="Thème sombre">
+</p>
+
+Trois thèmes, chacun avec sa couleur de fond au choix :
+
+- **Sombre** : bleu nuit, tapis vert, acajou, ardoise ;
+- **Clair** : carton, blanc, sauge, rose poudré ;
+- **Ludique** : décor de plateau (dés, pions, meeples), boutons en relief façon jetons, titres en police d'affiche ; fonds plateau, kraft, lagon, bonbon.
+
+## Sauvegarde, mises à jour et widget
+
+<img src="docs/screenshots/reglages.png" width="260" align="right" alt="Réglages de l'app">
+
+- **Sauvegarde Google Drive** automatique après chaque changement, dans un dossier privé réservé à l'app, avec **chiffrement** en option. Pratique pour changer de téléphone sans rien perdre.
+- **Sauvegarde manuelle** : export d'un fichier, restauration, et **annulation de la dernière restauration**. Chaque sauvegarde est entièrement vérifiée avant d'être appliquée.
+- **Mises à jour en un geste** : l'app annonce une nouvelle version, la télécharge et lance son installation. L'historique des versions et de leurs nouveautés est dans Réglages ▸ Mises à jour.
+- **Widget Android** pour l'écran d'accueil : reprendre la partie en cours, ou voir le vainqueur de la dernière partie.
+- **Soutenir le projet** : offrir un café, partager l'app, signaler un bug.
+- **Zone dangereuse** : effacer toutes les données, après avoir tapé « EFFACER ».
+
+<br clear="right">
+
+## Accessibilité
+
+- Textes lisibles sur toutes les couleurs de catégorie : le contraste est calculé, le texte passe en blanc ou en noir selon la teinte.
+- La taille de police agrandie d'Android est respectée (plafonnée seulement dans les zones étroites).
+- Classements, historique, tableaux et graphiques sont lus d'un bloc par le lecteur d'écran (TalkBack).
+- Les animations sont coupées si Android le demande.
+- Retour haptique sur les actions principales.
+
+## Vos données
+
+- **Aucun compte, aucune publicité, aucun suivi.** Tout est stocké sur le téléphone ; rien ne part ailleurs sauf si vous activez la sauvegarde Google Drive (dossier privé de l'app, invisible dans votre Drive).
+- La sauvegarde automatique d'Android est désactivée : seule la sauvegarde de l'app, vérifiée et éventuellement chiffrée, copie vos données hors du téléphone.
+- Une app réinstallée et vide n'écrase jamais une sauvegarde Google Drive qui contient des données.
+- L'appareil photo n'est demandé qu'au premier usage (avatar, photo de la table, lecture d'un QR code), sans micro. Les photos restent dans le dossier privé de l'app et ne partent dans aucune sauvegarde.
+- Les mises à jour ne viennent que des releases officielles de ce projet, en HTTPS, avec vérification de l'empreinte du fichier avant installation ; Android demande toujours votre confirmation.
+- L'export CSV neutralise les formules qu'un nom ou une note pourrait cacher.
+
+## Installation
+
+1. Sur le téléphone Android, ouvrez la [page des Releases](https://github.com/Forthtilliath/decompte/releases) et téléchargez le fichier `Decompte-<version>.apk` de la dernière version.
+2. Ouvrez le fichier : Android demande d'autoriser l'installation depuis le navigateur ou le gestionnaire de fichiers, une seule fois.
+3. Les versions suivantes s'installent ensuite depuis l'app (Réglages ▸ Mises à jour), sans repasser par GitHub.
+
+L'app est disponible pour Android uniquement.
 
 ## Développement
 
-Prérequis : Node.js LTS, Android Studio (SDK et émulateur) ou un téléphone Android en mode développeur.
-
-```bash
-npm install
-npm run android   # build natif et lancement sur l'émulateur ou le téléphone
-npm start         # serveur Metro seul, une fois l'app installée
-npm run lint      # vérification Biome
-npm run typecheck # vérification des types
-npm test          # tests (npm run test:watch, npm run test:coverage)
-npm run doctor    # compatibilité des dépendances avec le SDK Expo
-npm run check     # tout ce qui précède, comme la CI
-```
-
-## Tests et CI
-
-Trois niveaux de tests, lancés par `npm test` :
-
-- **Logique pure** (`lib/*.test.ts`) : classement, déroulé d'une partie, validation du formulaire de jeu, import d'un jeu partagé, lecture d'une sauvegarde, recherche de mise à jour.
-- **Stores** (`stores/*.test.ts`) : actions, et persistance (clé de stockage, version, réhydratation). C'est ce qui protège les données déjà enregistrées sur les téléphones lors d'une mise à jour de Zustand ou d'AsyncStorage.
-- **Composants et parcours** (`components/**/*.test.tsx`, `test/flows/`) : les vrais écrans avec la vraie navigation Expo Router (créer un jeu, jouer, reprendre une partie, rejouer depuis l'historique, importer un jeu…).
-
-Sur chaque pull request vers `main`, la CI lance le lint, les types, les tests, `expo-doctor` et un audit des failles critiques. Quand les dépendances ou `app.json` changent, un second workflow compile l'APK release et vérifie qu'il n'est jamais signé avec la clé de debug et qu'il ne contient aucune permission bloquée.
-
-Après une montée de version (`npx expo install --fix`), `npm run check` doit passer avant d'ouvrir la PR.
-
-## Structure
-
-| Dossier | Contenu |
-|---|---|
-| `app/` | Écrans (Expo Router) : onglets Jeux, Joueurs, Historique, Stats, Réglages |
-| `components/` | Composants : `ui/` génériques, `scoring/` saisie des scores, `games/`, `players/`, `groups/`, `history/` |
-| `stores/` | États Zustand persistés : jeux, joueurs, groupes, partie en cours, historique, thème |
-| `lib/` | Logique pure : calcul des scores, déroulé d'une partie, validation et import des jeux |
-| `widget/` | Widget d'écran d'accueil Android (affichage et tâche de fond, enregistrée dans `index.ts`) |
-| `test/` | Outils de test (fabriques de données, rendu de l'app entière) et parcours de bout en bout |
-
-## Sauvegarde Google Drive : configuration
-
-Assurée par [`@forthtilliath/expo-backup`](https://github.com/Forthtilliath/forthtilliath-packages/tree/main/packages/expo-backup#readme) et son écran `@forthtilliath/expo-backup-ui`. La connexion à Google ne fonctionne qu'une fois l'app déclarée dans Google Cloud (à faire une fois) :
-
-1. [Console Google Cloud](https://console.cloud.google.com/) : activer **Google Drive API** dans un projet.
-2. **Écran de consentement OAuth** : type Externe, scope `.../auth/drive.appdata` uniquement, sans logo (un logo ou un scope plus large impose une vérification par Google).
-3. **Identifiants ▸ ID client OAuth ▸ Android** : package `com.forthtilliath.decompte` et SHA-1 de la clé de signature release (`keytool -list -v -keystore <clé>`). Un client par clé : un build de debug a besoin du sien.
-
-`oauth-misconfigured` à la connexion signifie que l'étape 3 ne correspond pas à l'APK installé ; `drive-api-disabled`, que l'étape 1 manque.
-
-## Publier une version
-
-La mise à jour intégrée compare la version de l'app (`version` de `package.json` et `app.json`, identiques, vérifié par un test) au tag de la release GitHub la plus haute, pre-releases comprises. Pour chaque version :
-
-1. `npm run bump` monte `version` dans `package.json`, `package-lock.json` et `app.json`, et `android.versionCode` dans `app.json` (pre-release suivante par défaut, ou `npm run bump -- patch|minor|major|x.y.z`).
-2. Installer l'APK release sur un téléphone et faire le tour de l'app (partie, Stats, photo, Drive, sauvegarde, mise à jour) : R8 réduit le code Java en release, et une classe retirée à tort ne plante qu'à l'exécution. Une règle `-keep` s'ajoute dans `extraProguardRules` d'`expo-build-properties` (`app.json`).
-3. Créer la release `v<version>` avec l'APK nommé `Decompte-<version>.apk`. Les notes de release s'affichent dans Réglages ▸ Mises à jour.
-
-## Sécurité
-
-Les APK publiés sont signés avec une clé propre à l'app, jamais avec la clé de debug publique de React Native. Une mise à jour ne peut donc venir que de ce projet : Android refuse d'installer par-dessus l'app un APK signé avec une autre clé. La mise à jour intégrée ne télécharge qu'un APK des releases de ce dépôt, en HTTPS, vérifie son empreinte SHA-256 (calculée par GitHub) avant de l'installer, et Android demande toujours confirmation.
-
-Une app sans données (réinstallée, données perdues) n'écrase pas une sauvegarde Google Drive qui contient des données : l'envoi est bloqué jusqu'à une restauration ou une confirmation dans Réglages ▸ Sauvegarde.
-
-La sauvegarde automatique d'Android est désactivée (`allowBackup: false`) : seule la sauvegarde de l'app, vérifiée et éventuellement chiffrée, copie les données hors du téléphone.
-
-L'appareil photo (avatars, photo de la table, lecture d'un QR code) est demandé au premier usage, sans micro (`RECORD_AUDIO` bloquée). Les photos restent dans le dossier privé de l'app et ne partent dans aucune sauvegarde. Un QR code scanné passe par le même import vérifié qu'un texte collé. L'export CSV neutralise les formules qu'un nom ou une note pourrait cacher (`=`, `+`, `-`, `@` en tête de cellule).
+Installation de l'environnement, architecture, tests, configuration de Google Drive et publication d'une version : voir le [README développeurs](docs/README.md).
 
 ## Licence
 

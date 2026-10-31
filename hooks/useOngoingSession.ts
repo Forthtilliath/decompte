@@ -1,6 +1,6 @@
+import { usePersistHydrated } from "@forthtilliath/react-native-kit/hooks/usePersistHydrated";
 import { confirmDestructive } from "@forthtilliath/react-native-kit/utils/helpers/confirmDestructive";
 import { useRouter } from "expo-router";
-import { useStoresHydrated } from "@/hooks/useStoresHydrated";
 import { getSessionRoundCount } from "@/lib/rounds";
 import { getResumeStep, getStepHref } from "@/lib/sessionFlow";
 import { useGamesStore } from "@/stores/gamesStore";
@@ -20,7 +20,7 @@ export function useOngoingSession() {
 	const ongoingGame = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 	// Jeu absent une fois les jeux relus : retiré par une restauration ou une donnée non reprise.
 	// Avant la relecture, tout jeu semblerait absent.
-	const gamesHydrated = useStoresHydrated(GAMES_STORE);
+	const gamesHydrated = usePersistHydrated(GAMES_STORE);
 	const isOrphan = hasOngoingSession && gamesHydrated && !ongoingGame;
 
 	const resume = () => {

@@ -4,6 +4,7 @@ import {
 	type PhotoPickerLabels,
 	type PhotoPickerStyles,
 } from "@forthtilliath/react-native-kit/components/picker/PhotoPicker";
+import { tapFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { useMemo } from "react";
 import { StyleSheet, View } from "react-native";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
@@ -42,6 +43,7 @@ export function AvatarPhotoPicker({ name, seed, avatarUri, onChange }: Props) {
 				photoUri={avatarUri ?? null}
 				onChange={(uri) => onChange(uri ?? undefined)}
 				savePhoto={saveAvatarPhoto}
+				onOpen={tapFeedback}
 				photoLabel="du joueur"
 				labels={LABELS}
 				styles={pickerStyles}
