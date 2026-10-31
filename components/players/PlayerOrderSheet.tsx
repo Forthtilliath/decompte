@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
+import { ReorderList } from "@forthtilliath/react-native-kit/components/list/ReorderList";
 import { selectFeedback } from "@forthtilliath/react-native-kit/utils/helpers/haptics";
 import { useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { PlayerAvatar } from "@/components/ui/PlayerAvatar";
@@ -19,47 +19,43 @@ type Props = {
 	onMove: (playerId: string, offset: -1 | 1) => void;
 };
 
-/** Réordonne les joueurs d'une partie avec des flèches monter / descendre. */
+/** Réordonne les joueurs d'une partie avec des flèches monter / descendre (`ReorderList` du kit). */
 export function PlayerOrderSheet({ visible, onClose, players, onMove }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
 
-	const arrow = (player: Player, offset: -1 | 1, disabled: boolean) => (
-		<Pressable
-			style={[styles.arrow, disabled && styles.arrowDisabled]}
-			disabled={disabled}
-			hitSlop={4}
-			onPress={() => {
-				selectFeedback();
-				onMove(player.id, offset);
-			}}
-			accessibilityRole="button"
-			accessibilityState={{ disabled }}
-			accessibilityLabel={`${offset < 0 ? "Monter" : "Descendre"} ${player.name}`}
-		>
-			<Ionicons name={offset < 0 ? "chevron-up" : "chevron-down"} size={22} color={colors.text} />
-		</Pressable>
-	);
-
 	return (
 		<BottomSheet visible={visible} onClose={onClose} title="Ordre des joueurs">
 			<ScrollView contentContainerStyle={styles.content}>
-				{players.map((player, index) => (
-					<View key={player.id} style={styles.row}>
-						<Text style={styles.position}>{index + 1}</Text>
-						<PlayerAvatar
-							name={player.name}
-							avatarUri={player.avatarUri}
-							seed={player.id}
-							size={32}
-						/>
-						<Text style={styles.name} numberOfLines={1}>
-							{player.name}
-						</Text>
-						{arrow(player, -1, index === 0)}
-						{arrow(player, 1, index === players.length - 1)}
-					</View>
-				))}
+				<ReorderList
+					items={players}
+					keyExtractor={(player) => player.id}
+					getLabel={(player) => player.name}
+					onChange={(next, { from, to }) => {
+						const moved = next[to];
+						if (moved) onMove(moved.id, to > from ? 1 : -1);
+					}}
+					onMoveFeedback={selectFeedback}
+					renderItem={(player) => (
+						<View style={styles.player}>
+							<PlayerAvatar
+								name={player.name}
+								avatarUri={player.avatarUri}
+								seed={player.id}
+								size={32}
+							/>
+							<Text style={styles.name} numberOfLines={1}>
+								{player.name}
+							</Text>
+						</View>
+					)}
+					styles={{
+						row: styles.row,
+						position: styles.position,
+						arrow: styles.arrow,
+						arrowColor: colors.text,
+					}}
+				/>
 				<Button label="Terminé" variant="secondary" onPress={onClose} />
 			</ScrollView>
 		</BottomSheet>
@@ -75,19 +71,19 @@ function useStyles(colors: ThemeColors) {
 					paddingBottom: SPACING.md,
 				},
 				row: {
-					flexDirection: "row",
-					alignItems: "center",
-					gap: SPACING.sm,
 					minHeight: 48,
 					paddingHorizontal: SPACING.sm,
 					borderRadius: RADIUS.md,
 					backgroundColor: colors.surfaceAlt,
 				},
+				player: {
+					flexDirection: "row",
+					alignItems: "center",
+					gap: SPACING.sm,
+				},
 				position: {
 					width: 20,
 					color: colors.textMuted,
-					fontWeight: "700",
-					textAlign: "center",
 				},
 				name: {
 					flex: 1,
@@ -97,11 +93,6 @@ function useStyles(colors: ThemeColors) {
 				arrow: {
 					width: 40,
 					height: 40,
-					alignItems: "center",
-					justifyContent: "center",
-				},
-				arrowDisabled: {
-					opacity: 0.25,
 				},
 			}),
 		[colors],
