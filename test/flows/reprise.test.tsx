@@ -1,16 +1,20 @@
+import { hideToast } from "@forthtilliath/react-native-kit/components/feedback/toast";
 import { act, fireEvent, screen } from "expo-router/testing-library";
 import { Alert, type AlertButton } from "react-native";
+import { UNDO_DELAY_MS } from "@/lib/undo";
 import { useGamesStore } from "@/stores/gamesStore";
 import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
 import { useSessionStore } from "@/stores/sessionStore";
-import { UNDO_DELAY_MS, useUndoStore } from "@/stores/undoStore";
 import { makeCategory, makeEntry, makeGame, makePlayer, makeSession } from "@/test/factories";
 import { renderApp } from "@/test/renderApp";
 
 jest.setTimeout(30_000);
 
 const PLAYED_AT = Date.UTC(2026, 9, 19, 12);
+
+/** La barre « Annuler » s'efface en fondu (ToastHost de react-native-kit, 200 ms). */
+const FADE_MS = 300;
 
 /** Répond à chaque boîte de dialogue en choisissant le bouton qui n'est pas « Annuler ». */
 const alert = jest.spyOn(Alert, "alert").mockImplementation((_title, _message, buttons) => {
@@ -42,7 +46,7 @@ beforeEach(() => {
 	});
 	useHistoryStore.setState({ sessions: [] });
 	useSessionStore.getState().resetSession();
-	useUndoStore.getState().dismiss();
+	hideToast();
 });
 
 const press = (name: string) => fireEvent.press(screen.getByRole("button", { name }));
@@ -193,7 +197,7 @@ describe("historique", () => {
 
 		// La barre « Annuler » disparaît d'elle-même : la suppression est alors définitive.
 		expect(screen.getByText("Partie supprimée")).toBeOnTheScreen();
-		await act(() => jest.advanceTimersByTimeAsync(UNDO_DELAY_MS));
+		await act(() => jest.advanceTimersByTimeAsync(UNDO_DELAY_MS + FADE_MS));
 		expect(screen.queryByText("Partie supprimée")).not.toBeOnTheScreen();
 	});
 
@@ -206,6 +210,7 @@ describe("historique", () => {
 
 		await press("Annuler");
 		expect(useHistoryStore.getState().sessions.map((s) => s.id)).toEqual(["s1", "s0"]);
+		await act(() => jest.advanceTimersByTimeAsync(FADE_MS));
 		expect(screen.queryByText("Partie supprimée")).not.toBeOnTheScreen();
 	});
 
