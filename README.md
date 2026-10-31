@@ -26,6 +26,7 @@ Décrivez une fois la feuille de score d'un jeu (ses catégories, leur mode de c
 - [Sauvegarde, mises à jour et widget](#sauvegarde-mises-à-jour-et-widget)
 - [Accessibilité](#accessibilité)
 - [Vos données](#vos-données)
+- [Questions fréquentes](#questions-fréquentes)
 - [Installation](#installation)
 
 ## Des feuilles de score sur mesure
@@ -202,6 +203,44 @@ Trois thèmes, chacun avec sa couleur de fond au choix :
 - L'appareil photo n'est demandé qu'au premier usage (avatar, photo de la table, lecture d'un QR code), sans micro. Les photos restent dans le dossier privé de l'app et ne partent dans aucune sauvegarde.
 - Les mises à jour ne viennent que des releases officielles de ce projet, en HTTPS, avec vérification de l'empreinte du fichier avant installation ; Android demande toujours votre confirmation.
 - L'export CSV neutralise les formules qu'un nom ou une note pourrait cacher.
+
+## Questions fréquentes
+
+<details>
+<summary><b>Mon jeu n'est pas dans les modèles.</b></summary>
+
+Créez-le : Jeux ▸ ajouter un jeu, puis ses catégories une par une (nom, couleur, mode de calcul). Pour un jeu proche d'un modèle, ajoutez le modèle puis modifiez-le. Un ami l'a déjà créé ? Il peut vous l'envoyer en texte ou en QR code (voir [Partager un jeu](#partager-un-jeu)).
+</details>
+
+<details>
+<summary><b>La partie a été interrompue (appel, veille, app fermée).</b></summary>
+
+Rien n'est perdu : la partie en cours est sauvegardée à chaque saisie. Rouvrez l'app pour la reprendre à l'étape où vous l'aviez laissée, ou abandonnez-la.
+</details>
+
+<details>
+<summary><b>Je me suis trompé dans une saisie.</b></summary>
+
+Revenez à l'étape concernée par un balayage vers la droite ou le bouton « Étape précédente ». Sur l'écran des résultats, les catégories laissées vides sont signalées avec un lien pour les compléter.
+</details>
+
+<details>
+<summary><b>J'ai supprimé une partie par erreur.</b></summary>
+
+Touchez « Annuler » dans le message qui s'affiche en bas de l'écran pendant quelques secondes. L'archivage d'un jeu s'annule de la même façon.
+</details>
+
+<details>
+<summary><b>Comment changer de téléphone ?</b></summary>
+
+Avec la sauvegarde Google Drive, reliez le même compte sur le nouveau téléphone et restaurez. Sinon, exportez un fichier de sauvegarde depuis Réglages ▸ Sauvegarde, copiez-le sur le nouveau téléphone et importez-le. Les photos (avatars, photo de la table) ne sont pas dans les sauvegardes.
+</details>
+
+<details>
+<summary><b>Est-ce disponible sur iPhone ?</b></summary>
+
+Non, Décompte est développé uniquement pour Android.
+</details>
 
 ## Installation
 
