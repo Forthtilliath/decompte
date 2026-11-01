@@ -1,11 +1,14 @@
 import { deleteFileQuietly } from "@forthtilliath/react-native-kit/utils/files/appFiles";
 import * as ImagePicker from "expo-image-picker";
 import { fireEvent, screen, waitFor } from "expo-router/testing-library";
+import { useGamesStore } from "@/stores/gamesStore";
 import { useGroupsStore } from "@/stores/groupsStore";
+import { useHistoryStore } from "@/stores/historyStore";
 import { usePlayersStore } from "@/stores/playersStore";
+import { useSessionStore } from "@/stores/sessionStore";
 import { useThemeStore } from "@/stores/themeStore";
 import { mockAlert } from "@/test/alerts";
-import { makePlayer } from "@/test/factories";
+import { makeGame, makePlayer } from "@/test/factories";
 import { renderApp } from "@/test/renderApp";
 
 jest.setTimeout(30_000);
@@ -90,5 +93,31 @@ describe("photo des joueurs", () => {
 
 		expect(usePlayersStore.getState().players).toEqual([]);
 		expect(deleteFileQuietly).toHaveBeenCalledWith(PHOTO);
+	});
+});
+
+describe("notes et photo à la fin d'une partie", () => {
+	it("les ajoute au classement final et les garde dans l'historique", async () => {
+		useGamesStore.setState({ games: [makeGame({ id: "azul", name: "Azul" })] });
+		useHistoryStore.setState({ sessions: [] });
+		useSessionStore.getState().startNewSession("azul", ["alice"]);
+		jest.mocked(ImagePicker.launchImageLibraryAsync).mockResolvedValueOnce({
+			canceled: false,
+			assets: [{ uri: "file:///cache/table.jpg", width: 100, height: 100 }],
+		});
+		await renderApp("/jeux/play/results");
+
+		await fireEvent.changeText(screen.getByLabelText("Notes"), "Revanche dimanche");
+		choose("Choisir dans la galerie");
+		await press("Ajouter une photo de la table");
+		expect(await screen.findByRole("button", { name: "Changer la photo" })).toBeOnTheScreen();
+		// Sans quitter le champ des notes : elles sont déjà enregistrées.
+		await press("Terminer et enregistrer la partie");
+
+		expect(useHistoryStore.getState().sessions[0]).toMatchObject({
+			notes: "Revanche dimanche",
+			// Dossier fixé par le mock de test/setup ; le vrai (« parties ») : lib/sessionPhotos.test.
+			photoUri: "file:///documents/avatars/table.jpg",
+		});
 	});
 });

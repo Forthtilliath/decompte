@@ -19,14 +19,17 @@ const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = { mediaTypes: "images", q
 type Props = {
 	extras: SessionExtras;
 	onChange: (extras: SessionExtras) => void;
+	/** Notes enregistrées à chaque lettre plutôt qu'en quittant le champ. Pour la partie en cours :
+	 * elle n'est pas sauvegardée, et « Terminer » peut être touché sans quitter le champ. */
+	saveNotesWhileTyping?: boolean;
 };
 
-/** Notes libres et photo de la table d'une partie de l'historique. */
-export function SessionExtrasEditor({ extras, onChange }: Props) {
+/** Notes libres et photo de la table d'une partie, en cours ou de l'historique. */
+export function SessionExtrasEditor({ extras, onChange, saveNotesWhileTyping = false }: Props) {
 	const colors = useColors();
 	const styles = useStyles(colors);
-	// Enregistrées en quittant le champ plutôt qu'à chaque lettre (chaque écriture relance
-	// l'envoi automatique de la sauvegarde).
+	// Par défaut, enregistrées en quittant le champ plutôt qu'à chaque lettre (chaque écriture
+	// relance l'envoi automatique de la sauvegarde).
 	const [notes, setNotes] = useState(extras.notes ?? "");
 	const { choose, isSaving } = usePhotoChoice({
 		title: "Photo de la partie",
@@ -42,9 +45,13 @@ export function SessionExtrasEditor({ extras, onChange }: Props) {
 				label="Notes"
 				placeholder="Ex. extension utilisée, anecdote…"
 				value={notes}
-				onChangeText={setNotes}
+				onChangeText={(text) => {
+					setNotes(text);
+					if (saveNotesWhileTyping) onChange({ ...extras, notes: text });
+				}}
 				onBlur={() => {
-					if (notes.trim() !== (extras.notes ?? "")) onChange({ ...extras, notes });
+					if (!saveNotesWhileTyping && notes.trim() !== (extras.notes ?? ""))
+						onChange({ ...extras, notes });
 				}}
 				multiline
 				maxLength={MAX_NOTES_LENGTH}
