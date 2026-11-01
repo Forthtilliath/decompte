@@ -1,6 +1,6 @@
 {
 	"name": "decompte",
-	"version": "1.0.0-alpha.16",
+	"version": "1.0.0-alpha.17",
 	"main": "index.ts",
 	"dependencies": {
 		"@expo-google-fonts/lilita-one": "^0.4.1",
