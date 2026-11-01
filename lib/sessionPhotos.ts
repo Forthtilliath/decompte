@@ -30,11 +30,12 @@ export function relinkSessionPhotos<T extends { photoUri?: string }>(sessions: T
 }
 
 /**
- * Supprime les photos qu'aucune partie n'utilise plus (remplacées, retirées, partie supprimée). Au
- * lancement seulement : une partie supprimée reste « annulable » quelques secondes, sa photo doit
- * survivre jusque-là. Au mieux : un fichier resté sur le disque partira au prochain lancement.
+ * Supprime les photos qu'aucune partie (historique et partie en cours) n'utilise plus : remplacées,
+ * retirées, partie supprimée ou abandonnée. Au lancement seulement (hooks/useSessionPhotosCleanup) :
+ * une partie supprimée reste « annulable » quelques secondes, sa photo doit survivre jusque-là. Au
+ * mieux : un fichier resté sur le disque partira au prochain lancement.
  */
-export function pruneSessionPhotos(sessions: Session[]): void {
+export function pruneSessionPhotos(sessions: Pick<Session, "photoUri">[]): void {
 	try {
 		pruneAppDirectory(
 			SESSION_PHOTO_DIRECTORY,

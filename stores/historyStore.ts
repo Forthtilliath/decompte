@@ -4,7 +4,6 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { MAX_SESSIONS, sessionSchema } from "@/lib/backupSchema";
 import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
-import { pruneSessionPhotos } from "@/lib/sessionPhotos";
 import type { Session } from "@/types/game";
 
 export type SessionExtras = Pick<Session, "notes" | "photoUri">;
@@ -80,10 +79,8 @@ export const useHistoryStore = create<State & Actions>()(
 			version: HISTORY_STORE_VERSION,
 			migrate: migrateHistoryStoreData,
 			merge: validatedMerge<State>("history-store", HISTORY_STORE_VERSION, historyStateSchema),
-			// Au lancement seulement, comme les avatars (stores/playersStore).
-			onRehydrateStorage: () => (state) => {
-				if (state) pruneSessionPhotos(state.sessions);
-			},
+			// Photos inutilisées : supprimées au lancement par hooks/useSessionPhotosCleanup, qui attend
+			// aussi la partie en cours.
 		},
 	),
 );
