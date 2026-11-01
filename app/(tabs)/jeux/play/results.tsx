@@ -6,6 +6,7 @@ import { useKeepAwake } from "expo-keep-awake";
 import { router, Stack } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { SessionExtrasEditor } from "@/components/history/SessionExtrasEditor";
 import { MissingScoresNotice } from "@/components/scoring/MissingScoresNotice";
 import { RankedPlayerCard } from "@/components/scoring/RankedPlayerCard";
 import { RoundStandingsSection } from "@/components/scoring/RoundStandingsSection";
@@ -30,6 +31,9 @@ export default function ResultsScreen() {
 	const playerIds = useSessionStore((s) => s.playerIds);
 	const entries = useSessionStore((s) => s.entries);
 	const finishSession = useSessionStore((s) => s.finishSession);
+	const notes = useSessionStore((s) => s.notes);
+	const photoUri = useSessionStore((s) => s.photoUri);
+	const setExtras = useSessionStore((s) => s.setExtras);
 	const game = useGamesStore((s) => s.games.find((g) => g.id === gameDefId));
 	const allPlayers = usePlayersStore((s) => s.players);
 	const [chartsVisible, setChartsVisible] = useState(false);
@@ -139,6 +143,11 @@ export default function ResultsScreen() {
 						roundCount={roundCount}
 					/>
 				)}
+				<SessionExtrasEditor
+					extras={{ notes: notes ?? undefined, photoUri: photoUri ?? undefined }}
+					onChange={setExtras}
+					saveNotesWhileTyping
+				/>
 			</ScrollView>
 			<Button label="Terminer et enregistrer la partie" variant="success" onPress={confirmFinish} />
 		</ScreenContainer>
