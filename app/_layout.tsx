@@ -5,6 +5,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { UndoHost } from "@/components/ui/UndoHost";
 import { useCloudAutoBackup } from "@/hooks/useCloudAutoBackup";
 import { useDataIssuesAlert } from "@/hooks/useDataIssuesAlert";
+import { useSessionPhotosCleanup } from "@/hooks/useSessionPhotosCleanup";
 import { useStackScreenOptions } from "@/hooks/useStackScreenOptions";
 import { useWidgetSync } from "@/hooks/useWidgetSync";
 import { useThemeStore } from "@/stores/themeStore";
@@ -14,6 +15,7 @@ export default function RootLayout() {
 	const mode = useThemeStore((s) => s.mode);
 	useCloudAutoBackup();
 	useDataIssuesAlert();
+	useSessionPhotosCleanup();
 	useWidgetSync();
 
 	return (
