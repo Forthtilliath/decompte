@@ -117,7 +117,7 @@ Toutes les parties terminées, avec podium et scores, cherchables par jeu ou par
 
 - le classement, les points de chaque catégorie et de chaque manche (M1, M2…), et le **classement par manche** ;
 - des **graphiques** : répartition des points de chaque joueur, comparaison des joueurs catégorie par catégorie et manche par manche, **évolution du score** au fil des manches ;
-- des **notes** et une **photo de la table** (gardée dans l'app, sans ses métadonnées) ;
+- des **notes** et une **photo de la table** (gardée dans l'app, sans ses métadonnées), à ajouter dès le classement final ou plus tard depuis l'historique ;
 - **Rejouer avec les mêmes joueurs** en un geste, **partager la partie en image** (classement prêt à envoyer dans une conversation), ou la **supprimer** (annulable pendant quelques secondes).
 
 L'historique affiché (recherche et filtre compris) s'**exporte en CSV** pour un tableur.
