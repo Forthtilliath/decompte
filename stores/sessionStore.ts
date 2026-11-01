@@ -5,12 +5,12 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { idSchema, sessionEntriesSchema, teamsSchema, timestampSchema } from "@/lib/backupSchema";
 import { openRoundsSchema } from "@/lib/gameExportSchema";
-import { MAX_OPEN_ROUNDS, MAX_PLAYERS } from "@/lib/gameLimits";
+import { MAX_NOTES_LENGTH, MAX_OPEN_ROUNDS, MAX_PLAYERS } from "@/lib/gameLimits";
 import { createStoreMigrate, type MigrationSteps, validatedMerge } from "@/lib/persistedState";
 import { applyProducts } from "@/lib/products";
 import { createId } from "@/lib/uuid";
 import { useGamesStore } from "@/stores/gamesStore";
-import { useHistoryStore } from "@/stores/historyStore";
+import { type SessionExtras, useHistoryStore } from "@/stores/historyStore";
 import {
 	createEmptySessionEntry,
 	type OpenRounds,
@@ -39,6 +39,9 @@ type State = {
 	openRounds: OpenRounds | null;
 	/** Manches commencées d'une partie en manches ouvertes, `null` sinon (celles du jeu). */
 	roundCount: number | null;
+	/** Notes et photo de la table, ajoutées au classement final, reprises dans l'historique. */
+	notes: string | null;
+	photoUri: string | null;
 };
 
 type Actions = {
@@ -55,6 +58,7 @@ type Actions = {
 	setCurrentCategory: (categoryId: string, round?: number) => void;
 	/** Manches ouvertes : nombre de manches de la partie (une de plus, ou une vide retirée). */
 	setRoundCount: (roundCount: number) => void;
+	setExtras: (extras: SessionExtras) => void;
 	/** Construit l'objet Session correspondant à l'état courant, sans le persister. */
 	toSession: () => Session;
 	/** Enregistre la partie dans l'historique et réinitialise la partie en cours. */
@@ -75,13 +79,15 @@ const EMPTY_STATE: State = {
 	teams: null,
 	openRounds: null,
 	roundCount: null,
+	notes: null,
+	photoUri: null,
 };
 
 // À incrémenter à tout changement incompatible de State, en ajoutant son étape à SESSION_MIGRATIONS.
 export const SESSION_STORE_VERSION = 1;
 
-/** Mêmes règles qu'une partie d'une sauvegarde importée (lib/backupSchema). Les deux derniers
- * champs manquent à une partie enregistrée avant leur ajout (voir State). */
+/** Mêmes règles qu'une partie d'une sauvegarde importée (lib/backupSchema). Les champs optionnels
+ * manquent à une partie enregistrée avant leur ajout (voir State). */
 const sessionStateSchema = z.object({
 	gameDefId: idSchema.nullable(),
 	playerIds: z.array(idSchema).max(MAX_PLAYERS),
@@ -94,6 +100,8 @@ const sessionStateSchema = z.object({
 	teams: teamsSchema.nullable().optional(),
 	openRounds: openRoundsSchema.nullable().optional(),
 	roundCount: z.number().int().min(1).max(MAX_OPEN_ROUNDS).nullable().optional(),
+	notes: z.string().max(MAX_NOTES_LENGTH).nullable().optional(),
+	photoUri: z.string().max(1024).nullable().optional(),
 });
 
 /** Voir MigrationSteps : aucune étape tant que la version 1 est la seule. */
@@ -137,6 +145,8 @@ export const useSessionStore = create<State & Actions>()(
 						teams: setup.teams && setup.teams.length > 0 ? setup.teams : null,
 						openRounds: setup.openRounds ?? null,
 						roundCount: setup.openRounds ? 1 : null,
+						notes: null,
+						photoUri: null,
 					});
 				},
 
@@ -146,6 +156,9 @@ export const useSessionStore = create<State & Actions>()(
 				setRoundCount: (roundCount) => {
 					if (get().openRounds) set({ roundCount });
 				},
+
+				setExtras: ({ notes, photoUri }) =>
+					set({ notes: notes ?? null, photoUri: photoUri ?? null }),
 
 				updateScore: (playerId, scoreKey, points) => {
 					const current = get().entries[playerId];
@@ -195,6 +208,9 @@ export const useSessionStore = create<State & Actions>()(
 						...(state.tieBreakerId && { tieBreakerId: state.tieBreakerId }),
 						...(state.teams && { teams: state.teams }),
 						...(state.openRounds && { openRounds: state.openRounds }),
+						// Mêmes règles que updateSessionExtras : vides, ils sont omis.
+						...(state.notes?.trim() && { notes: state.notes.trim() }),
+						...(state.photoUri && { photoUri: state.photoUri }),
 					};
 				},
 

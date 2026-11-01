@@ -21,6 +21,8 @@ const EMPTY = {
 	teams: null,
 	openRounds: null,
 	roundCount: null,
+	notes: null,
+	photoUri: null,
 };
 
 const now = jest.spyOn(Date, "now");
@@ -241,6 +243,8 @@ describe("persistance de la partie en cours", () => {
 			teams: null,
 			openRounds: null,
 			roundCount: null,
+			notes: null,
+			photoUri: null,
 		});
 	});
 
